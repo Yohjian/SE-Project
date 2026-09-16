@@ -1,2 +1,3 @@
 # SE-Project
- Software Engineering Project at the VU
+
+Software Engineering Project at the VU
