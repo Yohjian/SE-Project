@@ -1,8 +1,11 @@
 client/node_modules
 client/dist
 client/.vite
+client/.prettierrc
 
 server/bin
 server/obj
 server/*.user
+server/**/*.db
+server/**/app.db*
 
