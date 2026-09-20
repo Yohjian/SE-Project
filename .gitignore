@@ -21,7 +21,8 @@ server/obj
 server/*.user
 server/appsettings.Development.json
 server/appsettings.Local.json
-*.DotSettings.user
+server.Tests/bin
+server.Tests/obj
 
 # --- OS-specific junk ---
 .DS_Store
@@ -29,3 +30,6 @@ Thumbs.db
 
 # --- Docker ---
 .env
+
+**/bin
+**/obj
