@@ -34,5 +34,5 @@ export const authApi = {
 	register: (email: string, password: string) =>
 		client.post<{ message: string }>("/auth/register", { email, password }),
 	login: (email: string, password: string) =>
-		client.post<{ message: string }>("auth/login", { email, password }),
+		client.post<{ message: string }>("/auth/login", { email, password }),
 };
