@@ -8,7 +8,7 @@ const client = axios.create({
 });
 
 client.interceptors.request.use((config) => {
-	const login_token = localStorage.getItem("token_login");
+	const login_token = sessionStorage.getItem("token_login");
 	if (login_token) {
 		config.headers.Authorization = `Bearer ${login_token}`;
 	}
@@ -19,7 +19,7 @@ client.interceptors.response.use(
 	(response) => response,
 	(error) => {
 		if (error.response?.status === 401) {
-			localStorage.removeItem("token_login");
+			sessionStorage.removeItem("token_login");
 			window.location.href = "/login";
 		}
 		return Promise.reject(error);

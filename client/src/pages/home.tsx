@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 export default function Home() {
-	const isLoggedIn = Boolean(localStorage.getItem("token_login"));
+	const isLoggedIn = Boolean(sessionStorage.getItem("token_login"));
 
 	return (
 		<div className="flex flex-col items-center justify-center py-20 text-center">

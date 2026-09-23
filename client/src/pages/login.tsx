@@ -15,7 +15,7 @@ export default function Login() {
 		setLoading(true);
 		try {
 			const { data } = await authApi.login(email, password);
-			localStorage.setItem("token_login", data.token);
+			sessionStorage.setItem("token_login", data.token);
 			navigate("/");
 		} catch {
 			setError("Invalid email or password");
