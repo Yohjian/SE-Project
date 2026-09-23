@@ -3,6 +3,9 @@
 *.iml
 *.iws
 
+# --- Neovim config
+client/.prettierrc
+
 # --- VS Code (in case anyone on the team uses it) ---
 .vscode/
 
