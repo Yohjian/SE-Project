@@ -1,11 +1,35 @@
+# --- JetBrains Rider / IntelliJ ---
+.idea/
+*.iml
+*.iws
+
+# --- VS Code (in case anyone on the team uses it) ---
+.vscode/
+
+# --- Client (Node/Vite) ---
 client/node_modules
 client/dist
 client/.vite
-client/.prettierrc
+client/.env
+client/.env.local
+client/*.log
+client/*.tsbuildinfo
 
+# --- Server (.NET) ---
 server/bin
 server/obj
 server/*.user
-server/**/*.db
-server/**/app.db*
+server/appsettings.Development.json
+server/appsettings.Local.json
+server.Tests/bin
+server.Tests/obj
 
+# --- OS-specific junk ---
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+.env
+
+**/bin
+**/obj
