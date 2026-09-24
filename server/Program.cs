@@ -3,6 +3,7 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
@@ -15,7 +16,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -27,11 +27,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }))
-   .WithName("HealthCheck");
-
-app.MapGet("/api/hello", () => Results.Ok(new { message = "Backend loaded sucessfully." }))
-   .WithName("GetHello");
-
+app.MapControllers();
 
 app.Run();
