@@ -69,13 +69,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("DevPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-
-/* app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }))
-   .WithName("HealthCheck");
-
-app.MapGet("/api/hello", () => Results.Ok(new { message = "Backend loaded successfully." }))
-   .WithName("GetHello");
-*/
 app.MapControllers();
 
 // Auto-apply migrations on startup

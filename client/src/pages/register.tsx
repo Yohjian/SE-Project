@@ -7,16 +7,17 @@ export default function Register() {
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [repeatPassword, setRepeatPassword] = useState("");
+	const [passwordMismatch, setPasswordMismatch] = useState(false);
 	const [errors, setErrors] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [passwordMatch, setPasswordMatch] = useState(false);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setErrors([]);
 		setLoading(true);
 
-		if (!passwordMatch) {
+		if (passwordMismatch) {
 			setLoading(false);
 			return;
 		}
@@ -48,12 +49,17 @@ export default function Register() {
 		}
 	};
 
-	const comparePasswords = async (value: string) => {
-		if (value === password) {
-			setPasswordMatch(true);
-			setErrors([]);
-		} else {
-			setErrors(["Passwords do not match"]);
+	const handleRepeatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setRepeatPassword(value);
+		setPasswordMismatch(value !== password);
+	};
+
+	const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setPassword(value);
+		if (repeatPassword.length > 0) {
+			setPasswordMismatch(value !== repeatPassword);
 		}
 	};
 
@@ -89,22 +95,30 @@ export default function Register() {
 						required
 						minLength={8}
 						value={password}
-						onChange={(e) => setPassword(e.target.value)}
+						onChange={handlePasswordChange}
 						className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
 					/>
 				</label>
 				<label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
 					Repeat password
-					<span className="font-normal text-gray-400 text-xs">
-						Repeat password
-					</span>
+					<span className="font-normal text-gray-400 text-xs"></span>
 					<input
 						type="password"
 						required
 						minLength={8}
-						onChange={(e) => comparePasswords(e.target.value)}
-						className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+						value={repeatPassword}
+						onChange={handleRepeatChange}
+						className={`rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+							passwordMismatch
+								? "border-red-500 focus:ring-red-500"
+								: "border-gray-300 focus:ring-indigo-500"
+						}`}
 					/>
+					{passwordMismatch && (
+						<p className="text-xs text-red-500 mt-1">
+							Passwords do not match.
+						</p>
+					)}
 				</label>
 
 				<button
