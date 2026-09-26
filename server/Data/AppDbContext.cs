@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Models;
-//using QuattroLingo.Entities;
+using QuattroLingo.Entity;
 
 namespace QuattroLingo.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<IdentityUser>(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options)
+        : IdentityDbContext<ApplicationUser>(options)
     {
 
         public DbSet<VocabularySet> Sets { set; get; }
@@ -15,7 +16,7 @@ namespace QuattroLingo.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<IdentityUser>().ToTable("Users");
+            builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
             builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");

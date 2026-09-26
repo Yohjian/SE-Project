@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.Service;
 
@@ -6,18 +5,15 @@ namespace QuattroLingo.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(
-        UserManager<IdentityUser> userManager,
-        IConfiguration configuration) : ControllerBase
+    public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] DTO.Request.Register request)
         {
-            var user = new IdentityUser { UserName = request.Email, Email = request.Email };
-            var result = await userManager.CreateAsync(user, request.Password);
+            var result = await authService.RegisterAsync(request.Email, request.Password);
 
             if (!result.Succeeded)
-                return BadRequest(result.Errors.Select(e => new { message = e.Description }));
+                return BadRequest(result.Errors);
 
             return Ok(new { message = "User registered successfully." });
         }
@@ -25,12 +21,12 @@ namespace QuattroLingo.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] DTO.Request.Login request)
         {
-            var user = await userManager.FindByEmailAsync(request.Email);
-            if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
+            var response = await authService.LoginAsync(request.Email, request.Password);
+
+            if (response is null)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            var token = Jwt.GenerateAuthToken(configuration, user);
-            return Ok(new { token, email = user.Email });
+            return Ok(response);
         }
     }
 }
