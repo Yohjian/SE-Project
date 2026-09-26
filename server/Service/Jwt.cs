@@ -1,16 +1,16 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using QuattroLingo.Entity;
 
 namespace QuattroLingo.Service
 {
     public static class Jwt
     {
 
-        public static string GenerateAuthToken(IConfiguration config, IdentityUser user)
+        public static string GenerateAuthToken(IConfiguration config, ApplicationUser user)
         {
             var jwtSection = config.GetSection("Jwt");
             var key = new SymmetricSecurityKey(
