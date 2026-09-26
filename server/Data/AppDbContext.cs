@@ -27,7 +27,7 @@ namespace QuattroLingo.Data
             builder.Entity<VocabularySet>()
             .HasMany(s => s.Cards)
             .WithOne(c => c.Set)
-            .HasForeignKey(c => c.SetID)
+            .HasForeignKey(c => c.SetId)
             .OnDelete(DeleteBehavior.Cascade);
         }
     }

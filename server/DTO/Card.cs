@@ -16,11 +16,11 @@ namespace QuattroLingo.DTO.Request
 
     public record DeleteCard
     (
-        [Required] int ID
+        [Required] int Id
     );
 }
 
 namespace QuattroLingo.DTO.Response
 {
-    public record CardResponse(int ID, string Term, string Definition);
+    public record CardResponse(int Id, string Term, string Definition);
 }

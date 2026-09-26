@@ -30,10 +30,12 @@ client.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
 export interface AuthResponse {
   token: string;
   email: string;
 }
+
 export default client;
 export const authApi = {
   register: (email: string, password: string) =>

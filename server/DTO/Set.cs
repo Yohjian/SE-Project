@@ -10,12 +10,12 @@ namespace QuattroLingo.DTO.Request
     public record RenameSet
     (
         [Required] string NewName,
-        [Required] int ID
+        [Required] int Id
     );
 
     public record DeleteSet
     (
-        [Required] int ID
+        [Required] int Id
     );
 
 }

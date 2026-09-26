@@ -23,25 +23,25 @@ namespace QuattroLingo.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllSets()
         {
-            var userID = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             var sets = await _db.Sets
-                .Where(s => s.UserID == userID)
-                .Select(s => new DTO.Response.SetSummary(s.ID, s.Name, s.Cards.Count, s.CreatedAt))
+                .Where(s => s.UserId == userId)
+                .Select(s => new DTO.Response.SetSummary(s.Id, s.Name, s.Cards.Count, s.CreatedAt))
                 .ToListAsync();
 
             return Ok(sets);
         }
 
-        [HttpGet("{setID}")]
-        public async Task<IActionResult> GetSet(int setID)
+        [HttpGet("{setId}")]
+        public async Task<IActionResult> GetSet(int setId)
         {
-            var userID = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             var set = await _db.Sets
-            .Where(s => s.UserID == userID && s.ID == setID)
+            .Where(s => s.UserId == userId && s.Id == setId)
             .Select(s => new DTO.Response.SetContents(
-                s.ID,
+                s.Id,
                 s.Name,
-                s.Cards.Select(c => new DTO.Response.CardResponse(c.ID, c.Term, c.Definition)).ToList()
+                s.Cards.Select(c => new DTO.Response.CardResponse(c.Id, c.Term, c.Definition)).ToList()
                 )
             )
             .FirstOrDefaultAsync();
@@ -60,7 +60,7 @@ namespace QuattroLingo.Controllers
 
             var set = new VocabularySet
             {
-                UserID = userId,
+                UserId = userId,
                 Name = request.Name,
                 CreatedAt = DateTime.UtcNow,
                 Cards = []
@@ -69,7 +69,7 @@ namespace QuattroLingo.Controllers
             _db.Sets.Add(set);
             await _db.SaveChangesAsync();
 
-            return Ok(new DTO.Response.SetSummary(set.ID, set.Name, 0, set.CreatedAt));
+            return Ok(new DTO.Response.SetSummary(set.Id, set.Name, 0, set.CreatedAt));
         }
     }
 }

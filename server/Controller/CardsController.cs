@@ -21,36 +21,36 @@ namespace QuattroLingo.Controllers
         }
 
         [HttpPost("{setId}/cards")]
-        public async Task<IActionResult> AddCard(int setID, [FromBody] DTO.Request.CreateCard request)
+        public async Task<IActionResult> AddCard(int setId, [FromBody] DTO.Request.CreateCard request)
         {
-            var userID = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-            var set = await _db.Sets.FirstOrDefaultAsync(s => s.ID == setID && s.UserID == userID);
+            var set = await _db.Sets.FirstOrDefaultAsync(s => s.Id == setId && s.UserId == userId);
             if (set == null) return NotFound();
 
             var card = new VocabularyCard
             {
                 Term = request.Term,
                 Definition = request.Definition,
-                SetID = setID
+                SetId = setId
             };
 
             _db.Cards.Add(card);
             await _db.SaveChangesAsync();
 
-            return Ok(new DTO.Response.CardResponse(card.ID, card.Term, card.Definition));
+            return Ok(new DTO.Response.CardResponse(card.Id, card.Term, card.Definition));
         }
 
         [HttpGet("{setId}/cards")]
-        public async Task<IActionResult> GetCards(int setID)
+        public async Task<IActionResult> GetCards(int setId)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var set = await _db.Sets.FirstOrDefaultAsync(s => s.ID == setID && s.UserID == userId);
+            var set = await _db.Sets.FirstOrDefaultAsync(s => s.Id == setId && s.UserId == userId);
             if (set == null) return NotFound();
 
             var cards = await _db.Cards
-                .Where(c => c.SetID == setID)
-                .Select(c => new DTO.Response.CardResponse(c.ID, c.Term, c.Definition))
+                .Where(c => c.SetId == setId)
+                .Select(c => new DTO.Response.CardResponse(c.Id, c.Term, c.Definition))
                 .ToListAsync();
 
             return Ok(cards);
