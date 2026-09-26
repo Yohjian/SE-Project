@@ -18,7 +18,10 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		if (error.response?.status === 401) {
+		const isAuthEndpoint = error.config?.url?.includes("/auth/login") ||
+			error.config?.url?.includes("/auth/register");
+
+		if (error.response?.status === 401 && !isAuthEndpoint) {
 			sessionStorage.removeItem("token_login");
 			window.location.href = "/login";
 		}

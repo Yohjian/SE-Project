@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authApi } from "../api/client";
+import axios from "axios";
 
 export default function Login() {
 	const navigate = useNavigate();
@@ -17,8 +18,14 @@ export default function Login() {
 			const { data } = await authApi.login(email, password);
 			sessionStorage.setItem("token_login", data.token);
 			navigate("/");
-		} catch {
-			setError("Invalid email or password");
+		} catch (err: unknown) {
+			if (axios.isAxiosError(err) && err.response?.status === 401) {
+				setError("Invalid email or password");
+			} else if (axios.isAxiosError(err) && !err.response) {
+				setError("Could not reach the server. Please try again.");
+			} else {
+				setError("Something went wrong. Please try again.");
+			}
 		} finally {
 			setLoading(false);
 		}
