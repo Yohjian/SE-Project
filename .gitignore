@@ -3,8 +3,9 @@
 *.iml
 *.iws
 
-# --- Neovim config
+# --- Neovim config ---
 client/.prettierrc
+server/Data/AppDbContextFactory.cs
 
 # --- VS Code (in case anyone on the team uses it) ---
 .vscode/
