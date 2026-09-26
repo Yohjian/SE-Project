@@ -17,8 +17,6 @@ export default function Sets() {
   const [isSaving, setIsSaving] = useState(false);
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [cards, setCards] = useState<CardResponse[]>([]);
-  const [isAddingSet, setIsAddingSet] = useState(false);
-  const [newSetName, setNewSetName] = useState("");
 
   const termRef = useRef<HTMLInputElement>(null);
 
@@ -34,8 +32,6 @@ export default function Sets() {
       .getAll()
       .then((res) => setSets(res.data))
       .catch(() => showNotification("Failed to load sets."));
-
-    console.log(sets);
   }, []);
 
   // on set change
@@ -72,11 +68,7 @@ export default function Sets() {
     setIsSaving(true);
 
     try {
-      const res: CardResponse = await cardApi.add(
-        selectedSetID,
-        newTerm,
-        newDefinition,
-      );
+      const res = await cardApi.add(selectedSetID, newTerm, newDefinition);
       setCards((prev) => [...prev, res.data]);
       showNotification("Card added.", "success");
     } catch (err: unknown) {

@@ -2,7 +2,7 @@ export interface SetSummary {
   id: number;
   name: string;
   cardCount: number;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface CardResponse {
