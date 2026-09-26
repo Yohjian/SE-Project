@@ -1,0 +1,50 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  height: 60px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.navbar-links a:hover {
+  color: #4f46e5;
+}
+
+.logout-btn {
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.logout-btn:hover {
+  background: #f3f4f6;
+}
+
+.layout-main {
+  flex: 1;
+  overflow: hidden;
+}
