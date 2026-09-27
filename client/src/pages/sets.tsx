@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Tree from "../components/tree";
 import { cardApi, setApi } from "../api/client";
+import axios from "axios";
 
 import "../styles/sets.css";
 import { useNotification } from "../components/notification";
@@ -33,6 +34,13 @@ export default function Sets() {
       .then((res) => setSets(res.data))
       .catch(() => showNotification("Failed to load sets."));
   }, []);
+
+  // auto load first set
+  useEffect(() => {
+    if (sets.length > 0 && selectedSetID === null) {
+      setSelectedSetID(sets[0].id);
+    }
+  }, [sets]);
 
   // on set change
   useEffect(() => {
@@ -72,8 +80,9 @@ export default function Sets() {
       setCards((prev) => [...prev, res.data]);
       showNotification("Card added.", "success");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to add card.";
+      const message = axios.isAxiosError(err)
+        ? err.response?.data
+        : "Failed to add card.";
       showNotification(message);
     } finally {
       handleCancel();

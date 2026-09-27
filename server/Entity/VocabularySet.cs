@@ -1,4 +1,4 @@
-namespace QuattroLingo.Models
+namespace QuattroLingo.Entity
 {
     public class VocabularySet
     {

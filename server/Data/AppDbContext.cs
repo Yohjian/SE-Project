@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using QuattroLingo.Models;
 using QuattroLingo.Entity;
 
 namespace QuattroLingo.Data

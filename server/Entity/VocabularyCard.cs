@@ -1,5 +1,5 @@
 
-namespace QuattroLingo.Models
+namespace QuattroLingo.Entity
 {
     public class VocabularyCard()
     {
