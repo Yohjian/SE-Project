@@ -8,6 +8,9 @@ namespace QuattroLingo.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options)
         : IdentityDbContext<ApplicationUser>(options)
     {
+
+        public DbSet<VocabularySet> Sets { set; get; }
+        public DbSet<VocabularyCard> Cards { set; get; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -19,6 +22,12 @@ namespace QuattroLingo.Data
             builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
+
+            builder.Entity<VocabularySet>()
+            .HasMany(s => s.Cards)
+            .WithOne(c => c.Set)
+            .HasForeignKey(c => c.SetId)
+            .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

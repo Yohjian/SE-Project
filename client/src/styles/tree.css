@@ -1,0 +1,85 @@
+.sidebar {
+  width: 220px;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.sidebar-item:hover {
+  background: #f3f4f6;
+  border-color: #4f46e5;
+}
+
+.sidebar-item.active {
+  background: #4f46e5;
+  color: white;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.sidebar-add-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #6366f1;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.sidebar-add-btn:hover {
+  color: #4f46e5;
+}
+
+.sidebar-new-set {
+  padding: 0.5rem;
+}
+
+.sidebar-new-set input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  outline: none;
+}
