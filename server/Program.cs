@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using QuattroLingo.Service;
 using QuattroLingo.Entity;
+using System.Text.Json;
 
 DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);

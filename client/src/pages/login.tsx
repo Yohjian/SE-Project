@@ -17,7 +17,7 @@ export default function Login() {
     try {
       const { data } = await authApi.login(email, password);
       sessionStorage.setItem("token_login", data.token);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError("Invalid email or password");
