@@ -12,7 +12,7 @@ using QuattroLingo.Data;
 namespace QuattroLingo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260928072842_InitialCreate")]
+    [Migration("20260928081614_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

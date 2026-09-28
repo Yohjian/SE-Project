@@ -15,7 +15,6 @@ client.interceptors.request.use((config) => {
   }
   return config;
 });
-
 client.interceptors.response.use(
   (response) => response,
   (error) => {
