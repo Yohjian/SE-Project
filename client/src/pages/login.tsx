@@ -10,26 +10,26 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault();
-		setError(null);
-		setLoading(true);
-		try {
-			const { data } = await authApi.login(email, password);
-			sessionStorage.setItem("token_login", data.token);
-			navigate("/");
-		} catch (err: unknown) {
-			if (axios.isAxiosError(err) && err.response?.status === 401) {
-				setError("Invalid email or password");
-			} else if (axios.isAxiosError(err) && !err.response) {
-				setError("Could not reach the server. Please try again.");
-			} else {
-				setError("Something went wrong. Please try again.");
-			}
-		} finally {
-			setLoading(false);
-		}
-	};
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { data } = await authApi.login(email, password);
+      sessionStorage.setItem("token_login", data.token);
+      navigate("/");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setError("Invalid email or password");
+      } else if (axios.isAxiosError(err) && !err.response) {
+        setError("Could not reach the server. Please try again.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-sm mx-auto mt-16">
