@@ -241,7 +241,7 @@ namespace QuattroLingo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Language", b =>
@@ -265,7 +265,7 @@ namespace QuattroLingo.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Languages");
+                    b.ToTable("Language");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
@@ -293,7 +293,57 @@ namespace QuattroLingo.Migrations
                     b.HasIndex("WordId", "LanguageId")
                         .IsUnique();
 
-                    b.ToTable("Translations");
+                    b.ToTable("Translation");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Definition")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SetId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Term")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SetId");
+
+                    b.ToTable("Cards");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sets");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
@@ -314,7 +364,7 @@ namespace QuattroLingo.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Words");
+                    b.ToTable("Word");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -387,6 +437,17 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Word");
                 });
 
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
+                {
+                    b.HasOne("QuattroLingo.Entity.VocabularySet", "Set")
+                        .WithMany("Cards")
+                        .HasForeignKey("SetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Set");
+                });
+
             modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
                 {
                     b.HasOne("QuattroLingo.Entity.Category", "Category")
@@ -401,6 +462,11 @@ namespace QuattroLingo.Migrations
             modelBuilder.Entity("QuattroLingo.Entity.Category", b =>
                 {
                     b.Navigation("Words");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
+                {
+                    b.Navigation("Cards");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Word", b =>

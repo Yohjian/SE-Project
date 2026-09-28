@@ -8,11 +8,9 @@ namespace QuattroLingo.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options)
         : IdentityDbContext<ApplicationUser>(options)
     {
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Word> Words { get; set; }
-        public DbSet<Translation> Translations { get; set; }
-        public DbSet<Language> Languages { get; set; }
 
+        public DbSet<VocabularySet> Sets { set; get; }
+        public DbSet<VocabularyCard> Cards { set; get; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -32,6 +30,12 @@ namespace QuattroLingo.Data
             builder.Entity<Translation>()
                 .HasIndex(t => new { t.WordId, t.LanguageId })
                 .IsUnique();
+
+            builder.Entity<VocabularySet>()
+            .HasMany(s => s.Cards)
+            .WithOne(c => c.Set)
+            .HasForeignKey(c => c.SetId)
+            .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
