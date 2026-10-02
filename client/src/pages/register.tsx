@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { authApi } from "../api/client";
+import { getErrorMessages } from "../api/auth";
 
 export default function Register() {
 	const navigate = useNavigate();
@@ -26,24 +26,9 @@ export default function Register() {
 			await authApi.register(email, password);
 			navigate("/login");
 		} catch (err: unknown) {
-			if (axios.isAxiosError(err) && err.response?.data) {
-				const body = err.response.data;
-
-				if (Array.isArray(body)) {
-					setErrors(
-						body.map(
-							(e: { description?: string }) =>
-								e.description ?? JSON.stringify(e),
-						),
-					);
-				} else if (typeof body === "string") {
-					setErrors([body]);
-				} else {
-					setErrors(["Registration failed. Please try again."]);
-				}
-			} else {
-				setErrors(["Could not reach the server."]);
-			}
+			setErrors(
+				getErrorMessages(err, "Registration failed. Please try again."),
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -101,23 +86,19 @@ export default function Register() {
 				</label>
 				<label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
 					Repeat password
-					<span className="font-normal text-gray-400 text-xs"></span>
 					<input
 						type="password"
 						required
 						minLength={8}
 						value={repeatPassword}
 						onChange={handleRepeatChange}
-						className={`rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-							passwordMismatch
+						className={`rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${passwordMismatch
 								? "border-red-500 focus:ring-red-500"
 								: "border-gray-300 focus:ring-indigo-500"
-						}`}
+							}`}
 					/>
 					{passwordMismatch && (
-						<p className="text-xs text-red-500 mt-1">
-							Passwords do not match.
-						</p>
+						<p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
 					)}
 				</label>
 

@@ -1,16 +1,20 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
 namespace QuattroLingo.Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options)
         : IdentityDbContext<ApplicationUser>(options)
     {
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Word> Words { get; set; }
+        public DbSet<Translation> Translations { get; set; }
+        public DbSet<Language> Languages { get; set; }
+        public DbSet<VocabularySet> Sets { get; set; }
+        public DbSet<VocabularyCard> Cards { get; set; }
 
-        public DbSet<VocabularySet> Sets { set; get; }
-        public DbSet<VocabularyCard> Cards { set; get; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -23,11 +27,30 @@ namespace QuattroLingo.Data
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
 
+            builder.Entity<ApplicationUser>(e =>
+            {
+                e.Property(u => u.Role)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .HasDefaultValue(UserRole.User);
+
+                e.Property(u => u.IsActive)
+                    .HasDefaultValue(true);
+            });
+
+            builder.Entity<Language>()
+                .HasIndex(l => l.Code)
+                .IsUnique();
+
+            builder.Entity<Translation>()
+                .HasIndex(t => new { t.WordId, t.LanguageId })
+                .IsUnique();
+
             builder.Entity<VocabularySet>()
-            .HasMany(s => s.Cards)
-            .WithOne(c => c.Set)
-            .HasForeignKey(c => c.SetId)
-            .OnDelete(DeleteBehavior.Cascade);
+                .HasMany(s => s.Cards)
+                .WithOne(c => c.Set)
+                .HasForeignKey(c => c.SetId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

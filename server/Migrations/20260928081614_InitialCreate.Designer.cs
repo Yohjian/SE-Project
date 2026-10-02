@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuattroLingo.Data;
@@ -11,9 +12,11 @@ using QuattroLingo.Data;
 namespace QuattroLingo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260928081614_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,11 +182,6 @@ namespace QuattroLingo.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -206,13 +204,6 @@ namespace QuattroLingo.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("User");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -253,7 +244,7 @@ namespace QuattroLingo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Language", b =>
@@ -277,7 +268,7 @@ namespace QuattroLingo.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Languages");
+                    b.ToTable("Language");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
@@ -305,7 +296,7 @@ namespace QuattroLingo.Migrations
                     b.HasIndex("WordId", "LanguageId")
                         .IsUnique();
 
-                    b.ToTable("Translations");
+                    b.ToTable("Translation");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
@@ -376,7 +367,7 @@ namespace QuattroLingo.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Words");
+                    b.ToTable("Word");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
