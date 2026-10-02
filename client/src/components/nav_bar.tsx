@@ -1,11 +1,12 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import "../styles/nav_bar.css";
 import { NotificationProvider } from "./notification";
+import { clearSession } from "../api/auth";
 
 export default function Layout() {
   const navigate = useNavigate();
-  const handleLogout = async () => {
-    sessionStorage.removeItem("token_login");
+  const handleLogout = () => {
+    clearSession();
     navigate("/login");
   };
 
