@@ -2,111 +2,38 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuattroLingo.Data;
-using QuattroLingo.Entities;
+using QuattroLingo.Exceptions;
+using QuattroLingo.Services;
 
 namespace QuattroLingo.Controllers
 {
     [Authorize]
     [ApiController]
     [Route("api/sets")]
-    public class SetsController : ControllerBase
+    public class SetsController(ISetService setService) : ControllerBase
     {
-        private readonly AppDbContext _db;
-
-        public SetsController(AppDbContext db)
-        {
-            _db = db;
-        }
+        private string UserId =>
+            User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? throw new UnauthorizedException("User id is missing from the token.");
 
         [HttpGet]
-        public async Task<IActionResult> GetAllSets()
-        {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var sets = await _db.Sets
-                .Where(s => s.UserId == userId)
-                .Select(s => new DTOs.Response.SetSummary(s.Id, s.Name, s.Cards.Count, s.CreatedAt))
-                .ToListAsync();
-
-            return Ok(sets);
-        }
+        public async Task<IActionResult> GetAllSets() =>
+            Ok(await setService.GetAllAsync(UserId));
 
         [HttpGet("{setId}")]
-        public async Task<IActionResult> GetSet(int setId)
-        {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var set = await _db.Sets
-            .Where(s => s.UserId == userId && s.Id == setId)
-            .Select(s => new DTOs.Response.SetContents(
-                s.Id,
-                s.Name,
-                s.Cards.Select(c => new DTOs.Response.CardResponse(c.Id, c.Term, c.Definition)).ToList()
-                )
-            )
-            .FirstOrDefaultAsync();
-
-            if (set == null)
-                return NotFound("Set not found.");
-
-            return Ok(set);
-        }
+        public async Task<IActionResult> GetSet(int setId) =>
+            Ok(await setService.GetAsync(UserId, setId));
 
         [HttpPost]
-        public async Task<IActionResult> AddSet([FromBody] DTOs.Request.CreateSet request)
-        {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            if (userId == null) return Unauthorized();
-
-            var set = new VocabularySet
-            {
-                UserId = userId,
-                Name = request.Name,
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-
-            _db.Sets.Add(set);
-            await _db.SaveChangesAsync();
-
-            return Ok(new DTOs.Response.SetSummary(set.Id, set.Name, 0, set.CreatedAt));
-        }
+        public async Task<IActionResult> AddSet([FromBody] DTOs.Request.CreateSet request) =>
+            Ok(await setService.CreateAsync(UserId, request.Name));
 
         [HttpPost("{setId}/cards")]
-        public async Task<IActionResult> AddCard(int setId, [FromBody] DTOs.Request.CreateCard request)
-        {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-            var set = await _db.Sets.FirstOrDefaultAsync(s => s.Id == setId && s.UserId == userId);
-            if (set == null) return NotFound();
-
-            var card = new VocabularyCard
-            {
-                Term = request.Term,
-                Definition = request.Definition,
-                SetId = setId
-            };
-
-            _db.Cards.Add(card);
-            await _db.SaveChangesAsync();
-
-            return Ok(new DTOs.Response.CardResponse(card.Id, card.Term, card.Definition));
-        }
+        public async Task<IActionResult> AddCard(int setId, [FromBody] DTOs.Request.CreateCard request) =>
+            Ok(await setService.AddCardAsync(UserId, setId, request.Term, request.Definition));
 
         [HttpGet("{setId}/cards")]
-        public async Task<IActionResult> GetCards(int setId)
-        {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var set = await _db.Sets.FirstOrDefaultAsync(s => s.Id == setId && s.UserId == userId);
-            if (set == null) return NotFound();
-
-            var cards = await _db.Cards
-                .Where(c => c.SetId == setId)
-                .Select(c => new DTOs.Response.CardResponse(c.Id, c.Term, c.Definition))
-                .ToListAsync();
-
-            return Ok(cards);
-        }
-
+        public async Task<IActionResult> GetCards(int setId) =>
+            Ok(await setService.GetCardsAsync(UserId, setId));
     }
 }
