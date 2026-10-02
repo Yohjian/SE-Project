@@ -1,6 +1,6 @@
-using QuattroLingo.DTO.Response;
+using QuattroLingo.DTOs.Response;
 
-namespace QuattroLingo.Service
+namespace QuattroLingo.Services
 {
     public interface IAuthService
     {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
-namespace QuattroLingo.Repository
+namespace QuattroLingo.Repositories
 {
     public class UserRepository(UserManager<ApplicationUser> userManager) : IUserRepository
     {

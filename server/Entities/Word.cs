@@ -1,4 +1,4 @@
-namespace QuattroLingo.Entity
+namespace QuattroLingo.Entities
 {
     public class Word
     {

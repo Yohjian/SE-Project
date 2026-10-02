@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Data;
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
 namespace QuattroLingo.Controllers
 {
@@ -26,7 +26,7 @@ namespace QuattroLingo.Controllers
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             var sets = await _db.Sets
                 .Where(s => s.UserId == userId)
-                .Select(s => new DTO.Response.SetSummary(s.Id, s.Name, s.Cards.Count, s.CreatedAt))
+                .Select(s => new DTOs.Response.SetSummary(s.Id, s.Name, s.Cards.Count, s.CreatedAt))
                 .ToListAsync();
 
             return Ok(sets);
@@ -38,10 +38,10 @@ namespace QuattroLingo.Controllers
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             var set = await _db.Sets
             .Where(s => s.UserId == userId && s.Id == setId)
-            .Select(s => new DTO.Response.SetContents(
+            .Select(s => new DTOs.Response.SetContents(
                 s.Id,
                 s.Name,
-                s.Cards.Select(c => new DTO.Response.CardResponse(c.Id, c.Term, c.Definition)).ToList()
+                s.Cards.Select(c => new DTOs.Response.CardResponse(c.Id, c.Term, c.Definition)).ToList()
                 )
             )
             .FirstOrDefaultAsync();
@@ -53,7 +53,7 @@ namespace QuattroLingo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddSet([FromBody] DTO.Request.CreateSet request)
+        public async Task<IActionResult> AddSet([FromBody] DTOs.Request.CreateSet request)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (userId == null) return Unauthorized();
@@ -69,11 +69,11 @@ namespace QuattroLingo.Controllers
             _db.Sets.Add(set);
             await _db.SaveChangesAsync();
 
-            return Ok(new DTO.Response.SetSummary(set.Id, set.Name, 0, set.CreatedAt));
+            return Ok(new DTOs.Response.SetSummary(set.Id, set.Name, 0, set.CreatedAt));
         }
 
         [HttpPost("{setId}/cards")]
-        public async Task<IActionResult> AddCard(int setId, [FromBody] DTO.Request.CreateCard request)
+        public async Task<IActionResult> AddCard(int setId, [FromBody] DTOs.Request.CreateCard request)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
@@ -90,7 +90,7 @@ namespace QuattroLingo.Controllers
             _db.Cards.Add(card);
             await _db.SaveChangesAsync();
 
-            return Ok(new DTO.Response.CardResponse(card.Id, card.Term, card.Definition));
+            return Ok(new DTOs.Response.CardResponse(card.Id, card.Term, card.Definition));
         }
 
         [HttpGet("{setId}/cards")]
@@ -102,7 +102,7 @@ namespace QuattroLingo.Controllers
 
             var cards = await _db.Cards
                 .Where(c => c.SetId == setId)
-                .Select(c => new DTO.Response.CardResponse(c.Id, c.Term, c.Definition))
+                .Select(c => new DTOs.Response.CardResponse(c.Id, c.Term, c.Definition))
                 .ToListAsync();
 
             return Ok(cards);

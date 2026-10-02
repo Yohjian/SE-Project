@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
-using QuattroLingo.Service;
-using QuattroLingo.Entity;
+using QuattroLingo.Services;
+using QuattroLingo.Entities;
 using QuattroLingo.Middleware;
-using QuattroLingo.Repository;
+using QuattroLingo.Repositories;
 using System.Text.Json;
 
 DotNetEnv.Env.Load();

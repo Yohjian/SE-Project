@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuattroLingo.Service;
+using QuattroLingo.Services;
 
 namespace QuattroLingo.Controllers
 {
@@ -11,14 +11,14 @@ namespace QuattroLingo.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] DTO.Request.Register request)
+        public async Task<IActionResult> Register([FromBody] DTOs.Request.Register request)
         {
             await authService.RegisterAsync(request.Email, request.Password);
             return Ok(new { message = "User registered successfully." });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] DTO.Request.Login request)
+        public async Task<IActionResult> Login([FromBody] DTOs.Request.Login request)
         {
             var response = await authService.LoginAsync(request.Email, request.Password);
             return Ok(response);

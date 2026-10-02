@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace QuattroLingo.DTO.Request
+namespace QuattroLingo.DTOs.Request
 {
     public record CreateCard
     (
@@ -20,7 +20,7 @@ namespace QuattroLingo.DTO.Request
     );
 }
 
-namespace QuattroLingo.DTO.Response
+namespace QuattroLingo.DTOs.Response
 {
     public record CardResponse(int Id, string Term, string Definition);
 }

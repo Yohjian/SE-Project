@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
-namespace QuattroLingo.Service
+namespace QuattroLingo.Services
 {
     public class TokenService(IConfiguration config) : ITokenService
     {

@@ -1,6 +1,6 @@
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
-namespace QuattroLingo.Service
+namespace QuattroLingo.Services
 {
     public interface ITokenService
     {

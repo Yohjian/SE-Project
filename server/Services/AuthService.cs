@@ -1,9 +1,9 @@
-using QuattroLingo.DTO.Response;
-using QuattroLingo.Entity;
+using QuattroLingo.DTOs.Response;
+using QuattroLingo.Entities;
 using QuattroLingo.Exceptions;
-using QuattroLingo.Repository;
+using QuattroLingo.Repositories;
 
-namespace QuattroLingo.Service
+namespace QuattroLingo.Services
 {
     public class AuthService(IUserRepository users, ITokenService tokens) : IAuthService
     {

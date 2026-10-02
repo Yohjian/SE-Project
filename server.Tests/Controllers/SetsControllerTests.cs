@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Controllers;
 using QuattroLingo.Data;
-using QuattroLingo.DTO.Request;
-using QuattroLingo.DTO.Response;
-using QuattroLingo.Entity;
+using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
+using QuattroLingo.Entities;
 
 namespace QuattroLingo.Tests
 {

@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Configuration;
-using QuattroLingo.Entity;
-using QuattroLingo.Service;
+using QuattroLingo.Entities;
+using QuattroLingo.Services;
 
 namespace QuattroLingo.Tests.Services;
 

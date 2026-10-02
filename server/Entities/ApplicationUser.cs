@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace QuattroLingo.Entity
+namespace QuattroLingo.Entities
 {
     public class ApplicationUser : IdentityUser
     {
