@@ -1,27 +1,44 @@
-using Microsoft.AspNetCore.Identity;
 using QuattroLingo.DTO.Response;
 using QuattroLingo.Entity;
+using QuattroLingo.Exceptions;
+using QuattroLingo.Repository;
 
 namespace QuattroLingo.Service
 {
-    public class AuthService(
-        UserManager<ApplicationUser> userManager,
-        IConfiguration configuration) : IAuthService
+    public class AuthService(IUserRepository users, ITokenService tokens) : IAuthService
     {
-        public async Task<IdentityResult> RegisterAsync(string email, string password)
+        public async Task RegisterAsync(string email, string password)
         {
-            var user = new ApplicationUser { UserName = email, Email = email };
-            return await userManager.CreateAsync(user, password);
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                Role = UserRole.User,
+                IsActive = true
+            };
+
+            var result = await users.CreateAsync(user, password);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.Code)
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray());
+
+                throw new ValidationException("Registration failed.", errors);
+            }
         }
 
-        public async Task<AuthResponse?> LoginAsync(string email, string password)
+        public async Task<AuthResponse> LoginAsync(string email, string password)
         {
-            var user = await userManager.FindByEmailAsync(email);
-            if (user is null || !await userManager.CheckPasswordAsync(user, password))
-                return null;
+            var user = await users.FindByEmailAsync(email);
 
-            var token = Jwt.GenerateAuthToken(configuration, user);
-            return new AuthResponse(token, user.Email!);
+            if (user is null || !await users.CheckPasswordAsync(user, password))
+                throw new UnauthorizedException("Invalid email or password.");
+
+            if (!user.IsActive)
+                throw new ForbiddenException("This account has been deactivated.");
+
+            return new AuthResponse(tokens.GenerateAuthToken(user), user.Email!, user.Role.ToString());
         }
     }
 }

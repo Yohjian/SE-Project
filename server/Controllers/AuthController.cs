@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.Service;
 
@@ -10,11 +13,7 @@ namespace QuattroLingo.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] DTO.Request.Register request)
         {
-            var result = await authService.RegisterAsync(request.Email, request.Password);
-
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
+            await authService.RegisterAsync(request.Email, request.Password);
             return Ok(new { message = "User registered successfully." });
         }
 
@@ -22,11 +21,16 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> Login([FromBody] DTO.Request.Login request)
         {
             var response = await authService.LoginAsync(request.Email, request.Password);
-
-            if (response is null)
-                return Unauthorized(new { message = "Invalid email or password." });
-
             return Ok(response);
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me() => Ok(new
+        {
+            id = User.FindFirstValue(JwtRegisteredClaimNames.Sub),
+            email = User.FindFirstValue(JwtRegisteredClaimNames.Email),
+            role = User.FindFirstValue(TokenService.RoleClaimType)
+        });
     }
 }

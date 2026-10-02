@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using QuattroLingo.Service;
 using QuattroLingo.Entity;
+using QuattroLingo.Middleware;
+using QuattroLingo.Repository;
 using System.Text.Json;
 
 DotNetEnv.Env.Load();
@@ -46,6 +48,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSection["Issuer"],
         ValidAudience = jwtSection["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = TokenService.RoleClaimType,
     };
 });
 
@@ -65,9 +68,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

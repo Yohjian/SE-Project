@@ -27,6 +27,17 @@ namespace QuattroLingo.Data
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
 
+            builder.Entity<ApplicationUser>(e =>
+            {
+                e.Property(u => u.Role)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .HasDefaultValue(UserRole.User);
+
+                e.Property(u => u.IsActive)
+                    .HasDefaultValue(true);
+            });
+
             builder.Entity<Language>()
                 .HasIndex(l => l.Code)
                 .IsUnique();
