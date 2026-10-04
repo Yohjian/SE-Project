@@ -12,8 +12,8 @@ using QuattroLingo.Data;
 namespace QuattroLingo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260926214741_FixVocabularySetNameProperty")]
-    partial class FixVocabularySetNameProperty
+    [Migration("20260928081614_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -227,7 +227,79 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("QuattroLingo.Models.VocabularyCard", b =>
+            modelBuilder.Entity("QuattroLingo.Entity.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Category");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.Language", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Language");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("WordId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("WordId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("Translation");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -253,7 +325,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Models.VocabularySet", b =>
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -275,6 +347,27 @@ namespace QuattroLingo.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sets");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Word");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -328,9 +421,28 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("QuattroLingo.Models.VocabularyCard", b =>
+            modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
                 {
-                    b.HasOne("QuattroLingo.Models.VocabularySet", "Set")
+                    b.HasOne("QuattroLingo.Entity.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuattroLingo.Entity.Word", "Word")
+                        .WithMany("Translations")
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Word");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
+                {
+                    b.HasOne("QuattroLingo.Entity.VocabularySet", "Set")
                         .WithMany("Cards")
                         .HasForeignKey("SetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -339,9 +451,30 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Set");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Models.VocabularySet", b =>
+            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+                {
+                    b.HasOne("QuattroLingo.Entity.Category", "Category")
+                        .WithMany("Words")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.Category", b =>
+                {
+                    b.Navigation("Words");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
                 {
                     b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+                {
+                    b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618
         }
