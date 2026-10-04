@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using QuattroLingo.Entity;
+using QuattroLingo.Entities;
 
 namespace QuattroLingo.Data
 {
@@ -26,6 +26,17 @@ namespace QuattroLingo.Data
             builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
+
+            builder.Entity<ApplicationUser>(e =>
+            {
+                e.Property(u => u.Role)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .HasDefaultValue(UserRole.User);
+
+                e.Property(u => u.IsActive)
+                    .HasDefaultValue(true);
+            });
 
             builder.Entity<Language>()
                 .HasIndex(l => l.Code)

@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
-using QuattroLingo.Service;
-using QuattroLingo.Entity;
+using QuattroLingo.Services;
+using QuattroLingo.Entities;
+using QuattroLingo.Middleware;
+using QuattroLingo.Repositories;
 using System.Text.Json;
 
 DotNetEnv.Env.Load();
@@ -46,6 +48,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSection["Issuer"],
         ValidAudience = jwtSection["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = TokenService.RoleClaimType,
     };
 });
 
@@ -65,9 +68,16 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISetRepository, SetRepository>();
+builder.Services.AddScoped<ISetService, SetService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -84,7 +94,10 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+        db.Database.Migrate();
 }
 
 app.Run();
+
+public partial class Program { }

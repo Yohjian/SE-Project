@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Controllers;
 using QuattroLingo.Data;
-using QuattroLingo.DTO.Request;
-using QuattroLingo.DTO.Response;
-using QuattroLingo.Entity;
+using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
+using QuattroLingo.Entities;
+using QuattroLingo.Exceptions;
+using QuattroLingo.Repositories;
+using QuattroLingo.Services;
 
 namespace QuattroLingo.Tests
 {
@@ -22,7 +25,7 @@ namespace QuattroLingo.Tests
 
         private static SetsController CreateController(AppDbContext db, string userId)
         {
-            var controller = new SetsController(db);
+            var controller = new SetsController(new SetService(new SetRepository(db)));
 
             var claims = new List<Claim>
             {
@@ -59,7 +62,7 @@ namespace QuattroLingo.Tests
         }
 
         [Fact]
-        public async Task GetSet_OtherUsersSet_ReturnsNotFound()
+        public async Task GetSet_OtherUsersSet_ThrowsNotFound()
         {
             await using var db = CreateDb();
             var otherUsersSet = new VocabularySet
@@ -73,9 +76,8 @@ namespace QuattroLingo.Tests
             await db.SaveChangesAsync();
 
             var controller = CreateController(db, "user-a");
-            var result = await controller.GetSet(otherUsersSet.Id);
 
-            Assert.IsType<NotFoundObjectResult>(result);
+            await Assert.ThrowsAsync<NotFoundException>(() => controller.GetSet(otherUsersSet.Id));
         }
 
         [Fact]
@@ -114,7 +116,7 @@ namespace QuattroLingo.Tests
         }
 
         [Fact]
-        public async Task AddCard_ToOtherUsersSet_ReturnsNotFound()
+        public async Task AddCard_ToOtherUsersSet_ThrowsNotFound_AndSavesNothing()
         {
             await using var db = CreateDb();
             var otherUsersSet = new VocabularySet
@@ -128,9 +130,10 @@ namespace QuattroLingo.Tests
             await db.SaveChangesAsync();
 
             var controller = CreateController(db, "user-a");
-            var result = await controller.AddCard(otherUsersSet.Id, new CreateCard("term", "definition"));
 
-            Assert.IsType<NotFoundResult>(result);
+            await Assert.ThrowsAsync<NotFoundException>(
+                () => controller.AddCard(otherUsersSet.Id, new CreateCard("term", "definition")));
+
             Assert.Empty(db.Cards);
         }
 
@@ -158,7 +161,7 @@ namespace QuattroLingo.Tests
         }
 
         [Fact]
-        public async Task GetCards_ForOtherUsersSet_ReturnsNotFound()
+        public async Task GetCards_ForOtherUsersSet_ThrowsNotFound()
         {
             await using var db = CreateDb();
             var otherUsersSet = new VocabularySet
@@ -169,13 +172,14 @@ namespace QuattroLingo.Tests
                 Cards = []
             };
             db.Sets.Add(otherUsersSet);
+            await db.SaveChangesAsync();
+
             db.Cards.Add(new VocabularyCard { Term = "secret", Definition = "shh", SetId = otherUsersSet.Id });
             await db.SaveChangesAsync();
 
             var controller = CreateController(db, "user-a");
-            var result = await controller.GetCards(otherUsersSet.Id);
 
-            Assert.IsType<NotFoundResult>(result);
+            await Assert.ThrowsAsync<NotFoundException>(() => controller.GetCards(otherUsersSet.Id));
         }
     }
 }

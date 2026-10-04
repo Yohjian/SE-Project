@@ -1,5 +1,6 @@
 import axios from "axios";
 import { CardResponse, SetSummary } from "./types";
+import { clearSession, getToken } from "./auth";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
@@ -9,9 +10,9 @@ const client = axios.create({
 });
 
 client.interceptors.request.use((config) => {
-  const login_token = sessionStorage.getItem("token_login");
-  if (login_token) {
-    config.headers.Authorization = `Bearer ${login_token}`;
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -23,7 +24,7 @@ client.interceptors.response.use(
       error.config?.url?.includes("/auth/register");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      sessionStorage.removeItem("token_login");
+      clearSession();
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -33,17 +34,16 @@ client.interceptors.response.use(
 export interface AuthResponse {
   token: string;
   email: string;
+  role: string;
 }
 
 export default client;
+
 export const authApi = {
   register: (email: string, password: string) =>
     client.post<{ message: string }>("/auth/register", { email, password }),
   login: (email: string, password: string) =>
-    client.post<{ token: string; email: string }>("/auth/login", {
-      email,
-      password,
-    }),
+    client.post<AuthResponse>("/auth/login", { email, password }),
 };
 
 export const setApi = {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace QuattroLingo.DTO.Request
+namespace QuattroLingo.DTOs.Request
 {
     public record Register(
     [Required, EmailAddress] string Email,
