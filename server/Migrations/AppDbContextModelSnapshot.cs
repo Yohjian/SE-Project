@@ -154,7 +154,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.ApplicationUser", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -236,7 +236,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Category", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -256,7 +256,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Language", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Language", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -280,7 +280,74 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Languages");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("Participants");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HostId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("JoinCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("QuizId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RoomVisibility")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,7 +375,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Translations");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -334,7 +401,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -358,7 +425,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Sets");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -390,7 +457,7 @@ namespace QuattroLingo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.ApplicationUser", null)
+                    b.HasOne("QuattroLingo.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -399,7 +466,7 @@ namespace QuattroLingo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.ApplicationUser", null)
+                    b.HasOne("QuattroLingo.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -414,7 +481,7 @@ namespace QuattroLingo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuattroLingo.Entity.ApplicationUser", null)
+                    b.HasOne("QuattroLingo.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -423,22 +490,33 @@ namespace QuattroLingo.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.ApplicationUser", null)
+                    b.HasOne("QuattroLingo.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Translation", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.Language", "Language")
+                    b.HasOne("QuattroLingo.Entities.Room", "Room")
+                        .WithMany("Participants")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
+                {
+                    b.HasOne("QuattroLingo.Entities.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuattroLingo.Entity.Word", "Word")
+                    b.HasOne("QuattroLingo.Entities.Word", "Word")
                         .WithMany("Translations")
                         .HasForeignKey("WordId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -449,9 +527,9 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Word");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.VocabularyCard", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.VocabularySet", "Set")
+                    b.HasOne("QuattroLingo.Entities.VocabularySet", "Set")
                         .WithMany("Cards")
                         .HasForeignKey("SetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -460,9 +538,9 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Set");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
                 {
-                    b.HasOne("QuattroLingo.Entity.Category", "Category")
+                    b.HasOne("QuattroLingo.Entities.Category", "Category")
                         .WithMany("Words")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -471,17 +549,22 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Category", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Category", b =>
                 {
                     b.Navigation("Words");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.VocabularySet", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
+                {
+                    b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>
                 {
                     b.Navigation("Cards");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entity.Word", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
                 {
                     b.Navigation("Translations");
                 });
