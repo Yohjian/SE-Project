@@ -1,13 +1,14 @@
-using QuattroLingo.Entities;
+using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
 
 namespace QuattroLingo.Services
 {
     public interface IQuizService
     {
-        Task<List<Quiz>> GetMyQuizzesAsync(string userId);
-        Task<Quiz?> GetByIdAsync(int id);
-        Task<Quiz> CreateAsync(Quiz quiz, string userId);
-        Task UpdateAsync(int id, Quiz updatedQuiz, string userId);
-        Task DeleteAsync(int id, string userId);
+        Task<List<QuizSummary>> GetMyQuizzesAsync(string userId);
+        Task<QuizEditorResponse?> GetByIdAsync(string userId, int quizId);
+        Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request);
+        Task<QuizEditorResponse> UpdateAsync(string userId, int quizId, UpdateQuizRequest request);
+        Task DeleteAsync(string userId, int quizId);
     }
 }
