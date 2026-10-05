@@ -65,5 +65,86 @@ namespace QuattroLingo.Controllers
 
             return NoContent();
         }
+        [HttpPost("{quizId}/questions")]
+        public async Task<IActionResult> AddQuestion(
+            int quizId,
+            QuestionRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var result = await quizzes.AddQuestionAsync(
+                userId,
+                quizId,
+                request);
+
+            return Ok(result);
+        }
+
+        [HttpPut("questions/{questionId}")]
+        public async Task<IActionResult> UpdateQuestion(
+            int questionId,
+            QuestionRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var result = await quizzes.UpdateQuestionAsync(
+                userId,
+                questionId,
+                request);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("questions/{questionId}")]
+        public async Task<IActionResult> DeleteQuestion(int questionId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            await quizzes.DeleteQuestionAsync(userId, questionId);
+
+            return NoContent();
+        }
+
+        [HttpPost("questions/{questionId}/answers")]
+        public async Task<IActionResult> AddAnswerOption(
+            int questionId,
+            AnswerOptionRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var result = await quizzes.AddAnswerOptionAsync(
+                userId,
+                questionId,
+                request);
+
+            return Ok(result);
+        }
+
+        [HttpPut("answers/{answerOptionId}")]
+        public async Task<IActionResult> UpdateAnswerOption(
+            int answerOptionId,
+            AnswerOptionRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var result = await quizzes.UpdateAnswerOptionAsync(
+                userId,
+                answerOptionId,
+                request);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("answers/{answerOptionId}")]
+        public async Task<IActionResult> DeleteAnswerOption(int answerOptionId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            await quizzes.DeleteAnswerOptionAsync(
+                userId,
+                answerOptionId);
+
+            return NoContent();
+        }
     }
 }
