@@ -1,0 +1,28 @@
+.quiz-editor-page {
+  padding: 2rem;
+}
+
+.quiz-editor-page h1 {
+  margin-bottom: 2rem;
+}
+
+.quiz-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 600px;
+}
+
+.quiz-editor-form input,
+.quiz-editor-form textarea {
+  padding: 0.75rem;
+}
+
+.quiz-editor-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.quiz-editor-form button {
+  align-self: flex-start;
+}

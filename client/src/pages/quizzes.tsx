@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { quizApi } from "../api/client";
 import { QuizSummary } from "../api/types";
 import { useNotification } from "../components/notification";
+import { useNavigate } from "react-router-dom";
 
 import "../styles/quizzes.css";
 
@@ -9,6 +10,7 @@ export default function Quizzes() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [title, setTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const navigate = useNavigate();
 
   const { showNotification } = useNotification();
 
@@ -26,12 +28,7 @@ export default function Quizzes() {
     }
 
     try {
-      const res = await quizApi.create({
-        title,
-        description: null,
-        questions: [],
-      });
-
+      const res = await quizApi.create({title, description: null, questions: []});
       setQuizzes((prev) => [
         ...prev,
         {
@@ -49,10 +46,7 @@ export default function Quizzes() {
     }
   };
 
-  const handleCancel = () => {
-    setTitle("");
-    setIsAdding(false);
-  };
+  const handleCancel = () => {setTitle(""); setIsAdding(false)};
 
   return (
     <div className="quizzes-page">
@@ -76,7 +70,7 @@ export default function Quizzes() {
 
       <div className="quiz-grid">
         {quizzes.map((quiz) => (
-          <div className="quiz-card" key={quiz.id}>
+          <div className="quiz-card" key={quiz.id} onClick={() => navigate(`/quizzes/${quiz.id}`)}>
             <strong>{quiz.title}</strong>
             {quiz.description && <span>{quiz.description}</span>}
           </div>
