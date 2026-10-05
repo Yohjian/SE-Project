@@ -15,6 +15,8 @@ namespace QuattroLingo.Services
         private const string TitleRequired = "Quiz title is required.";
         private const string MinimumAnswers = "A question must have at least 2 answer options.";
         private const string OneCorrectAnswer = "A question must have exactly one correct answer.";
+        private const string CannotDeleteAnswer = "A question must have at least 2 answer options.";
+        private const string CannotChangeCorrectAnswer = "A question must have exactly one correct answer.";
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
         {
@@ -80,10 +82,7 @@ namespace QuattroLingo.Services
             await quizzes.DeleteAsync(quiz);
         }
 
-        public async Task<QuestionResponse> AddQuestionAsync(
-            string userId,
-            int quizId,
-            QuestionRequest request)
+        public async Task<QuestionResponse> AddQuestionAsync(string userId, int quizId, QuestionRequest request)
         {
             var quiz = await quizzes.GetByIdAsync(quizId)
                 ?? throw new NotFoundException(QuizNotFound);
@@ -101,10 +100,7 @@ namespace QuattroLingo.Services
             return ToQuestionResponse(question);
         }
 
-        public async Task<QuestionResponse> UpdateQuestionAsync(
-            string userId,
-            int questionId,
-            QuestionRequest request)
+        public async Task<QuestionResponse> UpdateQuestionAsync(string userId, int questionId, QuestionRequest request)
         {
             var question = await quizzes.GetQuestionByIdAsync(questionId)
                 ?? throw new NotFoundException(QuestionNotFound);
@@ -118,13 +114,11 @@ namespace QuattroLingo.Services
             question.TimeLimitSeconds = request.TimeLimitSeconds;
             question.Points = request.Points;
             question.OrderIndex = request.OrderIndex;
-            question.AnswerOptions = request.AnswerOptions
-                .Select(a => new AnswerOption
-                {
-                    Text = a.Text,
-                    IsCorrect = a.IsCorrect
-                })
-                .ToList();
+            question.AnswerOptions = request.AnswerOptions.Select(a => new AnswerOption
+            {
+                Text = a.Text,
+                IsCorrect = a.IsCorrect
+            }).ToList();
 
             await quizzes.SaveChangesAsync();
 
@@ -142,16 +136,16 @@ namespace QuattroLingo.Services
             await quizzes.DeleteQuestionAsync(question);
         }
 
-        public async Task<AnswerOptionResponse> AddAnswerOptionAsync(
-            string userId,
-            int questionId,
-            AnswerOptionRequest request)
+        public async Task<AnswerOptionResponse> AddAnswerOptionAsync(string userId, int questionId, AnswerOptionRequest request)
         {
             var question = await quizzes.GetQuestionByIdAsync(questionId)
                 ?? throw new NotFoundException(QuestionNotFound);
 
             if (question.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+
+            if (request.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
+                throw new ValidationException(CannotChangeCorrectAnswer);
 
             var answerOption = new AnswerOption
             {
@@ -162,102 +156,57 @@ namespace QuattroLingo.Services
 
             await quizzes.AddAnswerOptionAsync(answerOption);
 
-            return new AnswerOptionResponse(
-                answerOption.Id,
-                answerOption.Text,
-                answerOption.IsCorrect);
+            return new AnswerOptionResponse(answerOption.Id, answerOption.Text, answerOption.IsCorrect);
         }
 
-            public async Task<AnswerOptionResponse> UpdateAnswerOptionAsync(
-                string userId,
-                int answerOptionId,
-                AnswerOptionRequest request)
-            {
-                var answerOption = await quizzes.GetAnswerOptionByIdAsync(answerOptionId)
-                    ?? throw new NotFoundException(AnswerOptionNotFound);
+        public async Task<AnswerOptionResponse> UpdateAnswerOptionAsync(string userId, int answerOptionId, AnswerOptionRequest request)
+        {
+            var answerOption = await quizzes.GetAnswerOptionByIdAsync(answerOptionId)
+                ?? throw new NotFoundException(AnswerOptionNotFound);
 
-                if (answerOption.Question?.Quiz?.OwnerId != userId)
-                    throw new ForbiddenException(QuizForbidden);
+            if (answerOption.Question?.Quiz?.OwnerId != userId)
+                throw new ForbiddenException(QuizForbidden);
 
-                answerOption.Text = request.Text;
-                answerOption.IsCorrect = request.IsCorrect;
+            var question = answerOption.Question;
 
-                await quizzes.SaveChangesAsync();
+            if (request.IsCorrect && !answerOption.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
+                throw new ValidationException(CannotChangeCorrectAnswer);
 
-                return new AnswerOptionResponse(
-                    answerOption.Id,
-                    answerOption.Text,
-                    answerOption.IsCorrect);
-            }
+            if (!request.IsCorrect && answerOption.IsCorrect)
+                throw new ValidationException(CannotChangeCorrectAnswer);
 
-            public async Task DeleteAnswerOptionAsync(
-                string userId,
-                int answerOptionId)
-            {
-                var answerOption = await quizzes.GetAnswerOptionByIdAsync(answerOptionId)
-                    ?? throw new NotFoundException(AnswerOptionNotFound);
+            answerOption.Text = request.Text;
+            answerOption.IsCorrect = request.IsCorrect;
 
-                if (answerOption.Question?.Quiz?.OwnerId != userId)
-                    throw new ForbiddenException(QuizForbidden);
+            await quizzes.SaveChangesAsync();
 
-                await quizzes.DeleteAnswerOptionAsync(answerOption);
-            }
+            return new AnswerOptionResponse(answerOption.Id, answerOption.Text, answerOption.IsCorrect);
+        }
+
+        public async Task DeleteAnswerOptionAsync(string userId, int answerOptionId)
+        {
+            var answerOption = await quizzes.GetAnswerOptionByIdAsync(answerOptionId)
+                ?? throw new NotFoundException(AnswerOptionNotFound);
+
+            if (answerOption.Question?.Quiz?.OwnerId != userId)
+                throw new ForbiddenException(QuizForbidden);
+
+            if (answerOption.Question.AnswerOptions.Count <= 2)
+                throw new ValidationException(CannotDeleteAnswer);
+
+            if (answerOption.IsCorrect)
+                throw new ValidationException(CannotChangeCorrectAnswer);
+
+            await quizzes.DeleteAnswerOptionAsync(answerOption);
+        }
+
         private static void ValidateQuiz(string title, List<QuestionRequest> questions)
         {
             if (string.IsNullOrWhiteSpace(title))
                 throw new ValidationException(TitleRequired);
 
             foreach (var question in questions)
-            {
-                if (question.AnswerOptions.Count < 2)
-                    throw new ValidationException(MinimumAnswers);
-
-                if (question.AnswerOptions.Count(a => a.IsCorrect) != 1)
-                    throw new ValidationException(OneCorrectAnswer);
-            }
-        }
-         private static Question ToQuestion(QuestionRequest request)
-        {
-            return new Question
-            {
-                Text = request.Text,
-                TimeLimitSeconds = request.TimeLimitSeconds,
-                Points = request.Points,
-                OrderIndex = request.OrderIndex,
-
-                AnswerOptions = request.AnswerOptions
-                    .Select(a => new AnswerOption
-                    {
-                        Text = a.Text,
-                        IsCorrect = a.IsCorrect
-                    })
-                    .ToList()
-            };
-        }
-
-        private static QuizEditorResponse ToResponse(Quiz quiz)
-        {
-            return new QuizEditorResponse(
-                quiz.Id,
-                quiz.Title,
-                quiz.Description,
-
-                quiz.Questions
-                    .OrderBy(q => q.OrderIndex)
-                    .Select(q => new QuestionResponse(
-                        q.Id,
-                        q.Text,
-                        q.TimeLimitSeconds,
-                        q.Points,
-                        q.OrderIndex,
-
-                        q.AnswerOptions
-                            .Select(a => new AnswerOptionResponse(
-                                a.Id,
-                                a.Text,
-                                a.IsCorrect))
-                            .ToList()))
-                    .ToList());
+                ValidateQuestion(question);
         }
 
         private static void ValidateQuestion(QuestionRequest question)
@@ -268,21 +217,35 @@ namespace QuattroLingo.Services
             if (question.AnswerOptions.Count(a => a.IsCorrect) != 1)
                 throw new ValidationException(OneCorrectAnswer);
         }
-        
+
+        private static Question ToQuestion(QuestionRequest request)
+        {
+            return new Question
+            {
+                Text = request.Text,
+                TimeLimitSeconds = request.TimeLimitSeconds,
+                Points = request.Points,
+                OrderIndex = request.OrderIndex,
+                AnswerOptions = request.AnswerOptions.Select(a => new AnswerOption
+                {
+                    Text = a.Text,
+                    IsCorrect = a.IsCorrect
+                }).ToList()
+            };
+        }
+
+        private static QuizEditorResponse ToResponse(Quiz quiz)
+        {
+            return new QuizEditorResponse(quiz.Id, quiz.Title, quiz.Description, quiz.Questions.OrderBy(q => q.OrderIndex)
+                .Select(q => new QuestionResponse(q.Id, q.Text, q.TimeLimitSeconds, q.Points, q.OrderIndex,
+                    q.AnswerOptions.Select(a => new AnswerOptionResponse(a.Id, a.Text, a.IsCorrect)).ToList()))
+                .ToList());
+        }
+
         private static QuestionResponse ToQuestionResponse(Question question)
         {
-            return new QuestionResponse(
-                question.Id,
-                question.Text,
-                question.TimeLimitSeconds,
-                question.Points,
-                question.OrderIndex,
-                question.AnswerOptions
-                    .Select(a => new AnswerOptionResponse(
-                        a.Id,
-                        a.Text,
-                        a.IsCorrect))
-                    .ToList());
+            return new QuestionResponse(question.Id, question.Text, question.TimeLimitSeconds, question.Points, question.OrderIndex,
+                question.AnswerOptions.Select(a => new AnswerOptionResponse(a.Id, a.Text, a.IsCorrect)).ToList());
         }
     }
 }
