@@ -11,7 +11,7 @@ using QuattroLingo.Middleware;
 using QuattroLingo.Repositories;
 using System.Text.Json;
 
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load(); // add ".env" when making migration
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>

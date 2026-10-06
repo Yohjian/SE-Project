@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Services;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace QuattroLingo.Controllers
 {
@@ -14,7 +15,7 @@ namespace QuattroLingo.Controllers
         [HttpGet("mine")]
         public async Task<IActionResult> GetMine()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.GetMyQuizzesAsync(userId);
 
@@ -24,7 +25,7 @@ namespace QuattroLingo.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.GetByIdAsync(userId, id);
 
@@ -34,7 +35,7 @@ namespace QuattroLingo.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateQuizRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.CreateAsync(userId, request);
 
@@ -49,7 +50,7 @@ namespace QuattroLingo.Controllers
             int id,
             UpdateQuizRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.UpdateAsync(userId, id, request);
 
@@ -59,7 +60,7 @@ namespace QuattroLingo.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             await quizzes.DeleteAsync(userId, id);
 
@@ -70,7 +71,7 @@ namespace QuattroLingo.Controllers
             int quizId,
             QuestionRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.AddQuestionAsync(
                 userId,
@@ -85,7 +86,7 @@ namespace QuattroLingo.Controllers
             int questionId,
             QuestionRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.UpdateQuestionAsync(
                 userId,
@@ -98,7 +99,7 @@ namespace QuattroLingo.Controllers
         [HttpDelete("questions/{questionId}")]
         public async Task<IActionResult> DeleteQuestion(int questionId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             await quizzes.DeleteQuestionAsync(userId, questionId);
 
@@ -110,7 +111,7 @@ namespace QuattroLingo.Controllers
             int questionId,
             AnswerOptionRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.AddAnswerOptionAsync(
                 userId,
@@ -125,7 +126,7 @@ namespace QuattroLingo.Controllers
             int answerOptionId,
             AnswerOptionRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.UpdateAnswerOptionAsync(
                 userId,
