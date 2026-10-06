@@ -2,6 +2,31 @@
   padding: 2rem;
 }
 
+.quiz-editor-page button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.quiz-editor-form button {
+  background-color: #4f46e5;
+  color: white;
+  align-self: flex-start;
+}
+
+.quiz-editor-form button:hover {
+  background-color: #4338ca;
+}
+
+.quiz-editor-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .quiz-editor-page h1 {
   margin-bottom: 2rem;
 }

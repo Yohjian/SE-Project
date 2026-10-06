@@ -63,19 +63,10 @@ export default function Quizzes() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <button onClick={handleCancel}>Cancel</button>
           <button onClick={handleCreate}>Create</button>
+          <button onClick={handleCancel}>Cancel</button>
         </div>
       )}
-
-      <div className="quiz-grid">
-        {quizzes.map((quiz) => (
-          <div className="quiz-card" key={quiz.id} onClick={() => navigate(`/quizzes/${quiz.id}`)}>
-            <strong>{quiz.title}</strong>
-            {quiz.description && <span>{quiz.description}</span>}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
