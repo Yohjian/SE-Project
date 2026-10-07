@@ -84,6 +84,34 @@ export default function QuizEditor() {
     );
   };
 
+  const handleMoveQuestion = (
+  questionIndex: number,
+  direction: "up" | "down",
+) => {
+  setQuestions((prev) => {
+    const newQuestions = [...prev];
+
+    const newIndex =
+      direction === "up"
+        ? questionIndex - 1
+        : questionIndex + 1;
+
+    if (newIndex < 0 || newIndex >= newQuestions.length) {
+      return prev;
+    }
+
+    [newQuestions[questionIndex], newQuestions[newIndex]] = [
+      newQuestions[newIndex],
+      newQuestions[questionIndex],
+    ];
+
+    return newQuestions.map((question, index) => ({
+      ...question,
+      orderIndex: index,
+    }));
+  });
+};
+
   const handleAddAnswer = (questionIndex: number) => {
     setQuestions((prev) =>
       prev.map((question, index) =>
@@ -245,6 +273,7 @@ export default function QuizEditor() {
               onAnswerChange={handleAnswerChange}
               onCorrectAnswer={handleCorrectAnswer}
               onDeleteAnswer={handleDeleteAnswer}
+              onMoveQuestion={handleMoveQuestion}
             />
           ))}
 

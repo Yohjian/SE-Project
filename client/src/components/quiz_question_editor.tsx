@@ -12,6 +12,10 @@ interface QuizQuestionEditorProps {
   ) => void;
 
   onDeleteQuestion: (questionIndex: number) => void;
+  onMoveQuestion: (
+    questionIndex: number,
+    direction: "up" | "down",
+  ) => void;
   onAddAnswer: (questionIndex: number) => void;
 
   onAnswerChange: (
@@ -40,6 +44,7 @@ export default function QuizQuestionEditor({
   onAnswerChange,
   onCorrectAnswer,
   onDeleteAnswer,
+  onMoveQuestion,
 }: QuizQuestionEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -49,19 +54,46 @@ export default function QuizQuestionEditor({
         onClick={() => setIsOpen(!isOpen)}
         >
           <div className="question-header-left">
-            <h3>Question {questionIndex + 1}</h3>
-             <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteQuestion(questionIndex);
-                }}
-              >
-                Delete question
-              </button>
-            </div>
+            <h3>
+              {question.text.trim()
+                ? question.text.trim().split(/\s+/).slice(0, 3).join(" ") +
+                  (question.text.trim().split(/\s+/).length > 3 ? "..." : "")
+                : `Question ${questionIndex + 1}`}
+            </h3>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveQuestion(questionIndex, "up");
+              }}
+            >
+              ↑
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveQuestion(questionIndex, "down");
+              }}
+            >
+              ↓
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteQuestion(questionIndex);
+              }}
+            >
+              Delete question
+            </button>
+          </div>
+
           <span>{isOpen ? "▲" : "▼"}</span>
-      </div>
+        </div>
     {isOpen && (
       <div className="question-details">
         <input
