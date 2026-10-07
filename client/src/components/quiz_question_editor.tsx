@@ -48,8 +48,18 @@ export default function QuizQuestionEditor({
         className="question-header"
         onClick={() => setIsOpen(!isOpen)}
         >
-          <h3>Question {questionIndex + 1}</h3>
-
+          <div className="question-header-left">
+            <h3>Question {questionIndex + 1}</h3>
+             <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteQuestion(questionIndex);
+                }}
+              >
+                Delete question
+              </button>
+            </div>
           <span>{isOpen ? "▲" : "▼"}</span>
       </div>
     {isOpen && (
@@ -139,22 +149,16 @@ export default function QuizQuestionEditor({
             </button>
           </div>
         ))}
-
-        <button
-          type="button"
-          onClick={() => onAddAnswer(questionIndex)}
-        >
-          + Add answer
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onDeleteQuestion(questionIndex)}
-        >
-          Delete question
-        </button>
+        <div className="question-actions">
+          <button
+            type="button"
+            onClick={() => onAddAnswer(questionIndex)}
+          >
+            + Add answer
+          </button>
+        </div>
       </div>
-    )}
+      )}
   </div>
 );
 }

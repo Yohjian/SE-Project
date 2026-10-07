@@ -279,3 +279,20 @@
   padding-bottom: 4rem;
   box-sizing: border-box;
 }
+
+.question-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.question-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.question-header-left h3 {
+  margin: 0;
+}

@@ -48,6 +48,19 @@ export default function Quizzes() {
 
   const handleCancel = () => {setTitle(""); setIsAdding(false)};
 
+  const handleDelete = async (quizId: number) => {
+  try {
+    await quizApi.delete(quizId);
+
+    setQuizzes((prev) =>
+      prev.filter((quiz) => quiz.id !== quizId)
+    );
+
+    showNotification("Quiz deleted.", "success");
+  } catch {
+    showNotification("Failed to delete quiz.");
+  }
+};
   return (
     <div className="quizzes-page">
       <div className="quizzes-header">
@@ -77,9 +90,17 @@ export default function Quizzes() {
           >
             <h3>{quiz.title}</h3>
 
-            {quiz.description && (
-              <p>{quiz.description}</p>
-            )}
+            {quiz.description && <p>{quiz.description}</p>}
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(quiz.id);
+                }}
+              >
+                Delete
+              </button>
           </div>
         ))}
       </div>
