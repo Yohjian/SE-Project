@@ -141,7 +141,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.question-details {
+  margin-top: 1rem;
 }
 
 .question-header h3 {
