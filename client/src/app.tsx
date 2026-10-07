@@ -22,7 +22,7 @@ export default function App() {
           <Route path="/sets" element={<Sets />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quizzes" element={<Quizzes />} />
-          <Route path="/quizzes/:id" element={<QuizEditor />} />
+          <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
         </Route>
       </Route>
     </Routes>

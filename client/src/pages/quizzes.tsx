@@ -73,7 +73,7 @@ export default function Quizzes() {
           <div
             key={quiz.id}
             className="quiz-card"
-            onClick={() => navigate(`/quizzes/${quiz.id}`)}
+            onClick={() => navigate(`/quizzes/${quiz.id}/edit`)}
           >
             <h3>{quiz.title}</h3>
 
