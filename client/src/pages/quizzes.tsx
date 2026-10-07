@@ -67,6 +67,22 @@ export default function Quizzes() {
           <button onClick={handleCancel}>Cancel</button>
         </div>
       )}
+
+      <div className="quiz-grid">
+        {quizzes.map((quiz) => (
+          <div
+            key={quiz.id}
+            className="quiz-card"
+            onClick={() => navigate(`/quizzes/${quiz.id}`)}
+          >
+            <h3>{quiz.title}</h3>
+
+            {quiz.description && (
+              <p>{quiz.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

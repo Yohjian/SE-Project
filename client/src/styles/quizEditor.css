@@ -1,53 +1,231 @@
 .quiz-editor-page {
-  padding: 2rem;
+  width: 100%;
+  min-height: 100vh;
 }
 
-.quiz-editor-page button {
-  padding: 0.6rem 1rem;
+/* Header */
+
+.quiz-editor-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 1rem 2.5rem;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.quiz-editor-header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.quiz-editor-header button {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Form */
+
+.quiz-editor-form {
+  width: 100%;
+}
+
+/* Title */
+
+.quiz-title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.quiz-title-section label {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.title-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.title-input-wrapper span {
+  font-size: 1.4rem;
+}
+
+.title-input-wrapper input {
+  width: auto;
+  min-width: 100px;
+  padding: 0.4rem;
+  border: none;
+  font-size: 1.1rem;
+}
+
+.title-input-wrapper input:focus {
+  outline: none;
+}
+
+/* Description */
+
+.quiz-description-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.quiz-description-section label {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.quiz-description-section textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  border: none;
+  resize: vertical;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+.quiz-description-section textarea:focus {
+  outline: none;
+}
+
+/* Questions */
+
+.questions-section {
+  width: 100%;
+  padding: 2rem 2.5rem;
+  box-sizing: border-box;
+}
+
+.questions-section h2 {
+  margin: 0 0 2rem;
+  font-size: 1.5rem;
+}
+
+.question-card {
+  width: 100%;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.question-header h3 {
+  margin: 0;
+}
+
+.question-card > input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.question-settings {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.question-settings > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.question-settings input {
+  padding: 0.5rem;
+}
+
+/* Answers */
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.answer-row input[type="text"] {
+  flex: 1;
+  padding: 0.6rem;
+}
+
+/* Add question */
+
+.add-question-button {
+  padding: 0.7rem 1.2rem;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: 0.2s;
-}
-
-.quiz-editor-form button {
   background-color: #4f46e5;
   color: white;
-  align-self: flex-start;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
-.quiz-editor-form button:hover {
+.add-question-button:hover {
   background-color: #4338ca;
 }
 
-.quiz-editor-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+/* Save at very bottom */
 
-.quiz-editor-page h1 {
-  margin-bottom: 2rem;
-}
-
-.quiz-editor-form {
+.save-section {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 600px;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 2rem 2.5rem;
+  border-top: 1px solid #ddd;
+  box-sizing: border-box;
 }
 
-.quiz-editor-form input,
-.quiz-editor-form textarea {
-  padding: 0.75rem;
+.save-button {
+  padding: 0.7rem 2rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #4f46e5;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
-.quiz-editor-form textarea {
-  min-height: 100px;
-  resize: vertical;
+.save-button:hover {
+  background-color: #4338ca;
 }
 
-.quiz-editor-form button {
-  align-self: flex-start;
+.save-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
