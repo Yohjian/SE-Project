@@ -219,6 +219,60 @@ public class QuizServiceTests
     }
 
     [Fact]
+    public async Task Create_QuestionWithEmptyText_ThrowsValidation()
+    {
+        var question = new QuestionRequest(
+            "",
+            30,
+            100,
+            0,
+            [
+                new AnswerOptionRequest("Obuolys", true),
+                new AnswerOptionRequest("Šuo", false)
+            ]
+        );
+
+        var request = new CreateQuizRequest(
+            "My Quiz",
+            null,
+            [question]
+        );
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.CreateAsync("user-1", request)
+        );
+
+        Assert.Empty(_repo.Quizzes);
+    }
+
+    [Fact]
+    public async Task Create_QuestionWithEmptyAnswer_ThrowsValidation()
+    {
+        var question = new QuestionRequest(
+            "What is apple?",
+            30,
+            100,
+            0,
+            [
+                new AnswerOptionRequest("Obuolys", true),
+                new AnswerOptionRequest("", false)
+            ]
+        );
+
+        var request = new CreateQuizRequest(
+            "My Quiz",
+            null,
+            [question]
+        );
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.CreateAsync("user-1", request)
+        );
+
+        Assert.Empty(_repo.Quizzes);
+    }
+
+    [Fact]
     public async Task Create_QuestionWithExactlyOneCorrectAnswer_Succeeds()
     {
         var request = new CreateQuizRequest(
