@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { quizApi } from "../api/client";
 import { QuestionRequest } from "../api/types";
 import { useNotification } from "../components/notification";
+import QuizQuestionEditor from "../components/quiz_question_editor";
 
 import "../styles/quizEditor.css";
 
@@ -91,7 +92,10 @@ export default function QuizEditor() {
               ...question,
               answerOptions: [
                 ...question.answerOptions,
-                { text: "", isCorrect: false },
+                {
+                  text: "",
+                  isCorrect: false,
+                },
               ],
             }
           : question,
@@ -109,10 +113,14 @@ export default function QuizEditor() {
         index === questionIndex
           ? {
               ...question,
-              answerOptions: question.answerOptions.map((answer, index) =>
-                index === answerIndex
-                  ? { ...answer, text: value }
-                  : answer,
+              answerOptions: question.answerOptions.map(
+                (answer, index) =>
+                  index === answerIndex
+                    ? {
+                        ...answer,
+                        text: value,
+                      }
+                    : answer,
               ),
             }
           : question,
@@ -129,10 +137,12 @@ export default function QuizEditor() {
         index === questionIndex
           ? {
               ...question,
-              answerOptions: question.answerOptions.map((answer, index) => ({
-                ...answer,
-                isCorrect: index === answerIndex,
-              })),
+              answerOptions: question.answerOptions.map(
+                (answer, index) => ({
+                  ...answer,
+                  isCorrect: index === answerIndex,
+                }),
+              ),
             }
           : question,
       ),
@@ -148,9 +158,10 @@ export default function QuizEditor() {
         index === questionIndex
           ? {
               ...question,
-              answerOptions: question.answerOptions.filter(
-                (_, index) => index !== answerIndex,
-              ),
+              answerOptions:
+                question.answerOptions.filter(
+                  (_, index) => index !== answerIndex,
+                ),
             }
           : question,
       ),
@@ -223,117 +234,17 @@ export default function QuizEditor() {
           <h2>Questions</h2>
 
           {questions.map((question, questionIndex) => (
-            <div className="question-card" key={questionIndex}>
-              <div className="question-header">
-                <h3>Question {questionIndex + 1}</h3>
-
-                <button
-                  type="button"
-                  onClick={() => handleDeleteQuestion(questionIndex)}
-                >
-                  Delete question
-                </button>
-              </div>
-
-              <input
-                type="text"
-                placeholder="Question text"
-                value={question.text}
-                onChange={(e) =>
-                  handleQuestionChange(
-                    questionIndex,
-                    "text",
-                    e.target.value,
-                  )
-                }
-              />
-
-              <div className="question-settings">
-                <div>
-                  <label>Time limit</label>
-
-                  <input
-                    type="number"
-                    min="1"
-                    value={question.timeLimitSeconds}
-                    onChange={(e) =>
-                      handleQuestionChange(
-                        questionIndex,
-                        "timeLimitSeconds",
-                        Number(e.target.value),
-                      )
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label>Points</label>
-
-                  <input
-                    type="number"
-                    min="1"
-                    value={question.points}
-                    onChange={(e) =>
-                      handleQuestionChange(
-                        questionIndex,
-                        "points",
-                        Number(e.target.value),
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
-              <h4>Answers</h4>
-
-              {question.answerOptions.map((answer, answerIndex) => (
-                <div className="answer-row" key={answerIndex}>
-                  <input
-                    type="radio"
-                    name={`correct-answer-${questionIndex}`}
-                    checked={answer.isCorrect}
-                    onChange={() =>
-                      handleCorrectAnswer(
-                        questionIndex,
-                        answerIndex,
-                      )
-                    }
-                  />
-
-                  <input
-                    type="text"
-                    placeholder={`Answer ${answerIndex + 1}`}
-                    value={answer.text}
-                    onChange={(e) =>
-                      handleAnswerChange(
-                        questionIndex,
-                        answerIndex,
-                        e.target.value,
-                      )
-                    }
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDeleteAnswer(
-                        questionIndex,
-                        answerIndex,
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => handleAddAnswer(questionIndex)}
-              >
-                + Add answer
-              </button>
-            </div>
+            <QuizQuestionEditor
+              key={questionIndex}
+              question={question}
+              questionIndex={questionIndex}
+              onQuestionChange={handleQuestionChange}
+              onDeleteQuestion={handleDeleteQuestion}
+              onAddAnswer={handleAddAnswer}
+              onAnswerChange={handleAnswerChange}
+              onCorrectAnswer={handleCorrectAnswer}
+              onDeleteAnswer={handleDeleteAnswer}
+            />
           ))}
 
           <button
