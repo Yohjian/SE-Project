@@ -4,6 +4,7 @@ import { QuestionRequest } from "../api/types";
 interface QuizQuestionEditorProps {
   question: QuestionRequest;
   questionIndex: number;
+  questionCount: number;
 
   onQuestionChange: (
     questionIndex: number,
@@ -38,6 +39,7 @@ interface QuizQuestionEditorProps {
 export default function QuizQuestionEditor({
   question,
   questionIndex,
+  questionCount,
   onQuestionChange,
   onDeleteQuestion,
   onAddAnswer,
@@ -52,48 +54,55 @@ export default function QuizQuestionEditor({
       <div
         className="question-header"
         onClick={() => setIsOpen(!isOpen)}
-        >
-          <div className="question-header-left">
-            <h3>
-              {question.text.trim()
-                ? question.text.trim().split(/\s+/).slice(0, 3).join(" ") +
-                  (question.text.trim().split(/\s+/).length > 3 ? "..." : "")
-                : `Question ${questionIndex + 1}`}
-            </h3>
+      >
+        <div className="question-header-left">
+          <button
+            className="move-question-button"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveQuestion(questionIndex, "up");
+            }}
+          >
+            ↑
+          </button>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveQuestion(questionIndex, "up");
-              }}
-            >
-              ↑
-            </button>
+          <button
+            className="move-question-button"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveQuestion(questionIndex, "down");
+            }}
+          >
+            ↓
+          </button>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveQuestion(questionIndex, "down");
-              }}
-            >
-              ↓
-            </button>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteQuestion(questionIndex);
-              }}
-            >
-              Delete question
-            </button>
-          </div>
-
-          <span>{isOpen ? "▲" : "▼"}</span>
+          <h3>
+            {question.text.trim()
+              ? question.text.trim().split(/\s+/).slice(0, 3).join(" ") +
+                (question.text.trim().split(/\s+/).length > 3 ? "..." : "")
+              : `Question ${questionIndex + 1}`}
+          </h3>
         </div>
+
+        <div className="question-header-right">
+          <button
+            className="delete-question-button"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteQuestion(questionIndex);
+            }}
+          >
+            Delete question
+          </button>
+
+          <span className="question-toggle">
+            {isOpen ? "▲" : "▼"}
+          </span>
+        </div>
+      </div>
     {isOpen && (
       <div className="question-details">
         <input

@@ -71,10 +71,11 @@
 
 .title-input-wrapper input {
   width: auto;
-  min-width: 0;
-  padding: 0;
+  min-width: 200px;
+  padding: 0.6rem;
   margin: 0;
-  border: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   outline: none;
   font-size: 1.1rem;
 }
@@ -105,7 +106,8 @@
   width: 100%;
   min-height: 100px;
   padding: 0.75rem;
-  border: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   resize: vertical;
   box-sizing: border-box;
   font-size: 1rem;
@@ -152,7 +154,7 @@
   margin: 0;
 }
 
-.question-card > input {
+.question-details > input {
   width: 100%;
   padding: 0.75rem;
   margin-bottom: 1rem;
@@ -296,3 +298,4 @@
 .question-header-left h3 {
   margin: 0;
 }
+

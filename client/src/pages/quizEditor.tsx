@@ -204,6 +204,20 @@ export default function QuizEditor() {
       return;
     }
 
+    if (questions.some((question) => !question.text.trim())) {
+      showNotification("Every question needs text.");
+      return;
+    }
+
+    if (
+      questions.some((question) =>
+        question.answerOptions.some((answer) => !answer.text.trim()),
+      )
+    ) {
+      showNotification("Every answer needs text.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -236,7 +250,6 @@ export default function QuizEditor() {
           <label>Title</label>
 
           <div className="title-input-wrapper">
-            <span>"</span>
 
             <input
               type="text"
@@ -245,7 +258,6 @@ export default function QuizEditor() {
               onChange={(e) => setTitle(e.target.value)}
             />
 
-            <span>"</span>
           </div>
         </div>
 
@@ -267,6 +279,7 @@ export default function QuizEditor() {
               key={questionIndex}
               question={question}
               questionIndex={questionIndex}
+              questionCount={questions.length}
               onQuestionChange={handleQuestionChange}
               onDeleteQuestion={handleDeleteQuestion}
               onAddAnswer={handleAddAnswer}

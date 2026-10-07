@@ -139,7 +139,7 @@ namespace QuattroLingo.Controllers
         [HttpDelete("answers/{answerOptionId}")]
         public async Task<IActionResult> DeleteAnswerOption(int answerOptionId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             await quizzes.DeleteAnswerOptionAsync(
                 userId,

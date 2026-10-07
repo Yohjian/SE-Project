@@ -17,6 +17,8 @@ namespace QuattroLingo.Services
         private const string OneCorrectAnswer = "A question must have exactly one correct answer.";
         private const string CannotDeleteAnswer = "A question must have at least 2 answer options.";
         private const string CannotChangeCorrectAnswer = "A question must have exactly one correct answer.";
+        private const string QuestionTextRequired = "Question text is required.";
+        private const string AnswerTextRequired = "Answer text is required.";   
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
         {
@@ -211,8 +213,14 @@ namespace QuattroLingo.Services
 
         private static void ValidateQuestion(QuestionRequest question)
         {
+            if (string.IsNullOrWhiteSpace(question.Text))
+                throw new ValidationException(QuestionTextRequired);
+
             if (question.AnswerOptions.Count < 2)
                 throw new ValidationException(MinimumAnswers);
+
+            if (question.AnswerOptions.Any(a => string.IsNullOrWhiteSpace(a.Text)))
+                throw new ValidationException(AnswerTextRequired);
 
             if (question.AnswerOptions.Count(a => a.IsCorrect) != 1)
                 throw new ValidationException(OneCorrectAnswer);
