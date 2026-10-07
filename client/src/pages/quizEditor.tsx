@@ -213,6 +213,7 @@ export default function QuizEditor() {
             <input
               type="text"
               value={title}
+              size={title.length || 1}
               onChange={(e) => setTitle(e.target.value)}
             />
 
