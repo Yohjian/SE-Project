@@ -15,6 +15,9 @@ namespace QuattroLingo.Data
         public DbSet<VocabularySet> Sets { get; set; }
         public DbSet<VocabularyCard> Cards { get; set; }
 
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<AnswerOption> AnswerOptions { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -50,6 +53,25 @@ namespace QuattroLingo.Data
                 .HasMany(s => s.Cards)
                 .WithOne(c => c.Set)
                 .HasForeignKey(c => c.SetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.Entity<Quiz>()
+                .HasMany(q => q.Questions)
+                .WithOne(q => q.Quiz)
+                .HasForeignKey(q => q.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Question>()
+                .HasMany(q => q.AnswerOptions)
+                .WithOne(a => a.Question)
+                .HasForeignKey(a => a.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Quiz>()
+                .HasOne(q => q.Owner)
+                .WithMany()
+                .HasForeignKey(q => q.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
