@@ -17,6 +17,9 @@ namespace QuattroLingo.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Participant> Participants { get; set; }
 
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<AnswerOption> AnswerOptions { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -60,6 +63,23 @@ namespace QuattroLingo.Data
                 .HasForeignKey(p => p.RoomId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<Quiz>()
+                .HasMany(q => q.Questions)
+                .WithOne(q => q.Quiz)
+                .HasForeignKey(q => q.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Question>()
+                .HasMany(q => q.AnswerOptions)
+                .WithOne(a => a.Question)
+                .HasForeignKey(a => a.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Quiz>()
+                .HasOne(q => q.Owner)
+                .WithMany()
+                .HasForeignKey(q => q.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

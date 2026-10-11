@@ -17,6 +17,7 @@ export default function Layout() {
           <div className="navbar-links">
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/sets">My Sets</Link>
+            <Link to="/quizzes">Quizzes</Link>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
             Logout

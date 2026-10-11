@@ -8,6 +8,8 @@ import Layout from "./components/nav_bar";
 import ProtectedRoute from "./components/protected_route";
 import Dashboard from "./pages/dashboard";
 import Sets from "./pages/sets";
+import Quizzes from "./pages/quizzes";
+import QuizEditor from "./pages/quizEditor";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/sets" element={<Sets />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/quizzes" element={<Quizzes />} />
+          <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
         </Route>
       </Route>
     </Routes>
