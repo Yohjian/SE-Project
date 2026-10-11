@@ -4,6 +4,8 @@ import axios from "axios";
 import { authApi } from "../api/client";
 import { getErrorMessages, saveSession } from "../api/auth";
 
+import "../styles/login.css";
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -33,45 +35,37 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-16">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Log in</h2>
-      {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+    <div className="login-page">
+      <h2 className="login-title">Log in</h2>
+      {error && <div className="login-error">{error}</div>}
+      <form onSubmit={handleSubmit} className="login-form">
+        <label className="login-label">
           Email
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="login-input"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+        <label className="login-label">
           Password
           <input
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="login-input"
           />
         </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading} className="login-submit">
           {loading ? "Logging in…" : "Log in"}
         </button>
       </form>
-      <p className="mt-4 text-center text-sm text-gray-500">
+      <p className="login-footer">
         No account?{" "}
-        <Link to="/register" className="text-indigo-600 hover:underline">
+        <Link to="/register" className="login-link">
           Register
         </Link>
       </p>
