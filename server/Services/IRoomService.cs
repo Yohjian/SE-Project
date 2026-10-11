@@ -1,8 +1,8 @@
 using QuattroLingo.DTOs;
 
-namespace QuattroLingoServices
+namespace QuattroLingo.Services
 {
-    public interface IroomServices
+    public interface IRoomService
     {
         Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto, string userId);
         Task<List<RoomResponseDto>> GetPublicRoomAsync();

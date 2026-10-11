@@ -17,15 +17,17 @@ namespace QuattroLingo.Repositories
         public async Task<Room?> GetByJoinCodeAsync(string joinCode)
         {
             return await _context.Rooms
-                .FirstOrDefaultAsync(r => r.JoinCode == joinCode);
+            .Include(r => r.Participants)
+            .FirstOrDefaultAsync(r => r.JoinCode == joinCode);
         }
 
         public async Task<List<Room>> GetPublicWaitingRoomsAsync()
         {
             return await _context.Rooms
-                .Where(r => r.RoomVisibility == Visibility.Public)
-                .Where(r => r.Status == RoomStatus.Waiting)
-                .ToListAsync();
+            .Include(r => r.Participants)
+            .Where(r => r.RoomVisibility == Visibility.Public)
+            .Where(r => r.Status == RoomStatus.Waiting)
+            .ToListAsync();
         }
 
         public async Task<Room> CreateRoomAsync(Room room)
@@ -33,6 +35,14 @@ namespace QuattroLingo.Repositories
             _context.Rooms.Add(room);
             await _context.SaveChangesAsync();
             return room;
+        }
+
+        public async Task<Participant> AddParticipantAsync(Participant participant)
+        {
+            _context.Participants.Add(participant);
+            await _context.SaveChangesAsync();
+
+            return participant;
         }
     }
 }

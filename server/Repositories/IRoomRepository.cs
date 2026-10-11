@@ -7,6 +7,6 @@ namespace QuattroLingo.Repositories
         Task<Room?> GetByJoinCodeAsync(string joinCode);
         Task<List<Room>> GetPublicWaitingRoomsAsync();
         Task<Room> CreateRoomAsync(Room room);
-
+        Task<Participant> AddParticipantAsync(Participant participant);
     }
 }
