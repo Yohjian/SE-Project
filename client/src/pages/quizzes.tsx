@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { quizApi } from "../api/client";
+import { getErrorMessages } from "../api/auth";
 import { QuizSummary } from "../api/types";
 import { useNotification } from "../components/notification";
 import { useNavigate } from "react-router-dom";
@@ -41,8 +42,9 @@ export default function Quizzes() {
       setTitle("");
       setIsAdding(false);
       showNotification("Quiz created.", "success");
-    } catch {
-      showNotification("Failed to create quiz.");
+    } catch (error) {
+      const messages = getErrorMessages(error, "Failed to create quiz.");
+      showNotification(messages.join(" "));
     }
   };
 
