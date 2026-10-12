@@ -1,29 +1,21 @@
 import { Link } from "react-router-dom";
 
+import "../styles/home.css";
+
 export default function Home() {
   const isLoggedIn = Boolean(sessionStorage.getItem("token_login"));
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">
-        Welcome to QuattroLingo
-      </h1>
+    <div className="home-hero">
+      <h1 className="home-title">Welcome to QuattroLingo</h1>
       {isLoggedIn ? (
-        <p className="text-gray-500 text-lg mb-8 max-w-md">
-          Start learning now.
-        </p>
+        <p className="home-subtitle">Start learning now.</p>
       ) : (
-        <div className="flex gap-3">
-          <Link
-            to="/login"
-            className="border border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-50 transition"
-          >
+        <div className="home-actions">
+          <Link to="/login" className="home-btn home-btn--outline">
             Log in
           </Link>
-          <Link
-            to="/register"
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
-          >
+          <Link to="/register" className="home-btn home-btn--primary">
             Register
           </Link>
         </div>
