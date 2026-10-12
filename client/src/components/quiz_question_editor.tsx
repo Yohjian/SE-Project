@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { QuestionRequest } from "../api/types";
+import type { QuestionRequest } from "../api/types";
 
 interface QuizQuestionEditorProps {
   question: QuestionRequest;
@@ -59,6 +59,7 @@ export default function QuizQuestionEditor({
           <button
             className="move-question-button"
             type="button"
+            disabled={questionIndex === 0}
             onClick={(e) => {
               e.stopPropagation();
               onMoveQuestion(questionIndex, "up");
@@ -70,6 +71,7 @@ export default function QuizQuestionEditor({
           <button
             className="move-question-button"
             type="button"
+            disabled={questionIndex === questionCount - 1}
             onClick={(e) => {
               e.stopPropagation();
               onMoveQuestion(questionIndex, "down");
