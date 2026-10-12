@@ -51,18 +51,21 @@ export default function Quizzes() {
   const handleCancel = () => {setTitle(""); setIsAdding(false)};
 
   const handleDelete = async (quizId: number) => {
-  try {
-    await quizApi.delete(quizId);
+    if (!window.confirm("Are you sure you want to delete this quiz?"))
+      return;
 
-    setQuizzes((prev) =>
-      prev.filter((quiz) => quiz.id !== quizId)
-    );
+    try {
+      await quizApi.delete(quizId);
 
-    showNotification("Quiz deleted.", "success");
-  } catch {
-    showNotification("Failed to delete quiz.");
-  }
-};
+      setQuizzes((prev) =>
+        prev.filter((quiz) => quiz.id !== quizId)
+      );
+
+      showNotification("Quiz deleted.", "success");
+    } catch {
+      showNotification("Failed to delete quiz.");
+    }
+  };
   return (
     <div className="quizzes-page">
       <div className="quizzes-header">
