@@ -17,6 +17,7 @@ export default function Quizzes() {
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const { showNotification } = useNotification();
@@ -173,9 +174,10 @@ export default function Quizzes() {
     }
   };
 
-  const handleDelete = async (quizId: number) => {
-    if (!window.confirm("Are you sure you want to delete this quiz?"))
-      return;
+  const handleDelete = async () => {
+    if (quizToDelete === null) return;
+
+    const quizId = quizToDelete;
 
     try {
       await quizApi.delete(quizId);
@@ -184,6 +186,7 @@ export default function Quizzes() {
         prev.filter((quiz) => quiz.id !== quizId)
       );
 
+      setQuizToDelete(null);
       showNotification("Quiz deleted.", "success");
     } catch {
       showNotification("Failed to delete quiz.");
@@ -294,7 +297,7 @@ export default function Quizzes() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDelete(quiz.id);
+                  setQuizToDelete(quiz.id);
                 }}
               >
                 Delete
@@ -302,6 +305,41 @@ export default function Quizzes() {
           </div>
         ))}
       </div>
+
+      {quizToDelete !== null && (
+        <div className="delete-modal-overlay">
+          <div
+            className="delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+          >
+            <h2 id="delete-modal-title">Delete quiz?</h2>
+
+            <p>
+              Are you sure you want to delete this quiz?
+              This action cannot be undone.
+            </p>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                onClick={() => setQuizToDelete(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="confirm-delete-button"
+                onClick={handleDelete}
+              >
+                Delete quiz
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
