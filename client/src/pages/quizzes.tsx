@@ -1,23 +1,13 @@
 import { useEffect, useState } from "react";
 import { quizApi, setApi  } from "../api/client";
-import type {QuizSummary, SetSummary, CardResponse, QuestionRequest,} from "../api/types";
+import type { QuizSummary, SetSummary } from "../api/types";
+import { generateQuestions } from "../utils/quizGeneration";
+import DeleteQuizModal from "../components/deleteQuizModal";
 import { getErrorMessages } from "../api/auth";
 import { useNotification } from "../components/notification";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/quizzes.css";
-
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  return shuffled;
-}
 
 export default function Quizzes() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
@@ -82,45 +72,6 @@ export default function Quizzes() {
   };
 
   const handleCancel = () => {setTitle(""); setCreateMode(null); setSelectedSetId(null)};
-
-  const generateQuestions = (
-    cards: CardResponse[]
-  ): QuestionRequest[] => {
-    const validCards = cards.filter(
-      (card) => card.term.trim() && card.definition.trim()
-    );
-
-    return validCards.map((card, index) => {
-      const correctAnswer = card.definition.trim();
-
-      const incorrectAnswers = [
-        ...new Set(
-          validCards
-            .filter((other) => other.id !== card.id)
-            .map((other) => other.definition.trim())
-            .filter((answer) => answer !== correctAnswer)
-        ),
-      ];
-
-      const shuffledIncorrect = shuffleArray(incorrectAnswers);
-
-      const options = [
-        { text: correctAnswer, isCorrect: true },
-        ...shuffledIncorrect.slice(0, 3).map((text) => ({
-          text,
-          isCorrect: false,
-        })),
-      ];
-
-      return {
-        text: `What is the translation of "${card.term}"?`,
-        timeLimitSeconds: 30,
-        points: 100,
-        orderIndex: index,
-        answerOptions: shuffleArray(options),
-      };
-    });
-  };
 
   const handleSetCreate = async () => {
   if (selectedSetId === null) {
@@ -317,38 +268,10 @@ export default function Quizzes() {
       </div>
 
       {quizToDelete !== null && (
-        <div className="delete-modal-overlay">
-          <div
-            className="delete-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-modal-title"
-          >
-            <h2 id="delete-modal-title">Delete quiz?</h2>
-
-            <p>
-              Are you sure you want to delete this quiz?
-              This action cannot be undone.
-            </p>
-
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                onClick={() => setQuizToDelete(null)}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="confirm-delete-button"
-                onClick={handleDelete}
-              >
-                Delete quiz
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteQuizModal
+          onCancel={() => setQuizToDelete(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </div>
   );

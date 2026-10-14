@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { quizApi } from "../api/client";
-import { QuestionRequest } from "../api/types";
-type EditorQuestion = QuestionRequest & {
-  clientId: string;
-};
+import type { QuestionRequest } from "../api/types";
 import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
 
 import "../styles/quizEditor.css";
+
+type EditorQuestion = QuestionRequest & {
+  clientId: string;
+};
 
 export default function QuizEditor() {
   const { id } = useParams();
