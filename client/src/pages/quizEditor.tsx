@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { quizApi } from "../api/client";
 import { QuestionRequest } from "../api/types";
+type EditorQuestion = QuestionRequest & {
+  clientId: string;
+};
 import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
 
@@ -13,7 +16,7 @@ export default function QuizEditor() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [questions, setQuestions] = useState<QuestionRequest[]>([]);
+  const [questions, setQuestions] = useState<EditorQuestion[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [allTime, setAllTime] = useState(30);
   const [allPoints, setAllPoints] = useState(100);
@@ -31,6 +34,7 @@ export default function QuizEditor() {
 
         setQuestions(
           res.data.questions.map((question) => ({
+            clientId: crypto.randomUUID(),
             text: question.text,
             timeLimitSeconds: question.timeLimitSeconds,
             points: question.points,
@@ -49,6 +53,7 @@ export default function QuizEditor() {
     setQuestions((prev) => [
       ...prev,
       {
+        clientId: crypto.randomUUID(),
         text: "",
         timeLimitSeconds: 30,
         points: 100,
@@ -272,7 +277,7 @@ export default function QuizEditor() {
       await quizApi.update(Number(id), {
         title,
         description: description || null,
-        questions,
+        questions: questions.map(({ clientId, ...question }) => question),
       });
 
       showNotification("Quiz saved.", "success");
@@ -363,7 +368,7 @@ export default function QuizEditor() {
           </div>
           {questions.map((question, questionIndex) => (
             <QuizQuestionEditor
-              key={questionIndex}
+              key={question.clientId}
               question={question}
               questionIndex={questionIndex}
               questionCount={questions.length}
