@@ -249,6 +249,23 @@ export default function QuizEditor() {
       return;
     }
 
+    if (
+      questions.some((question) => question.answerOptions.length < 2)
+    ) {
+      showNotification("Every question needs at least 2 answers.");
+      return;
+    }
+
+    if (
+      questions.some(
+        (question) =>
+          question.answerOptions.filter((answer) => answer.isCorrect).length !== 1
+      )
+    ) {
+      showNotification("Every question must have exactly one correct answer.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
