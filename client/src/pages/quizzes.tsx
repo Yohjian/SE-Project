@@ -7,6 +7,18 @@ import { useNavigate } from "react-router-dom";
 
 import "../styles/quizzes.css";
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
 export default function Quizzes() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [title, setTitle] = useState("");
@@ -90,9 +102,7 @@ export default function Quizzes() {
         ),
       ];
 
-      const shuffledIncorrect = [...incorrectAnswers].sort(
-        () => Math.random() - 0.5
-      );
+      const shuffledIncorrect = shuffleArray(incorrectAnswers);
 
       const options = [
         { text: correctAnswer, isCorrect: true },
@@ -107,7 +117,7 @@ export default function Quizzes() {
         timeLimitSeconds: 30,
         points: 100,
         orderIndex: index,
-        answerOptions: options.sort(() => Math.random() - 0.5),
+        answerOptions: shuffleArray(options),
       };
     });
   };
