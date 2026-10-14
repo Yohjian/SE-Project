@@ -88,3 +88,13 @@
 .quiz-card button:hover {
   background-color: #e5e7eb;
 }
+
+.quiz-create button.create-from-set-button {
+  background-color: #4f46e5;;
+  color: white;
+  border: none;
+}
+
+.quiz-create button.create-from-set-button:hover {
+  background-color: #4338ca;
+}

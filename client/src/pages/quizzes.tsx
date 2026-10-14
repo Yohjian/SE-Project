@@ -208,7 +208,9 @@ export default function Quizzes() {
             Create manually
           </button>
 
-          <button onClick={() => setCreateMode("set")}>
+          <button
+          className="create-from-set-button"
+          onClick={() => setCreateMode("set")}>
             Use a set
           </button>
         </>
