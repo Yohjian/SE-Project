@@ -15,6 +15,8 @@ export default function QuizEditor() {
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<QuestionRequest[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [allTime, setAllTime] = useState(30);
+  const [allPoints, setAllPoints] = useState(100);
 
   const { showNotification } = useNotification();
 
@@ -73,6 +75,35 @@ export default function QuizEditor() {
     );
   };
 
+
+  const handleApplyAllTime = () => {
+    if (!Number.isInteger(allTime) || allTime < 1) {
+      showNotification("Time limit must be a positive whole number.");
+      return;
+    }
+
+    setQuestions((prev) =>
+      prev.map((question) => ({
+        ...question,
+        timeLimitSeconds: allTime,
+      }))
+    );
+  };
+
+  const handleApplyAllPoints = () => {
+    if (!Number.isInteger(allPoints) || allPoints < 1) {
+      showNotification("Points must be a positive whole number.");
+      return;
+    }
+
+    setQuestions((prev) =>
+      prev.map((question) => ({
+        ...question,
+        points: allPoints,
+      }))
+    );
+  };
+
   const handleDeleteQuestion = (questionIndex: number) => {
     setQuestions((prev) =>
       prev
@@ -85,32 +116,32 @@ export default function QuizEditor() {
   };
 
   const handleMoveQuestion = (
-  questionIndex: number,
-  direction: "up" | "down",
-) => {
-  setQuestions((prev) => {
-    const newQuestions = [...prev];
+    questionIndex: number,
+    direction: "up" | "down",
+  ) => {
+    setQuestions((prev) => {
+      const newQuestions = [...prev];
 
-    const newIndex =
-      direction === "up"
-        ? questionIndex - 1
-        : questionIndex + 1;
+      const newIndex =
+        direction === "up"
+          ? questionIndex - 1
+          : questionIndex + 1;
 
-    if (newIndex < 0 || newIndex >= newQuestions.length) {
-      return prev;
-    }
+      if (newIndex < 0 || newIndex >= newQuestions.length) {
+        return prev;
+      }
 
-    [newQuestions[questionIndex], newQuestions[newIndex]] = [
-      newQuestions[newIndex],
-      newQuestions[questionIndex],
-    ];
+      [newQuestions[questionIndex], newQuestions[newIndex]] = [
+        newQuestions[newIndex],
+        newQuestions[questionIndex],
+      ];
 
-    return newQuestions.map((question, index) => ({
-      ...question,
-      orderIndex: index,
-    }));
-  });
-};
+      return newQuestions.map((question, index) => ({
+        ...question,
+        orderIndex: index,
+      }));
+    });
+  };
 
   const handleAddAnswer = (questionIndex: number) => {
     setQuestions((prev) =>
@@ -274,6 +305,45 @@ export default function QuizEditor() {
         <div className="questions-section">
           <h2>Questions</h2>
 
+          <div className="bulk-question-settings">
+            <h3>Apply to all questions</h3>
+
+            <div className="bulk-settings-row">
+              <div>
+                <label>Time limit (seconds)</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={allTime}
+                  onChange={(e) => setAllTime(Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyAllTime}
+                  disabled={questions.length === 0}
+                >
+                  Apply time to all
+                </button>
+              </div>
+
+              <div>
+                <label>Points</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={allPoints}
+                  onChange={(e) => setAllPoints(Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyAllPoints}
+                  disabled={questions.length === 0}
+                >
+                  Apply points to all
+                </button>
+              </div>
+            </div>
+          </div>
           {questions.map((question, questionIndex) => (
             <QuizQuestionEditor
               key={questionIndex}
