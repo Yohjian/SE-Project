@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { quizApi, setApi  } from "../api/client";
 import type { QuizSummary, SetSummary } from "../api/types";
 import { generateQuestions } from "../utils/quizGeneration";
-import DeleteQuizModal from "../components/deleteQuizModal";
+import DeleteQuizModal from "../components/delete_quiz_modal";
 import { getErrorMessages } from "../api/auth";
 import { useNotification } from "../components/notification";
 import { useNavigate } from "react-router-dom";

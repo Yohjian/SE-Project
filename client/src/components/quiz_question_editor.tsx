@@ -126,7 +126,7 @@ export default function QuizQuestionEditor({
 
             <input
               type="number"
-              min="1"
+              min="5"
               value={question.timeLimitSeconds}
               onChange={(e) =>
                 onQuestionChange(

@@ -83,8 +83,8 @@ export default function QuizEditor() {
 
 
   const handleApplyAllTime = () => {
-    if (!Number.isInteger(allTime) || allTime < 1) {
-      showNotification("Time limit must be a positive whole number.");
+    if (!Number.isInteger(allTime) || allTime < 5) {
+      showNotification("Time limit must be at least 5 seconds.");
       return;
     }
 
@@ -269,6 +269,17 @@ export default function QuizEditor() {
       )
     ) {
       showNotification("Every question must have exactly one correct answer.");
+      return;
+    }
+
+    if (
+      questions.some(
+        (question) =>
+          !Number.isInteger(question.timeLimitSeconds) ||
+          question.timeLimitSeconds < 5
+      )
+    ) {
+      showNotification("Every question must have a time limit of at least 5 seconds.");
       return;
     }
 
