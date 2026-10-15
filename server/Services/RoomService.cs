@@ -18,11 +18,11 @@ namespace QuattroLingo.Services
             _quizRepository = quizRepository;
         }
 
-        public async Task<RoomResponseDto> CreateRoomAsync( CreateRoomDto dto, string userId)
+        public async Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto, string userId)
         {
             // 1. Surandame pasirinktą viktoriną
             var quiz = await _quizRepository.GetByIdAsync(dto.QuizId);
-        
+
             if (quiz == null)
             {
                 throw new KeyNotFoundException("Quiz not found.");
@@ -33,7 +33,7 @@ namespace QuattroLingo.Services
             {
                 throw new UnauthorizedAccessException("You can only create rooms for your own quizzes.");
             }
- 
+
             // 3. Sugeneruojame unikalų kambario kodą
             string joinCode;
 
@@ -166,6 +166,21 @@ namespace QuattroLingo.Services
                 Status = room.Status,
                 ParticipantCount = room.Participants.Count + 1
             };
+        }
+
+        public async Task<List<RoomResponseDto>> GetMyRoomsAsync(string userId)
+        {
+            var rooms = await _roomRepository.GetRoomsByHostIdAsync(userId);
+
+            return rooms.Select(room => new RoomResponseDto
+            {
+                Id = room.Id,
+                QuizId = room.QuizId,
+                JoinCode = room.JoinCode,
+                Visibility = room.RoomVisibility,
+                Status = room.Status,
+                ParticipantCount = room.Participants.Count
+            }).ToList();
         }
     }
 }

@@ -17,6 +17,8 @@ export interface CreateRoomRequest {
 export const roomApi = {
   getPublic: () => client.get<Room[]>("/rooms/public"),
 
+  getMine: () => client.get<Room[]>("/rooms/mine"),
+
   create: (request: CreateRoomRequest) =>
     client.post<Room>("/rooms", request),
 };

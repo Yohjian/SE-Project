@@ -32,6 +32,17 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMyRooms()
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            var result = await roomService.GetMyRoomsAsync(userId);
+
+            return Ok(result);
+        }
+
         [HttpGet("{code}")]
         public async Task<IActionResult> GetByCode(string code)
         {

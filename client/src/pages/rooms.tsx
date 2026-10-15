@@ -19,17 +19,10 @@ export default function Rooms() {
     const [createError, setCreateError] = useState("");
 
     useEffect(() => {
-        roomApi
-            .getPublic()
-            .then((response) => {
-                setRooms(response.data);
-            })
-            .catch(() => {
-                setError("Failed to load rooms.");
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        roomApi.getMine()
+            .then(response => setRooms(response.data))
+            .catch(() => setError("Failed to load your rooms."))
+            .finally(() => setLoading(false));
     }, []);
 
     useEffect(() => {
@@ -56,11 +49,7 @@ export default function Rooms() {
                 roomVisibility: visibility,
             });
 
-            setRooms((currentRooms) =>
-                visibility === 0
-                    ? [...currentRooms, response.data]
-                    : currentRooms
-            );
+            setRooms(currentRooms => [response.data, ...currentRooms]);
 
             setShowCreateForm(false);
             setSelectedQuizId("");
@@ -75,7 +64,7 @@ export default function Rooms() {
 
     return (
         <div className="rooms-page">
-            <h1 className="rooms-title">Public Rooms</h1>
+            <h1 className="rooms-title">My Rooms</h1>
 
             {!showCreateForm && (
                 <button
@@ -150,17 +139,24 @@ export default function Rooms() {
             {error && <p>{error}</p>}
 
             {!loading && !error && rooms.length === 0 && (
-                <p className="rooms-empty">No public rooms available.</p>
+                <p className="rooms-empty">You haven't created any rooms yet.</p>
             )}
 
-            {!loading &&
-                !error &&
-                rooms.map((room) => (
-                    <div key={room.id}>
-                        <p>Room code: {room.joinCode}</p>
-                        <p>Participants: {room.participantCount}</p>
-                    </div>
-                ))}
+            {!loading && !error && rooms.map((room) => (
+                <div key={room.id} className="my-room-card">
+                    <h3>Room #{room.id}</h3>
+
+                    <p>
+                        Visibility: {room.visibility === 0 ? "Public" : "Private"}
+                    </p>
+
+                    <p>
+                        Room code: <strong>{room.joinCode}</strong>
+                    </p>
+
+                    <p>Participants: {room.participantCount}</p>
+                </div>
+            ))}
         </div>
     );
 

@@ -44,5 +44,14 @@ namespace QuattroLingo.Repositories
 
             return participant;
         }
+
+        public async Task<List<Room>> GetRoomsByHostIdAsync(string hostId)
+        {
+            return await _context.Rooms
+                .Include(r => r.Participants)
+                .Where(r => r.HostId == hostId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

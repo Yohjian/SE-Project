@@ -83,3 +83,16 @@
 .rooms-empty {
   margin-top: 24px;
 }
+
+.my-room-card {
+  border: 2px solid #8b5cf6;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+  max-width: 500px;
+}
+
+.my-room-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
