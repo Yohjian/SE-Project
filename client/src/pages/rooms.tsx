@@ -15,6 +15,8 @@ export default function Rooms() {
 
     const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
     const [selectedQuizId, setSelectedQuizId] = useState("");
+    const [creating, setCreating] = useState(false);
+    const [createError, setCreateError] = useState("");
 
     useEffect(() => {
         roomApi
@@ -41,6 +43,35 @@ export default function Rooms() {
             });
     }, []);
 
+
+    const handleCreateRoom = async () => {
+        if (!selectedQuizId) return;
+
+        setCreating(true);
+        setCreateError("");
+
+        try {
+            const response = await roomApi.create({
+                quizId: Number(selectedQuizId),
+                roomVisibility: visibility,
+            });
+
+            setRooms((currentRooms) =>
+                visibility === 0
+                    ? [...currentRooms, response.data]
+                    : currentRooms
+            );
+
+            setShowCreateForm(false);
+            setSelectedQuizId("");
+            setVisibility(0);
+        } catch (error) {
+            console.error("Failed to create room:", error);
+            setCreateError("Failed to create room.");
+        } finally {
+            setCreating(false);
+        }
+    };
 
     return (
         <div className="rooms-page">
@@ -104,11 +135,13 @@ export default function Rooms() {
                         <button
                             type="button"
                             className="room-button"
-                            disabled={!selectedQuizId}
+                            onClick={handleCreateRoom}
+                            disabled={!selectedQuizId || creating}
                         >
-                            Create Room
+                            {creating ? "Creating..." : "Create Room"}
                         </button>
                     </div>
+                    {createError && <p role="alert">{createError}</p>}
                 </div>
             )}
 
