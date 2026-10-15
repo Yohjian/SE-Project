@@ -10,6 +10,7 @@ import Dashboard from "./pages/dashboard";
 import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
 import QuizEditor from "./pages/quizEditor";
+import Rooms from "./pages/rooms";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quizzes" element={<Quizzes />} />
           <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
+          <Route path="/rooms" element={<Rooms />} />
         </Route>
       </Route>
     </Routes>
