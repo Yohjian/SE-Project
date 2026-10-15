@@ -58,7 +58,7 @@ namespace QuattroLingo.Tests.Models
 
             scores.Sort();
 
-            Assert.Equal(new[] { 30, 60, 90 }, scores.Select(s => s.Points));
+            Assert.Equal([30, 60, 90], scores.Select(s => s.Points));
         }
 
         [Fact]
