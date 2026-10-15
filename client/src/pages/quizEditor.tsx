@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { quizApi } from "../api/client";
@@ -19,8 +20,8 @@ export default function QuizEditor() {
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<EditorQuestion[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [allTime, setAllTime] = useState(30);
-  const [allPoints, setAllPoints] = useState(100);
+  const [allTime, setAllTime] = useState<number | "">(30);
+  const [allPoints, setAllPoints] = useState<number | "">(100);
 
   const { showNotification } = useNotification();
 
@@ -83,7 +84,7 @@ export default function QuizEditor() {
 
 
   const handleApplyAllTime = () => {
-    if (!Number.isInteger(allTime) || allTime < 5) {
+    if (allTime === "" || !Number.isInteger(allTime) || allTime < 5) {
       showNotification("Time limit must be at least 5 seconds.");
       return;
     }
@@ -97,7 +98,7 @@ export default function QuizEditor() {
   };
 
   const handleApplyAllPoints = () => {
-    if (!Number.isInteger(allPoints) || allPoints < 1) {
+    if (allPoints === "" || !Number.isInteger(allPoints) || allPoints < 1) {
       showNotification("Points must be a positive whole number.");
       return;
     }
@@ -304,8 +305,18 @@ export default function QuizEditor() {
       });
 
       showNotification("Quiz saved.", "success");
-    } catch {
-      showNotification("Failed to save quiz.");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+
+        if (typeof message === "string" && message.trim()) {
+          showNotification(message);
+        } else {
+          showNotification("Failed to save quiz.");
+        }
+      } else {
+        showNotification("Failed to save quiz.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -358,9 +369,9 @@ export default function QuizEditor() {
                 <label>Time limit (seconds)</label>
                 <input
                   type="number"
-                  min="1"
+                  min="5"
                   value={allTime}
-                  onChange={(e) => setAllTime(Number(e.target.value))}
+                  onChange={(e) => setAllTime(e.target.value === "" ? "" : Number(e.target.value))}
                 />
                 <button
                   type="button"
@@ -377,7 +388,7 @@ export default function QuizEditor() {
                   type="number"
                   min="1"
                   value={allPoints}
-                  onChange={(e) => setAllPoints(Number(e.target.value))}
+                  onChange={(e) => setAllPoints(e.target.value === "" ? "" : Number(e.target.value))}
                 />
                 <button
                   type="button"
