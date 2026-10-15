@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-
 // pages
 import Home from "./pages/home";
 import Register from "./pages/register";
@@ -11,6 +10,7 @@ import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
 import QuizEditor from "./pages/quizEditor";
 import Rooms from "./pages/rooms";
+import JoinRoom from "./pages/join_room";
 
 export default function App() {
   return (
@@ -18,6 +18,14 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
+      {/* Viešas Join Room puslapis */}
+      <Route
+        path="/rooms/join/:code"
+        element={<JoinRoom />}
+      />
+
+      {/* Puslapiai prisijungusiems naudotojams */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/sets" element={<Sets />} />

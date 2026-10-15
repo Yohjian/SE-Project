@@ -14,6 +14,11 @@ export interface CreateRoomRequest {
   roomVisibility: number;
 }
 
+export interface JoinRoomRequest {
+  joinCode: string;
+  displayName: string;
+}
+
 export const roomApi = {
   getPublic: () => client.get<Room[]>("/rooms/public"),
 
@@ -21,4 +26,7 @@ export const roomApi = {
 
   create: (request: CreateRoomRequest) =>
     client.post<Room>("/rooms", request),
+
+  join: (request: JoinRoomRequest) =>
+    client.post<Room>("/rooms/join", request),
 };
