@@ -3,6 +3,7 @@ using QuattroLingo.Exceptions;
 using QuattroLingo.Repositories;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.DTOs.Response;
+using QuattroLingo.Extensions;
 
 namespace QuattroLingo.Services
 {
@@ -18,12 +19,12 @@ namespace QuattroLingo.Services
         private const string CannotDeleteAnswer = "A question must have at least 2 answer options.";
         private const string CannotChangeCorrectAnswer = "A question must have exactly one correct answer.";
         private const string QuestionTextRequired = "Question text is required.";
-        private const string AnswerTextRequired = "Answer text is required.";   
+        private const string AnswerTextRequired = "Answer text is required.";
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
         {
             var items = await quizzes.GetByOwnerIdAsync(userId);
-            return items.Select(q => new QuizSummary(q.Id, q.Title, q.Description)).ToList();
+            return items.Select(q => q.ToSummary()).ToList();
         }
 
         public async Task<QuizEditorResponse> GetByIdAsync(string userId, int quizId)
@@ -158,7 +159,7 @@ namespace QuattroLingo.Services
 
             await quizzes.AddAnswerOptionAsync(answerOption);
 
-            return new AnswerOptionResponse(answerOption.Id, answerOption.Text, answerOption.IsCorrect);
+            return answerOption.ToAnswerResponse();
         }
 
         public async Task<AnswerOptionResponse> UpdateAnswerOptionAsync(string userId, int answerOptionId, AnswerOptionRequest request)
@@ -182,7 +183,7 @@ namespace QuattroLingo.Services
 
             await quizzes.SaveChangesAsync();
 
-            return new AnswerOptionResponse(answerOption.Id, answerOption.Text, answerOption.IsCorrect);
+            return answerOption.ToAnswerResponse();
         }
 
         public async Task DeleteAnswerOptionAsync(string userId, int answerOptionId)
@@ -246,14 +247,14 @@ namespace QuattroLingo.Services
         {
             return new QuizEditorResponse(quiz.Id, quiz.Title, quiz.Description, quiz.Questions.OrderBy(q => q.OrderIndex)
                 .Select(q => new QuestionResponse(q.Id, q.Text, q.TimeLimitSeconds, q.Points, q.OrderIndex,
-                    q.AnswerOptions.Select(a => new AnswerOptionResponse(a.Id, a.Text, a.IsCorrect)).ToList()))
+                    q.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList()))
                 .ToList());
         }
 
         private static QuestionResponse ToQuestionResponse(Question question)
         {
             return new QuestionResponse(question.Id, question.Text, question.TimeLimitSeconds, question.Points, question.OrderIndex,
-                question.AnswerOptions.Select(a => new AnswerOptionResponse(a.Id, a.Text, a.IsCorrect)).ToList());
+                question.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList());
         }
     }
 }
