@@ -20,6 +20,7 @@ namespace QuattroLingo.Services
         private const string QuestionTextRequired = "Question text is required.";
         private const string AnswerTextRequired = "Answer text is required.";
         private const string MinimumQuestionTime = "Question time limit must be at least 5 seconds.";
+        private const string MinimumQuestionPoints = "Question must have at least 1 point.";
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
         {
@@ -228,6 +229,9 @@ namespace QuattroLingo.Services
 
             if (question.TimeLimitSeconds < 5)
                 throw new ValidationException(MinimumQuestionTime);
+
+            if (question.Points < 1)
+                throw new ValidationException(MinimumQuestionPoints);
 
             if (question.AnswerOptions.Any(a => string.IsNullOrWhiteSpace(a.Text)))
                 throw new ValidationException(AnswerTextRequired);

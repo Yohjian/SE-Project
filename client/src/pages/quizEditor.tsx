@@ -283,6 +283,17 @@ export default function QuizEditor() {
       return;
     }
 
+    if (
+      questions.some(
+        (question) =>
+          !Number.isInteger(question.points) ||
+          question.points < 1
+      )
+    ) {
+      showNotification("Every question must have at least 1 point.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
