@@ -144,7 +144,7 @@ export default function Rooms() {
 
             {!loading && !error && rooms.map((room) => (
                 <div key={room.id} className="my-room-card">
-                    <h3>Room #{room.id}</h3>
+                    <h3>{room.quizTitle}</h3>
 
                     <p>
                         Visibility: {room.visibility === 0 ? "Public" : "Private"}

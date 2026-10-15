@@ -7,6 +7,7 @@ export interface Room {
   visibility: number;
   status: number;
   participantCount: number;
+  quizTitle: string;
 }
 
 export interface CreateRoomRequest {

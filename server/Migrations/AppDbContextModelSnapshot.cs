@@ -305,7 +305,7 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Languages");
                 });
 
- modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
+            modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -364,6 +364,35 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Questions");
                 });
 
+            modelBuilder.Entity("QuattroLingo.Entities.Quiz", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Quizzes");
+                });
+
             modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -400,36 +429,9 @@ namespace QuattroLingo.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("QuizId");
+
                     b.ToTable("Rooms");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Quiz", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("Quizzes");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
@@ -582,17 +584,6 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
                 });
 
- modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
-                {
-                    b.HasOne("QuattroLingo.Entities.Room", "Room")
-                        .WithMany("Participants")
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Room");
-                });
-
             modelBuilder.Entity("QuattroLingo.Entities.AnswerOption", b =>
                 {
                     b.HasOne("QuattroLingo.Entities.Question", "Question")
@@ -602,6 +593,17 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
+                {
+                    b.HasOne("QuattroLingo.Entities.Room", "Room")
+                        .WithMany("Participants")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.Question", b =>
@@ -624,6 +626,17 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
+                {
+                    b.HasOne("QuattroLingo.Entities.Quiz", "Quiz")
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
@@ -672,11 +685,6 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Words");
                 });
 
- modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
-                {
-                    b.Navigation("Participants");
-                });
-
             modelBuilder.Entity("QuattroLingo.Entities.Question", b =>
                 {
                     b.Navigation("AnswerOptions");
@@ -685,6 +693,11 @@ namespace QuattroLingo.Migrations
             modelBuilder.Entity("QuattroLingo.Entities.Quiz", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>

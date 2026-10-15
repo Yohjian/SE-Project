@@ -52,8 +52,7 @@ export default function Dashboard() {
                 }}
               >
                 <div>
-                  <p>Room code: {room.joinCode}</p>
-                  <p>Participants: {room.participantCount}</p>
+                  <h3>{room.quizTitle}</h3>
                 </div>
 
 

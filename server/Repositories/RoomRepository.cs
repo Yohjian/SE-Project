@@ -25,6 +25,7 @@ namespace QuattroLingo.Repositories
         {
             return await _context.Rooms
             .Include(r => r.Participants)
+            .Include(r => r.Quiz)
             .Where(r => r.RoomVisibility == Visibility.Public)
             .Where(r => r.Status == RoomStatus.Waiting)
             .ToListAsync();
@@ -49,6 +50,7 @@ namespace QuattroLingo.Repositories
         {
             return await _context.Rooms
                 .Include(r => r.Participants)
+                .Include(r => r.Quiz)
                 .Where(r => r.HostId == hostId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
