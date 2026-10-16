@@ -126,15 +126,17 @@ export default function QuizQuestionEditor({
 
             <input
               type="number"
-              min="1"
-              value={question.timeLimitSeconds}
-              onChange={(e) =>
+              min="5"
+              value={question.timeLimitSeconds === 0 ? "" : question.timeLimitSeconds}
+              onChange={(e) => {
+                const value = e.target.value;
+
                 onQuestionChange(
                   questionIndex,
                   "timeLimitSeconds",
-                  Number(e.target.value),
-                )
-              }
+                  value === "" ? 0 : Number(value)
+                );
+              }}
             />
           </div>
 
@@ -144,12 +146,12 @@ export default function QuizQuestionEditor({
             <input
               type="number"
               min="1"
-              value={question.points}
+              value={question.points === 0 ? "" : question.points}
               onChange={(e) =>
                 onQuestionChange(
                   questionIndex,
                   "points",
-                  Number(e.target.value),
+                  e.target.value === "" ? 0 : Number(e.target.value)
                 )
               }
             />
