@@ -95,10 +95,8 @@ namespace QuattroLingo.Tests.Services
                 RoomVisibility = Visibility.Public
             };
 
-            // Act
             var result = await service.CreateRoomAsync(request, "user-1");
 
-            // Assert
             var room = Assert.Single(roomRepo.Rooms);
 
             Assert.Equal(1, room.QuizId);
@@ -113,7 +111,6 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task CreateRoom_Twice_GeneratesDifferentJoinCodes()
         {
-            // Arrange
             var roomRepo = new FakeRoomRepository();
             var quizRepo = new FakeQuizRepository();
 
@@ -132,7 +129,6 @@ namespace QuattroLingo.Tests.Services
                 RoomVisibility = Visibility.Public
             };
 
-            // Act
             var first = await service.CreateRoomAsync(request, "user-1");
             var second = await service.CreateRoomAsync(request, "user-1");
 
@@ -144,7 +140,6 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task GetPublicRooms_ExcludesPrivateRooms()
         {
-            // Arrange
             var roomRepo = new FakeRoomRepository();
             var quizRepo = new FakeQuizRepository();
             var service = new RoomService(roomRepo, quizRepo);
@@ -169,10 +164,8 @@ namespace QuattroLingo.Tests.Services
                 Status = RoomStatus.Waiting
             });
 
-            // Act
             var result = await service.GetPublicRoomAsync();
 
-            // Assert
             var room = Assert.Single(result);
 
             Assert.Equal("123456", room.JoinCode);
@@ -182,7 +175,6 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task CreateRoom_QuizOwnedByAnotherUser_ThrowsUnauthorized()
         {
-            // Arrange
             var roomRepo = new FakeRoomRepository();
             var quizRepo = new FakeQuizRepository();
 
@@ -201,7 +193,6 @@ namespace QuattroLingo.Tests.Services
                 RoomVisibility = Visibility.Public
             };
 
-            // Act & Assert
             await Assert.ThrowsAsync<UnauthorizedAccessException>(
                 () => service.CreateRoomAsync(request, "user-2")
             );

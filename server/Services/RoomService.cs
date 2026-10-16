@@ -20,7 +20,6 @@ namespace QuattroLingo.Services
 
         public async Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto, string userId)
         {
-            // 1. Surandame pasirinktą viktoriną
             var quiz = await _quizRepository.GetByIdAsync(dto.QuizId);
 
             if (quiz == null)
@@ -28,13 +27,11 @@ namespace QuattroLingo.Services
                 throw new KeyNotFoundException("Quiz not found.");
             }
 
-            // 2. Patikriname, ar vartotojas yra viktorinos savininkas
             if (quiz.OwnerId != userId)
             {
                 throw new UnauthorizedAccessException("You can only create rooms for your own quizzes.");
             }
 
-            // 3. Sugeneruojame unikalų kambario kodą
             string joinCode;
 
             do
@@ -45,7 +42,6 @@ namespace QuattroLingo.Services
             }
             while (await _roomRepository.GetByJoinCodeAsync(joinCode) != null);
 
-            // 4. Sukuriame kambarį
             var room = new Room
             {
                 QuizId = dto.QuizId,
@@ -56,10 +52,8 @@ namespace QuattroLingo.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // 5. Išsaugome duomenų bazėje
             var createdRoom = await _roomRepository.CreateRoomAsync(room);
 
-            // 6. Grąžiname DTO, o ne Entity
             return new RoomResponseDto
             {
                 Id = createdRoom.Id,
@@ -74,10 +68,8 @@ namespace QuattroLingo.Services
 
         public async Task<List<RoomResponseDto>> GetPublicRoomAsync()
         {
-            // Gauname viešus kambarius, kurių būsena Waiting
             var rooms = await _roomRepository.GetPublicWaitingRoomsAsync();
 
-            // Kiekvieną Room entity paverčiame į RoomResponseDto
             return rooms.Select(room => new RoomResponseDto
             {
                 Id = room.Id,
@@ -98,16 +90,13 @@ namespace QuattroLingo.Services
                 return null;
             }
 
-            // Ieškome kambario pagal prisijungimo kodą
             var room = await _roomRepository.GetByJoinCodeAsync(code);
 
-            // Jeigu kambario nėra, grąžiname null
             if (room == null)
             {
                 return null;
             }
 
-            // Grąžiname DTO, o ne Room entity
             return new RoomResponseDto
             {
                 Id = room.Id,
@@ -122,7 +111,6 @@ namespace QuattroLingo.Services
 
         public async Task<RoomResponseDto> JoinRoomAsync(JoinRoomDto dto)
         {
-            // 1. Patikriname įvestus duomenis
             if (string.IsNullOrWhiteSpace(dto.JoinCode))
             {
                 throw new ArgumentException("Join code is required.");
@@ -133,7 +121,6 @@ namespace QuattroLingo.Services
                 throw new ArgumentException("Display name is required.");
             }
 
-            // 2. Surandame kambarį pagal kodą
             var room = await _roomRepository.GetByJoinCodeAsync(dto.JoinCode.Trim());
 
             if (room == null)
@@ -141,13 +128,11 @@ namespace QuattroLingo.Services
                 throw new KeyNotFoundException("Room not found.");
             }
 
-            // 3. Leidžiame prisijungti tik prie laukiančio kambario
             if (room.Status != RoomStatus.Waiting)
             {
                 throw new InvalidOperationException("This room is not accepting participants.");
             }
 
-            // 4. Sukuriame naują dalyvį
             var participant = new Participant
             {
                 RoomId = room.Id,
@@ -156,10 +141,8 @@ namespace QuattroLingo.Services
                 Score = 0
             };
 
-            // 5. Išsaugome dalyvį
             await _roomRepository.AddParticipantAsync(participant);
 
-            // 6. Grąžiname atnaujintą kambario informaciją
             return new RoomResponseDto
             {
                 Id = room.Id,
