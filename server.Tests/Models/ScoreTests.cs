@@ -5,39 +5,42 @@ namespace QuattroLingo.Tests.Models
     public class ScoreTests
     {
         [Theory]
-        [InlineData(0, 100)]      // instant answer
-        [InlineData(3, 100)]      // inside grace period
-        [InlineData(6, 100)]      // exactly at grace limit
-        [InlineData(15.9, 100)]   // just before the first decay step
-        [InlineData(16, 95)]      // first decay step
-        [InlineData(26, 90)]      // second decay step
-        public void FromAnswerTime_UsesDefaultRules(double seconds, int expectedPoints)
+        [InlineData(0, 100)]    // instant
+        [InlineData(10, 75)]    // half the time
+        [InlineData(20, 50)]    // at the limit
+        [InlineData(40, 50)]    // after the limit, clamped
+        public void FromAnswerTime_ScalesWithTimeLimit(double seconds, int expectedPoints)
         {
-            var score = Score.FromAnswerTime(TimeSpan.FromSeconds(seconds));
+            var score = Score.FromAnswerTime(TimeSpan.FromSeconds(seconds), timeLimitSeconds: 20);
 
             Assert.Equal(expectedPoints, score.Points);
         }
 
         [Fact]
-        public void FromAnswerTime_NeverGoesBelowZero()
+        public void FromAnswerTime_ScalesWithMaxPoints()
         {
-            var score = Score.FromAnswerTime(TimeSpan.FromSeconds(1000));
+            var score = Score.FromAnswerTime(TimeSpan.FromSeconds(10), timeLimitSeconds: 20, maxPoints: 1000);
 
-            Assert.Equal(0, score.Points);
+            Assert.Equal(750, score.Points);
         }
 
         [Fact]
         public void FromAnswerTime_AcceptsNamedArguments()
         {
-            // overtime = 10s, steps = 10 / 5 = 2, points = 200 - 2 * 10 = 180
             var score = Score.FromAnswerTime(
-                TimeSpan.FromSeconds(15),
+                TimeSpan.FromSeconds(10),
+                timeLimitSeconds: 20,
                 maxPoints: 200,
-                decayPerStep: 10,
-                graceSeconds: 5,
-                stepSeconds: 5);
+                minFraction: 0);
 
-            Assert.Equal(180, score.Points);
+            Assert.Equal(100, score.Points);
+        }
+
+        [Fact]
+        public void FromAnswerTime_RejectsNonPositiveTimeLimit()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(
+                () => Score.FromAnswerTime(TimeSpan.FromSeconds(1), timeLimitSeconds: 0));
         }
 
         [Fact]
@@ -54,11 +57,12 @@ namespace QuattroLingo.Tests.Models
         [Fact]
         public void Scores_CanBeSortedWithStandardSort()
         {
-            var scores = new List<Score> { new(30), new(90), new(60) };
+            List<Score> scores = [new(30), new(90), new(60)];
 
             scores.Sort();
 
-            Assert.Equal([30, 60, 90], scores.Select(s => s.Points));
+            int[] expected = [30, 60, 90];
+            Assert.Equal(expected, scores.Select(s => s.Points));
         }
 
         [Fact]
