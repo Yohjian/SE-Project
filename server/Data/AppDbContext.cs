@@ -63,6 +63,10 @@ namespace QuattroLingo.Data
                 .HasForeignKey(p => p.RoomId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<Room>()
+                .HasIndex(r => r.JoinCode)
+                .IsUnique();
+
             builder.Entity<Quiz>()
                 .HasMany(q => q.Questions)
                 .WithOne(q => q.Quiz)

@@ -429,6 +429,9 @@ namespace QuattroLingo.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("JoinCode")
+                        .IsUnique();
+
                     b.HasIndex("QuizId");
 
                     b.ToTable("Rooms");
