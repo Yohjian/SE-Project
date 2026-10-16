@@ -36,7 +36,7 @@ namespace QuattroLingo.Helpers
                 {
                     string term = card.Term.ToCsvField();
                     string definition = card.Definition.ToCsvField();
-                    await writer.WriteLineAsync($"\"{term}\",\"{definition}\"");
+                    await writer.WriteLineAsync($"{term},{definition}");
                 }
             }
 
