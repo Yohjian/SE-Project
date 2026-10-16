@@ -2,6 +2,8 @@ using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Repositories;
+using QuattroLingo.Enums;
+using QuattroLingo.Helpers;
 
 namespace QuattroLingo.Services
 {
@@ -61,6 +63,19 @@ namespace QuattroLingo.Services
 
             var cards = await sets.GetCardsAsync(setId);
             return cards.Select(c => new CardResponse(c.Id, c.Term, c.Definition)).ToList();
+        }
+
+        public async Task<(MemoryStream, string, string)> DownloadSetAsync(string userId, int setId, FileType ft)
+        {
+            VocabularySet set = await sets.GetOwnedWithCardsAsync(userId, setId)
+                ?? throw new NotFoundException(SetNotFound);
+
+            return ft switch
+            {
+                FileType.Json => (await ExportHelper.ToJsonStreamAsync(set), "application/json", $"{set.Name}.json"),
+                FileType.Csv => (await ExportHelper.ToCsvStreamAsync(set), "text/csv", $"{set.Name}.csv"),
+                _ => throw new UnsupportedFileTypeException($"Download of filetype {ft} not supported.")
+            };
         }
 
         private async Task EnsureOwnedAsync(string userId, int setId)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Tree from "../components/tree";
 import { cardApi, setApi } from "../api/client";
@@ -8,8 +8,17 @@ import "../styles/sets.css";
 import { useNotification } from "../components/notification";
 import { CardResponse, SetSummary } from "../api/types";
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function Sets() {
-  const [selectedSetID, setSelectedSetID] = useState<number | null>(null);
+  const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -18,16 +27,36 @@ export default function Sets() {
   const [isSaving, setIsSaving] = useState(false);
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [cards, setCards] = useState<CardResponse[]>([]);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const termRef = useRef<HTMLInputElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  const { showNotification } = useNotification();
+
+  const filteredCards = useMemo(
+    () =>
+      cards.filter(
+        (c) =>
+          c.term.toLowerCase().includes(search.toLowerCase()) ||
+          c.definition.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [cards, search],
+  );
 
   useEffect(() => {
-    if (isAdding) {
-      termRef.current?.focus();
-    }
+    if (isAdding) termRef.current?.focus();
   }, [isAdding]);
 
-  // init load
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node))
+        setShowExportMenu(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   useEffect(() => {
     setApi
       .getAll()
@@ -35,87 +64,80 @@ export default function Sets() {
       .catch(() => showNotification("Failed to load sets."));
   }, []);
 
-  // auto load first set
   useEffect(() => {
-    if (sets.length > 0 && selectedSetID === null) {
-      setSelectedSetID(sets[0].id);
-    }
+    if (sets.length > 0 && selectedSetId === null) setSelectedSetId(sets[0].id);
   }, [sets]);
 
-  // on set change
   useEffect(() => {
-    if (selectedSetID === null) return;
+    if (selectedSetId === null) return;
     setApi
-      .getCards(selectedSetID)
+      .getCards(selectedSetId)
       .then((res) => setCards(res.data))
       .catch(() => showNotification("Failed to load cards."));
-  }, [selectedSetID]);
+  }, [selectedSetId]);
 
-  const filteredCards = cards.filter(
-    (c) =>
-      c.term.toLowerCase().includes(search.toLowerCase()) ||
-      c.definition.toLowerCase().includes(search.toLowerCase()),
-  );
+  const handleCancel = useCallback(() => {
+    setIsAdding(false);
+    setNewTerm("");
+    setNewDefinition("");
+  }, []);
 
-  const { showNotification } = useNotification();
-
-  const handleSave = async () => {
-    if (!newTerm.trim()) {
-      showNotification("A term is needed!");
-      return;
-    }
-    if (!newDefinition.trim()) {
-      showNotification("A definition is needed!");
-      return;
-    }
-    if (selectedSetID === null) {
-      showNotification("No set selected.");
-      return;
-    }
+  const handleSave = useCallback(async () => {
+    if (!newTerm.trim()) return showNotification("A term is needed!");
+    if (!newDefinition.trim())
+      return showNotification("A definition is needed!");
+    if (selectedSetId === null) return showNotification("No set selected.");
 
     setIsSaving(true);
-
     try {
-      const res = await cardApi.add(selectedSetID, newTerm, newDefinition);
+      const res = await cardApi.add(selectedSetId, newTerm, newDefinition);
       setCards((prev) => [...prev, res.data]);
       showNotification("Card added.", "success");
+      handleCancel();
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
         ? err.response?.data
         : "Failed to add card.";
       showNotification(message);
     } finally {
-      handleCancel();
       setIsSaving(false);
     }
-  };
+  }, [newTerm, newDefinition, selectedSetId, handleCancel, showNotification]);
 
-  const handleCancel = async () => {
-    setIsAdding(false);
-    setNewTerm("");
-    setNewDefinition("");
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") handleSave();
+      if (e.key === "Escape") handleCancel();
+    },
+    [handleSave, handleCancel],
+  );
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    switch (e.key) {
-      case "Enter":
-        handleSave();
-        break;
-      case "Escape":
-        handleCancel();
-        break;
-    }
-  };
+  const handleAddSet = useCallback(
+    async (name: string) => {
+      try {
+        const res = await setApi.create(name);
+        setSets((prev) => [...prev, res.data]);
+        setSelectedSetId(res.data.id);
+      } catch {
+        showNotification("Failed to create set.");
+      }
+    },
+    [showNotification],
+  );
 
-  const handleAddSet = async (name: string) => {
-    try {
-      const res = await setApi.create(name);
-      setSets((prev) => [...prev, res.data]);
-      setSelectedSetID(res.data.id);
-    } catch {
-      showNotification("Failed to create set.");
-    }
-  };
+  const handleExport = useCallback(
+    async (format: "json" | "csv") => {
+      if (!selectedSetId) return;
+      const setName = sets.find((s) => s.id === selectedSetId)?.name ?? "set";
+      const res =
+        format === "json"
+          ? await setApi.downloadJson(selectedSetId)
+          : await setApi.downloadCsv(selectedSetId);
+      downloadBlob(res.data, `${setName}.${format}`);
+      setShowExportMenu(false);
+    },
+    [selectedSetId, sets],
+  );
 
   const overlay = isAdding
     ? createPortal(
@@ -127,13 +149,12 @@ export default function Sets() {
   return (
     <>
       {overlay}
-
       <div className="sets-page">
         <Tree
           title="Sets"
           entries={sets.map((s) => ({ id: s.id, name: s.name }))}
-          selectedId={selectedSetID}
-          onSelect={setSelectedSetID}
+          selectedId={selectedSetId}
+          onSelect={setSelectedSetId}
           onAdd={handleAddSet}
         />
         <div className="content">
@@ -145,10 +166,27 @@ export default function Sets() {
               onChange={(e) => setSearch(e.target.value)}
             />
             <button
-              onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+              onClick={() =>
+                setViewMode((m) => (m === "grid" ? "list" : "grid"))
+              }
             >
               {viewMode === "grid" ? "List view" : "Grid view"}
             </button>
+            <div className="export-menu-wrapper" ref={exportRef}>
+              <button
+                className="export-btn"
+                onClick={() => setShowExportMenu((prev) => !prev)}
+                disabled={!selectedSetId}
+              >
+                Download ▾
+              </button>
+              {showExportMenu && (
+                <div className="export-dropdown">
+                  <button onClick={() => handleExport("json")}>JSON</button>
+                  <button onClick={() => handleExport("csv")}>CSV</button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className={viewMode === "grid" ? "cards-grid" : "cards-list"}>

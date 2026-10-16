@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Services;
+using QuattroLingo.Enums;
 
 namespace QuattroLingo.Controllers
 {
@@ -35,5 +36,12 @@ namespace QuattroLingo.Controllers
         [HttpGet("{setId}/cards")]
         public async Task<IActionResult> GetCards(int setId) =>
             Ok(await setService.GetCardsAsync(UserId, setId));
+
+        [HttpGet("{setID}/download/{filetype}")]
+        public async Task<IActionResult> DownloadSet(int setId, FileType fileType)
+        {
+            (MemoryStream stream, string mime, string filename) = await setService.DownloadSetAsync(UserId, setId, fileType);
+            return new FileStreamResult(stream, mime) { FileDownloadName = filename };
+        }
     }
 }
