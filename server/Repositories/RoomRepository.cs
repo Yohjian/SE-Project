@@ -17,6 +17,7 @@ namespace QuattroLingo.Repositories
         public async Task<Room?> GetByJoinCodeAsync(string joinCode)
         {
             return await _context.Rooms
+            .Include(r => r.Quiz)
             .Include(r => r.Participants)
             .FirstOrDefaultAsync(r => r.JoinCode == joinCode);
         }

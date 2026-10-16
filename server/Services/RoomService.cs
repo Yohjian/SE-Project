@@ -112,6 +112,7 @@ namespace QuattroLingo.Services
             {
                 Id = room.Id,
                 QuizId = room.QuizId,
+                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
                 JoinCode = room.JoinCode,
                 Visibility = room.RoomVisibility,
                 Status = room.Status,
@@ -163,6 +164,7 @@ namespace QuattroLingo.Services
             {
                 Id = room.Id,
                 QuizId = room.QuizId,
+                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
                 JoinCode = room.JoinCode,
                 Visibility = room.RoomVisibility,
                 Status = room.Status,
