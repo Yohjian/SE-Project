@@ -1,6 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 // pages
-import Home from "./pages/home";
 import Register from "./pages/register";
 import Login from "./pages/login";
 import Layout from "./components/nav_bar";
@@ -15,21 +14,17 @@ import JoinRoom from "./pages/join_room";
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Viešas Join Room puslapis */}
-      <Route
-        path="/rooms/join/:code"
-        element={<JoinRoom />}
-      />
+      <Route element={<Layout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
 
-      {/* Puslapiai prisijungusiems naudotojams */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
+        <Route path="/rooms/join/:code" element={<JoinRoom />} />
+
+        <Route element={<ProtectedRoute />}>
           <Route path="/sets" element={<Sets />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quizzes" element={<Quizzes />} />
           <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
           <Route path="/rooms" element={<Rooms />} />
