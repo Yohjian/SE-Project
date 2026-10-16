@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Services;
 using QuattroLingo.Enums;
+using QuattroLingo.DTOs.Response;
 
 namespace QuattroLingo.Controllers
 {
@@ -40,7 +41,7 @@ namespace QuattroLingo.Controllers
         [HttpGet("{setId}/download/{ft}")]
         public async Task<IActionResult> DownloadSet(int setId, FileType ft)
         {
-            QuattroLingo.DTOs.Response.DownloadSet download = await setService.DownloadSetAsync(UserId, setId, ft);
+            DownloadFile download = await setService.DownloadSetAsync(UserId, setId, ft);
             return File(download.Content, download.ContentType, download.FileName);
         }
     }

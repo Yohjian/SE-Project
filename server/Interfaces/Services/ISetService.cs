@@ -15,6 +15,6 @@ namespace QuattroLingo.Services
 
         Task<List<CardResponse>> GetCardsAsync(string userId, int setId);
 
-        Task<DownloadSet> DownloadSetAsync(string userId, int setId, FileType ft);
+        Task<DownloadFile> DownloadSetAsync(string userId, int setId, FileType ft);
     }
 }
