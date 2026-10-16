@@ -146,6 +146,9 @@ namespace QuattroLingo.Services
             if (question.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
 
+            if (string.IsNullOrWhiteSpace(request.Text))
+                throw new ValidationException(AnswerTextRequired);
+
             if (request.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
                 throw new ValidationException(CannotChangeCorrectAnswer);
 
@@ -170,6 +173,9 @@ namespace QuattroLingo.Services
                 throw new ForbiddenException(QuizForbidden);
 
             var question = answerOption.Question;
+
+            if (string.IsNullOrWhiteSpace(request.Text))
+                throw new ValidationException(AnswerTextRequired);
 
             if (request.IsCorrect && !answerOption.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
                 throw new ValidationException(CannotChangeCorrectAnswer);

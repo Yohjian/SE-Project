@@ -88,3 +88,64 @@
 .quiz-card button:hover {
   background-color: #e5e7eb;
 }
+
+.quiz-create button.create-from-set-button {
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+}
+
+.quiz-create button.create-from-set-button:hover {
+  background-color: #4338ca;
+}
+
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-modal {
+  background-color: white;
+  padding: 28px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.delete-modal h2 {
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.delete-modal p {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.quizzes-page .delete-modal-actions button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  background-color: #e5e7eb;
+  color: #333;
+}
+
+.quizzes-page .delete-modal-actions button.confirm-delete-button {
+  background-color: #dc2626;
+  color: white;
+}
+
+.quizzes-page .delete-modal-actions button.confirm-delete-button:hover {
+  background-color: #b91c1c;
+}
