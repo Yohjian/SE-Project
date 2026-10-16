@@ -11,14 +11,14 @@ namespace QuattroLingo.Helpers
             {
                 Name = set.Name,
                 CreatedAt = set.CreatedAt,
-                cards = set.Cards.Select(c => new { Term = c.Term, Definition = c.Definition })
+                Cards = set.Cards.Select(c => new { Term = c.Term, Definition = c.Definition })
             };
 
             var stream = new MemoryStream();
             await JsonSerializer.SerializeAsync(
                 stream,
                 export,
-                new JsonSerializerOptions { WriteIndented = true });
+                new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
 
             stream.Position = 0;
             return stream;
@@ -32,8 +32,8 @@ namespace QuattroLingo.Helpers
             await writer.WriteLineAsync("Term,Definition");
             foreach (VocabularyCard card in set.Cards)
             {
-                String term = card.Term.SerializeEscapes();
-                String definition = card.Definition.SerializeEscapes();
+                string term = card.Term.SerializeEscapes();
+                string definition = card.Definition.SerializeEscapes();
                 await writer.WriteLineAsync($"\"{term}\",\"{definition}\"");
             }
 

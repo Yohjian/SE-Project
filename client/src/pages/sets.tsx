@@ -8,13 +8,23 @@ import "../styles/sets.css";
 import { useNotification } from "../components/notification";
 import { CardResponse, SetSummary } from "../api/types";
 
+function filenameFromHeader(header: string | undefined, fallback: string) {
+  if (!header) return fallback;
+
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (utf8) return decodeURIComponent(utf8[1]);
+
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain ? plain[1] : fallback;
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0); // let the browser start the download first
 }
 
 export default function Sets() {
@@ -124,19 +134,23 @@ export default function Sets() {
     },
     [showNotification],
   );
-
   const handleExport = useCallback(
     async (format: "json" | "csv") => {
       if (!selectedSetId) return;
-      const setName = sets.find((s) => s.id === selectedSetId)?.name ?? "set";
-      const res =
-        format === "json"
-          ? await setApi.downloadJson(selectedSetId)
-          : await setApi.downloadCsv(selectedSetId);
-      downloadBlob(res.data, `${setName}.${format}`);
-      setShowExportMenu(false);
+      try {
+        const res = await setApi.download(selectedSetId, format);
+        const filename = filenameFromHeader(
+          res.headers["content-disposition"],
+          `set.${format}`,
+        );
+        downloadBlob(res.data, filename);
+      } catch {
+        showNotification("Failed to download set.");
+      } finally {
+        setShowExportMenu(false);
+      }
     },
-    [selectedSetId, sets],
+    [selectedSetId, showNotification],
   );
 
   const overlay = isAdding

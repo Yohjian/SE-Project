@@ -62,10 +62,10 @@ export const setApi = {
   getCards: (setId: number) =>
     client.get<CardResponse[]>(`/sets/${setId}/cards`),
   create: (name: string) => client.post<SetSummary>("/sets", { name }),
-  downloadJson: (setId: number) =>
-    client.get(`/sets/${setId}/download/json`, { responseType: "blob" }),
-  downloadCsv: (setId: number) =>
-    client.get(`/sets/${setId}/download/csv`, { responseType: "blob" }),
+  download: (setId: number, format: "json" | "csv") =>
+    client.get<Blob>(`/sets/${setId}/download/${format}`, {
+      responseType: "blob",
+    }),
 };
 
 export const cardApi = {

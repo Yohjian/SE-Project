@@ -63,7 +63,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("DevPolicy", policy =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod())
+              .WithExposedHeaders("Content-Disposition");
 });
 
 builder.Services.AddControllers();

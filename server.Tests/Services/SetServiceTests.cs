@@ -1,4 +1,6 @@
+using System.Text.Json;
 using QuattroLingo.Entities;
+using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
@@ -142,5 +144,91 @@ public class SetServiceTests
         var set = await _service.CreateAsync("user-1", "Mine");
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetCardsAsync("user-2", set.Id));
+    }
+
+    // ---------- Export ----------
+
+    private static async Task<string> ReadAllAsync(Stream stream)
+    {
+        using var reader = new StreamReader(stream); // also strips the UTF-8 BOM
+        return await reader.ReadToEndAsync();
+    }
+
+    [Fact]
+    public async Task DownloadJson_OwnSet_ReturnsNameAndAllCards()
+    {
+        var set = await _service.CreateAsync("user-1", "Animals");
+        await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+        await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
+
+        var (stream, mime, filename) = await _service.DownloadSetAsync("user-1", set.Id, FileType.Json);
+
+        Assert.Equal("application/json", mime);
+        Assert.Equal("Animals.json", filename);
+
+        using var doc = JsonDocument.Parse(await ReadAllAsync(stream));
+        var root = doc.RootElement;
+        Assert.Equal("Animals", root.GetProperty("name").GetString());
+
+        var cards = root.GetProperty("cards").EnumerateArray().ToList();
+        Assert.Equal(2, cards.Count);
+        Assert.Equal("cat", cards[0].GetProperty("term").GetString());
+        Assert.Equal("kat", cards[0].GetProperty("definition").GetString());
+        Assert.Equal("šuo", cards[1].GetProperty("definition").GetString());
+    }
+
+    [Fact]
+    public async Task DownloadCsv_OwnSet_WritesHeaderAndOneRowPerCard()
+    {
+        var set = await _service.CreateAsync("user-1", "Animals");
+        await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+        await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
+
+        var (stream, mime, filename) = await _service.DownloadSetAsync("user-1", set.Id, FileType.Csv);
+
+        Assert.Equal("text/csv", mime);
+        Assert.Equal("Animals.csv", filename);
+
+        var lines = (await ReadAllAsync(stream))
+            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(["Term,Definition", "\"cat\",\"kat\"", "\"dog\",\"šuo\""], lines);
+    }
+
+    [Fact]
+    public async Task DownloadCsv_EscapesQuotesCommasAndNewlines()
+    {
+        var set = await _service.CreateAsync("user-1", "Tricky");
+        await _service.AddCardAsync("user-1", set.Id, "say \"hi\", ok", "line one\nline two");
+
+        var (stream, _, _) = await _service.DownloadSetAsync("user-1", set.Id, FileType.Csv);
+        var csv = await ReadAllAsync(stream);
+
+        // Quotes are doubled; the comma and newline stay inside the quoted field.
+        Assert.Contains("\"say \"\"hi\"\", ok\",\"line one\nline two\"", csv);
+    }
+
+    [Fact]
+    public async Task Download_SetOwnedBySomeoneElse_ThrowsNotFound()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => _service.DownloadSetAsync("user-2", set.Id, FileType.Json));
+    }
+
+    [Fact]
+    public async Task Download_MissingSet_ThrowsNotFound()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => _service.DownloadSetAsync("user-1", 999, FileType.Csv));
+    }
+
+    [Fact]
+    public async Task Download_UnknownFileType_ThrowsUnsupportedFileType()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+
+        await Assert.ThrowsAsync<UnsupportedFileTypeException>(
+            () => _service.DownloadSetAsync("user-1", set.Id, (FileType)99));
     }
 }

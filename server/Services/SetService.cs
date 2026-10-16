@@ -65,15 +65,15 @@ namespace QuattroLingo.Services
             return cards.Select(c => new CardResponse(c.Id, c.Term, c.Definition)).ToList();
         }
 
-        public async Task<(MemoryStream, string, string)> DownloadSetAsync(string userId, int setId, FileType ft)
+        public async Task<DownloadSet> DownloadSetAsync(string userId, int setId, FileType ft)
         {
             VocabularySet set = await sets.GetOwnedWithCardsAsync(userId, setId)
                 ?? throw new NotFoundException(SetNotFound);
 
             return ft switch
             {
-                FileType.Json => (await ExportHelper.ToJsonStreamAsync(set), "application/json", $"{set.Name}.json"),
-                FileType.Csv => (await ExportHelper.ToCsvStreamAsync(set), "text/csv", $"{set.Name}.csv"),
+                FileType.Json => new DownloadSet(await ExportHelper.ToJsonStreamAsync(set), "application/json", $"{set.Name}.json"),
+                FileType.Csv => new DownloadSet(await ExportHelper.ToCsvStreamAsync(set), "text/csv", $"{set.Name}.csv"),
                 _ => throw new UnsupportedFileTypeException($"Download of filetype {ft} not supported.")
             };
         }
