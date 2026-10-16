@@ -11,7 +11,7 @@ using QuattroLingo.Middleware;
 using QuattroLingo.Repositories;
 using System.Text.Json;
 
-DotNetEnv.Env.Load(); // add ".env" when making migration
+DotNetEnv.Env.Load(/*"../.env"*/);
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -74,8 +74,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISetRepository, SetRepository>();
 builder.Services.AddScoped<ISetService, SetService>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<IRoomService, RoomService>(); 
 
 var app = builder.Build();
 

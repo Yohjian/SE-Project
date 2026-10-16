@@ -1,0 +1,133 @@
+.rooms-page {
+  padding: 24px;
+}
+
+.rooms-title {
+  margin-bottom: 24px;
+}
+
+.create-room-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 420px;
+}
+
+.create-room-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-room-field label {
+  font-weight: 600;
+}
+
+.create-room-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #8b5cf6;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #292136;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.create-room-field select:focus {
+  outline: 3px solid #ddd6fe;
+  outline-offset: 2px;
+}
+
+.room-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.room-button {
+  padding: 12px 22px;
+  border: 2px solid #7c3aed;
+  border-radius: 10px;
+  background-color: #7c3aed;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.room-button:hover {
+  background-color: #6d28d9;
+}
+
+.room-button:focus-visible {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 3px;
+}
+
+.room-button-secondary {
+  background-color: white;
+  color: #7c3aed;
+}
+
+.room-button-secondary:hover {
+  background-color: #f3e8ff;
+}
+
+.room-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rooms-empty {
+  margin-top: 24px;
+}
+
+.my-room-card {
+  border: 2px solid #8b5cf6;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+  max-width: 500px;
+}
+
+.my-room-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.create-room-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #8b5cf6;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #292136;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.create-room-field input:focus {
+  outline: 3px solid #ddd6fe;
+  outline-offset: 2px;
+}
+
+.join-by-code {
+  margin-bottom: 24px;
+}
+
+.join-by-code-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.join-by-code-controls input {
+  padding: 12px;
+  border: 2px solid #8b5cf6;
+  border-radius: 10px;
+  font-size: 16px;
+  min-width: 180px;
+}
