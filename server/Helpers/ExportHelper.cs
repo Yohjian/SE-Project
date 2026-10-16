@@ -1,5 +1,6 @@
 using System.Text.Json;
 using QuattroLingo.Entities;
+using QuattroLingo.Extensions;
 
 namespace QuattroLingo.Helpers
 {
@@ -33,8 +34,8 @@ namespace QuattroLingo.Helpers
                 await writer.WriteLineAsync("Term,Definition");
                 foreach (VocabularyCard card in set.Cards)
                 {
-                    string term = card.Term.SerializeEscapes();
-                    string definition = card.Definition.SerializeEscapes();
+                    string term = card.Term.ToCsvField();
+                    string definition = card.Definition.ToCsvField();
                     await writer.WriteLineAsync($"\"{term}\",\"{definition}\"");
                 }
             }

@@ -1,7 +1,9 @@
+namespace QuattroLingo.Extensions;
+
 public static class StringExtensions
 {
-    extension(string str)
+    extension(string value)
     {
-        public string SerializeEscapes() => str.Replace("\"", "\"\"");
+        public string ToCsvField() => $"\"{value.Replace("\"", "\"\"")}\"";
     }
 }
