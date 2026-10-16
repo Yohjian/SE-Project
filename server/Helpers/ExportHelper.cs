@@ -27,17 +27,18 @@ namespace QuattroLingo.Helpers
         public static async Task<MemoryStream> ToCsvStreamAsync(VocabularySet set)
         {
             MemoryStream stream = new();
-            StreamWriter writer = new(stream, System.Text.Encoding.UTF8, leaveOpen: true);
 
-            await writer.WriteLineAsync("Term,Definition");
-            foreach (VocabularyCard card in set.Cards)
+            await using (StreamWriter writer = new(stream, System.Text.Encoding.UTF8, leaveOpen: true))
             {
-                string term = card.Term.SerializeEscapes();
-                string definition = card.Definition.SerializeEscapes();
-                await writer.WriteLineAsync($"\"{term}\",\"{definition}\"");
+                await writer.WriteLineAsync("Term,Definition");
+                foreach (VocabularyCard card in set.Cards)
+                {
+                    string term = card.Term.SerializeEscapes();
+                    string definition = card.Definition.SerializeEscapes();
+                    await writer.WriteLineAsync($"\"{term}\",\"{definition}\"");
+                }
             }
 
-            await writer.FlushAsync();
             stream.Position = 0;
             return stream;
         }

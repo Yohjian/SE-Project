@@ -37,10 +37,10 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> GetCards(int setId) =>
             Ok(await setService.GetCardsAsync(UserId, setId));
 
-        [HttpGet("{setId}/download/{filetype}")]
-        public async Task<IActionResult> DownloadSet(int setId, FileType fileType)
+        [HttpGet("{setId}/download/{ft}")]
+        public async Task<IActionResult> DownloadSet(int setId, FileType ft)
         {
-            QuattroLingo.DTOs.Response.DownloadSet download = await setService.DownloadSetAsync(UserId, setId, fileType);
+            QuattroLingo.DTOs.Response.DownloadSet download = await setService.DownloadSetAsync(UserId, setId, ft);
             return File(download.Content, download.ContentType, download.FileName);
         }
     }
