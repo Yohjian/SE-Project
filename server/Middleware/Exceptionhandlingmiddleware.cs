@@ -27,6 +27,7 @@ public class ExceptionHandlingMiddleware(
             UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
             ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
             NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            UnsupportedFileTypeException => (StatusCodes.Status400BadRequest, "Unsupported file type"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 

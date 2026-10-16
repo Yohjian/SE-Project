@@ -1,4 +1,5 @@
 using QuattroLingo.DTOs.Response;
+using QuattroLingo.Enums;
 
 namespace QuattroLingo.Services
 {
@@ -13,5 +14,7 @@ namespace QuattroLingo.Services
         Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition);
 
         Task<List<CardResponse>> GetCardsAsync(string userId, int setId);
+
+        Task<DownloadFile> DownloadSetAsync(string userId, int setId, FileType ft);
     }
 }
