@@ -1,4 +1,4 @@
-using QuattroLingo.DTOs;
+using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Repositories;
@@ -89,7 +89,7 @@ namespace QuattroLingo.Tests.Services
 
             var service = new RoomService(roomRepo, quizRepo);
 
-            var request = new CreateRoomDto
+            var request = new CreateRoom
             {
                 QuizId = 1,
                 RoomVisibility = Visibility.Public
@@ -123,7 +123,7 @@ namespace QuattroLingo.Tests.Services
 
             var service = new RoomService(roomRepo, quizRepo);
 
-            var request = new CreateRoomDto
+            var request = new CreateRoom
             {
                 QuizId = 1,
                 RoomVisibility = Visibility.Public
@@ -187,7 +187,7 @@ namespace QuattroLingo.Tests.Services
 
             var service = new RoomService(roomRepo, quizRepo);
 
-            var request = new CreateRoomDto
+            var request = new CreateRoom
             {
                 QuizId = 1,
                 RoomVisibility = Visibility.Public

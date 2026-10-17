@@ -1,8 +1,8 @@
 using QuattroLingo.Enums;
 
-namespace QuattroLingo.DTOs
+namespace QuattroLingo.DTOs.Response
 {
-    public class RoomResponseDto
+    public class Room
     {
         public int Id { get; set; }
         public string QuizTitle { get; set; } = string.Empty;

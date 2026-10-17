@@ -1,4 +1,5 @@
-using QuattroLingo.DTOs;
+using QuattroLingo.DTOs.Request;
+using RoomResponse = QuattroLingo.DTOs.Response.Room;
 using QuattroLingo.Repositories;
 using System.Security.Cryptography;
 using QuattroLingo.Entities;
@@ -18,7 +19,7 @@ namespace QuattroLingo.Services
             _quizRepository = quizRepository;
         }
 
-        public async Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto, string userId)
+        public async Task<RoomResponse> CreateRoomAsync(CreateRoom dto, string userId)
         {
             var quiz = await _quizRepository.GetByIdAsync(dto.QuizId);
 
@@ -54,7 +55,7 @@ namespace QuattroLingo.Services
 
             var createdRoom = await _roomRepository.CreateRoomAsync(room);
 
-            return new RoomResponseDto
+            return new RoomResponse
             {
                 Id = createdRoom.Id,
                 QuizId = createdRoom.QuizId,
@@ -66,11 +67,11 @@ namespace QuattroLingo.Services
             };
         }
 
-        public async Task<List<RoomResponseDto>> GetPublicRoomAsync()
+        public async Task<List<RoomResponse>> GetPublicRoomAsync()
         {
             var rooms = await _roomRepository.GetPublicWaitingRoomsAsync();
 
-            return rooms.Select(room => new RoomResponseDto
+            return rooms.Select(room => new RoomResponse
             {
                 Id = room.Id,
                 QuizId = room.QuizId,
@@ -82,7 +83,7 @@ namespace QuattroLingo.Services
             }).ToList();
         }
 
-        public async Task<RoomResponseDto?> GetByCodeAsync(string code)
+        public async Task<RoomResponse?> GetByCodeAsync(string code)
         {
             // Patikriname, ar kodas įvestas
             if (string.IsNullOrWhiteSpace(code))
@@ -97,7 +98,7 @@ namespace QuattroLingo.Services
                 return null;
             }
 
-            return new RoomResponseDto
+            return new RoomResponse
             {
                 Id = room.Id,
                 QuizId = room.QuizId,
@@ -109,7 +110,7 @@ namespace QuattroLingo.Services
             };
         }
 
-        public async Task<RoomResponseDto> JoinRoomAsync(JoinRoomDto dto)
+        public async Task<RoomResponse> JoinRoomAsync(JoinRoom dto)
         {
             if (string.IsNullOrWhiteSpace(dto.JoinCode))
             {
@@ -143,7 +144,7 @@ namespace QuattroLingo.Services
 
             await _roomRepository.AddParticipantAsync(participant);
 
-            return new RoomResponseDto
+            return new RoomResponse
             {
                 Id = room.Id,
                 QuizId = room.QuizId,
@@ -155,11 +156,11 @@ namespace QuattroLingo.Services
             };
         }
 
-        public async Task<List<RoomResponseDto>> GetMyRoomsAsync(string userId)
+        public async Task<List<RoomResponse>> GetMyRoomsAsync(string userId)
         {
             var rooms = await _roomRepository.GetRoomsByHostIdAsync(userId);
 
-            return rooms.Select(room => new RoomResponseDto
+            return rooms.Select(room => new RoomResponse
             {
                 Id = room.Id,
                 QuizId = room.QuizId,

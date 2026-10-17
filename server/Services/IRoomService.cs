@@ -1,13 +1,14 @@
-using QuattroLingo.DTOs;
+using QuattroLingo.DTOs.Request;
+using RoomResponse = QuattroLingo.DTOs.Response.Room;
 
 namespace QuattroLingo.Services
 {
     public interface IRoomService
     {
-        Task<RoomResponseDto> CreateRoomAsync(CreateRoomDto dto, string userId);
-        Task<List<RoomResponseDto>> GetPublicRoomAsync();
-        Task<RoomResponseDto?> GetByCodeAsync(string code);
-        Task<RoomResponseDto> JoinRoomAsync(JoinRoomDto dto);
-        Task<List<RoomResponseDto>> GetMyRoomsAsync(string userId);
+        Task<RoomResponse> CreateRoomAsync(CreateRoom dto, string userId);
+        Task<List<RoomResponse>> GetPublicRoomAsync();
+        Task<RoomResponse?> GetByCodeAsync(string code);
+        Task<RoomResponse> JoinRoomAsync(JoinRoom dto);
+        Task<List<RoomResponse>> GetMyRoomsAsync(string userId);
     }
 }

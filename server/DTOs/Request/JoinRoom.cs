@@ -1,6 +1,6 @@
-namespace QuattroLingo.DTOs
+namespace QuattroLingo.DTOs.Request
 {
-    public  class JoinRoomDto
+    public  class JoinRoom
     {
         public string JoinCode { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;

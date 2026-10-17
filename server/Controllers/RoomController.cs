@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuattroLingo.DTOs;
+using QuattroLingo.DTOs.Request;
 using QuattroLingo.Services;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -13,7 +13,7 @@ namespace QuattroLingo.Controllers
     {
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateRoom(CreateRoomDto dto)
+        public async Task<IActionResult> CreateRoom(CreateRoom dto)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
             var result = await roomService.CreateRoomAsync(dto, userId);
@@ -57,7 +57,7 @@ namespace QuattroLingo.Controllers
         }
 
         [HttpPost("join")]
-        public async Task<IActionResult> JoinRoom(JoinRoomDto dto)
+        public async Task<IActionResult> JoinRoom(JoinRoom dto)
         {
             var result = await roomService.JoinRoomAsync(dto);
 
