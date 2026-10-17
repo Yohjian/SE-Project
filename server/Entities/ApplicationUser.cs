@@ -8,5 +8,7 @@ namespace QuattroLingo.Entities
         public UserRole Role { get; set; } = UserRole.User;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsAdmin => Role == UserRole.Admin;
     }
 }

@@ -299,3 +299,32 @@
   margin: 0;
 }
 
+.bulk-question-settings {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.bulk-settings-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.bulk-settings-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulk-settings-row input {
+  padding: 8px;
+  width: 150px;
+}
+
+.bulk-settings-row button {
+  padding: 10px;
+  cursor: pointer;
+}

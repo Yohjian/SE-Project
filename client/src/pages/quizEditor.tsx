@@ -1,11 +1,16 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { quizApi } from "../api/client";
-import { QuestionRequest } from "../api/types";
+import type { QuestionRequest } from "../api/types";
 import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
 
 import "../styles/quizEditor.css";
+
+type EditorQuestion = QuestionRequest & {
+  clientId: string;
+};
 
 export default function QuizEditor() {
   const { id } = useParams();
@@ -13,8 +18,10 @@ export default function QuizEditor() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [questions, setQuestions] = useState<QuestionRequest[]>([]);
+  const [questions, setQuestions] = useState<EditorQuestion[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [allTime, setAllTime] = useState<number | "">(30);
+  const [allPoints, setAllPoints] = useState<number | "">(100);
 
   const { showNotification } = useNotification();
 
@@ -29,6 +36,7 @@ export default function QuizEditor() {
 
         setQuestions(
           res.data.questions.map((question) => ({
+            clientId: crypto.randomUUID(),
             text: question.text,
             timeLimitSeconds: question.timeLimitSeconds,
             points: question.points,
@@ -47,6 +55,7 @@ export default function QuizEditor() {
     setQuestions((prev) => [
       ...prev,
       {
+        clientId: crypto.randomUUID(),
         text: "",
         timeLimitSeconds: 30,
         points: 100,
@@ -73,6 +82,35 @@ export default function QuizEditor() {
     );
   };
 
+
+  const handleApplyAllTime = () => {
+    if (allTime === "" || !Number.isInteger(allTime) || allTime < 5) {
+      showNotification("Time limit must be at least 5 seconds.");
+      return;
+    }
+
+    setQuestions((prev) =>
+      prev.map((question) => ({
+        ...question,
+        timeLimitSeconds: allTime,
+      }))
+    );
+  };
+
+  const handleApplyAllPoints = () => {
+    if (allPoints === "" || !Number.isInteger(allPoints) || allPoints < 1) {
+      showNotification("Points must be a positive whole number.");
+      return;
+    }
+
+    setQuestions((prev) =>
+      prev.map((question) => ({
+        ...question,
+        points: allPoints,
+      }))
+    );
+  };
+
   const handleDeleteQuestion = (questionIndex: number) => {
     setQuestions((prev) =>
       prev
@@ -85,32 +123,32 @@ export default function QuizEditor() {
   };
 
   const handleMoveQuestion = (
-  questionIndex: number,
-  direction: "up" | "down",
-) => {
-  setQuestions((prev) => {
-    const newQuestions = [...prev];
+    questionIndex: number,
+    direction: "up" | "down",
+  ) => {
+    setQuestions((prev) => {
+      const newQuestions = [...prev];
 
-    const newIndex =
-      direction === "up"
-        ? questionIndex - 1
-        : questionIndex + 1;
+      const newIndex =
+        direction === "up"
+          ? questionIndex - 1
+          : questionIndex + 1;
 
-    if (newIndex < 0 || newIndex >= newQuestions.length) {
-      return prev;
-    }
+      if (newIndex < 0 || newIndex >= newQuestions.length) {
+        return prev;
+      }
 
-    [newQuestions[questionIndex], newQuestions[newIndex]] = [
-      newQuestions[newIndex],
-      newQuestions[questionIndex],
-    ];
+      [newQuestions[questionIndex], newQuestions[newIndex]] = [
+        newQuestions[newIndex],
+        newQuestions[questionIndex],
+      ];
 
-    return newQuestions.map((question, index) => ({
-      ...question,
-      orderIndex: index,
-    }));
-  });
-};
+      return newQuestions.map((question, index) => ({
+        ...question,
+        orderIndex: index,
+      }));
+    });
+  };
 
   const handleAddAnswer = (questionIndex: number) => {
     setQuestions((prev) =>
@@ -218,18 +256,67 @@ export default function QuizEditor() {
       return;
     }
 
+    if (
+      questions.some((question) => question.answerOptions.length < 2)
+    ) {
+      showNotification("Every question needs at least 2 answers.");
+      return;
+    }
+
+    if (
+      questions.some(
+        (question) =>
+          question.answerOptions.filter((answer) => answer.isCorrect).length !== 1
+      )
+    ) {
+      showNotification("Every question must have exactly one correct answer.");
+      return;
+    }
+
+    if (
+      questions.some(
+        (question) =>
+          !Number.isInteger(question.timeLimitSeconds) ||
+          question.timeLimitSeconds < 5
+      )
+    ) {
+      showNotification("Every question must have a time limit of at least 5 seconds.");
+      return;
+    }
+
+    if (
+      questions.some(
+        (question) =>
+          !Number.isInteger(question.points) ||
+          question.points < 1
+      )
+    ) {
+      showNotification("Every question must have at least 1 point.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       await quizApi.update(Number(id), {
         title,
         description: description || null,
-        questions,
+        questions: questions.map(({ clientId, ...question }) => question),
       });
 
       showNotification("Quiz saved.", "success");
-    } catch {
-      showNotification("Failed to save quiz.");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+
+        if (typeof message === "string" && message.trim()) {
+          showNotification(message);
+        } else {
+          showNotification("Failed to save quiz.");
+        }
+      } else {
+        showNotification("Failed to save quiz.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -274,9 +361,48 @@ export default function QuizEditor() {
         <div className="questions-section">
           <h2>Questions</h2>
 
+          <div className="bulk-question-settings">
+            <h3>Apply to all questions</h3>
+
+            <div className="bulk-settings-row">
+              <div>
+                <label>Time limit (seconds)</label>
+                <input
+                  type="number"
+                  min="5"
+                  value={allTime}
+                  onChange={(e) => setAllTime(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyAllTime}
+                  disabled={questions.length === 0}
+                >
+                  Apply time to all
+                </button>
+              </div>
+
+              <div>
+                <label>Points</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={allPoints}
+                  onChange={(e) => setAllPoints(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyAllPoints}
+                  disabled={questions.length === 0}
+                >
+                  Apply points to all
+                </button>
+              </div>
+            </div>
+          </div>
           {questions.map((question, questionIndex) => (
             <QuizQuestionEditor
-              key={questionIndex}
+              key={question.clientId}
               question={question}
               questionIndex={questionIndex}
               questionCount={questions.length}

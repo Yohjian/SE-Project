@@ -291,4 +291,93 @@ public class QuizServiceTests
         Assert.Equal(2, question.AnswerOptions.Count);
         Assert.Single(question.AnswerOptions.Where(a => a.IsCorrect));
     }
+
+    [Fact]
+    public async Task Create_QuizWithoutTitle_ThrowsValidation()
+    {
+        var request = new CreateQuizRequest(
+            "",
+            null,
+            [ValidQuestion()]
+        );
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.CreateAsync("user-1", request)
+        );
+
+        Assert.Empty(_repo.Quizzes);
+    }
+
+    [Fact]
+    public async Task Update_ValidQuiz_SavesChanges()
+    {
+        var created = await _service.CreateAsync(
+            "user-1",
+            new CreateQuizRequest(
+                "Original Quiz",
+                null,
+                [ValidQuestion()]
+            )
+        );
+
+        var request = new UpdateQuizRequest(
+            "Updated Quiz",
+            "Updated description",
+            [ValidQuestion()]
+        );
+
+        var result = await _service.UpdateAsync(
+            "user-1",
+            created.Id,
+            request
+        );
+
+        Assert.Equal("Updated Quiz", result.Title);
+        Assert.Equal("Updated description", result.Description);
+
+        var savedQuiz = Assert.Single(_repo.Quizzes);
+        Assert.Equal("Updated Quiz", savedQuiz.Title);
+        Assert.Single(savedQuiz.Questions);
+    }
+
+    [Fact]
+    public async Task Delete_OwnQuiz_RemovesQuiz()
+    {
+        var created = await _service.CreateAsync(
+            "user-1",
+            new CreateQuizRequest(
+                "My Quiz",
+                null,
+                [ValidQuestion()]
+            )
+        );
+
+        await _service.DeleteAsync("user-1", created.Id);
+
+        Assert.Empty(_repo.Quizzes);
+    }
+
+    [Fact]
+    public async Task Get_NonexistentQuiz_ThrowsNotFound()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => _service.GetByIdAsync("user-1", 999)
+        );
+    }
+
+    [Fact]
+    public async Task Create_QuizWithoutQuestions_Succeeds()
+    {
+        var request = new CreateQuizRequest(
+            "Empty Quiz",
+            null,
+            []
+        );
+
+        var result = await _service.CreateAsync("user-1", request);
+
+        Assert.Equal("Empty Quiz", result.Title);
+        Assert.Empty(result.Questions);
+        Assert.Single(_repo.Quizzes);
+    }
 }

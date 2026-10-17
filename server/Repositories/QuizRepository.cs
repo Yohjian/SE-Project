@@ -61,7 +61,9 @@ namespace QuattroLingo.Repositories
         {
             return await _context.AnswerOptions
                 .Include(a => a.Question)
-                .ThenInclude(q => q!.Quiz)
+                    .ThenInclude(q => q!.Quiz)
+                .Include(a => a.Question)
+                    .ThenInclude(q => q!.AnswerOptions)
                 .FirstOrDefaultAsync(a => a.Id == answerOptionId);
         }
 
