@@ -1,16 +1,18 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
+using QuattroLingo.Entities;
 using QuattroLingo.Services;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace QuattroLingo.Controllers
 {
     [ApiController]
     [Route("api/quizzes")]
     [Authorize]
-    public class QuizController(IQuizService quizzes) : ControllerBase
+    public class QuizController(IQuizService quizzes, UserManager<ApplicationUser> userManager) : ControllerBase
     {
         [HttpGet("mine")]
         public async Task<IActionResult> GetMine()
@@ -36,6 +38,14 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> Create(CreateQuizRequest request)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+                return Unauthorized();
 
             var result = await quizzes.CreateAsync(userId, request);
 

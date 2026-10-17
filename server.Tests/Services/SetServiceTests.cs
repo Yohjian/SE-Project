@@ -5,6 +5,7 @@ using QuattroLingo.Exceptions;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
 
+
 namespace QuattroLingo.Tests.Services;
 
 public class SetServiceTests
@@ -230,5 +231,6 @@ public class SetServiceTests
 
         await Assert.ThrowsAsync<UnsupportedFileTypeException>(
             () => _service.DownloadSetAsync("user-1", set.Id, (FileType)99));
+
     }
 }
