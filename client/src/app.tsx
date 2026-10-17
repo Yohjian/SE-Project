@@ -9,7 +9,7 @@ import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
 import QuizEditor from "./pages/quizEditor";
 import Rooms from "./pages/rooms";
-import JoinRoom from "./pages/join_room";
+import JoinRoom from "./pages/joinRoom";
 
 export default function App() {
   return (
