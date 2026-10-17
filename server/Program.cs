@@ -1,15 +1,14 @@
 using System.Text;
-using QuattroLingo.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Scalar.AspNetCore;
-using QuattroLingo.Services;
+using QuattroLingo.Data;
 using QuattroLingo.Entities;
 using QuattroLingo.Middleware;
 using QuattroLingo.Repositories;
-using System.Text.Json;
+using QuattroLingo.Services;
+using Scalar.AspNetCore;
 
 DotNetEnv.Env.Load(); // add ".env" when making migration
 var builder = WebApplication.CreateBuilder(args);

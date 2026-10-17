@@ -1,36 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.Controllers;
-using Xunit;
 
-namespace QuattroLingo.Tests.Controllers;
-
-public class HealthControllerTests
+namespace QuattroLingo.Tests.Controllers
 {
-    private readonly HealthController _controller = new();
-
-    [Fact]
-    public void Get_ReturnsOkWithStatusOk()
+    public class HealthControllerTests
     {
-        var result = _controller.Get();
+        private readonly HealthController _controller = new();
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var value = Assert.IsAssignableFrom<object>(okResult.Value);
-        var statusProp = value.GetType().GetProperty("status");
+        [Fact]
+        public void Get_ReturnsOkWithStatusOk()
+        {
+            var result = _controller.Get();
 
-        Assert.NotNull(statusProp);
-        Assert.Equal("ok", statusProp!.GetValue(value));
-    }
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsAssignableFrom<object>(okResult.Value);
+            var statusProp = value.GetType().GetProperty("status");
 
-    [Fact]
-    public void Hello_ReturnsOkWithMessage()
-    {
-        var result = _controller.Hello();
+            Assert.NotNull(statusProp);
+            Assert.Equal("ok", statusProp!.GetValue(value));
+        }
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var value = Assert.IsAssignableFrom<object>(okResult.Value);
-        var messageProp = value.GetType().GetProperty("message");
+        [Fact]
+        public void Hello_ReturnsOkWithMessage()
+        {
+            var result = _controller.Hello();
 
-        Assert.NotNull(messageProp);
-        Assert.Equal("Backend loaded successfully.", messageProp!.GetValue(value));
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var value = Assert.IsAssignableFrom<object>(okResult.Value);
+            var messageProp = value.GetType().GetProperty("message");
+
+            Assert.NotNull(messageProp);
+            Assert.Equal("Backend loaded successfully.", messageProp!.GetValue(value));
+        }
     }
 }
