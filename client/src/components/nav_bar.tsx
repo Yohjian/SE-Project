@@ -8,7 +8,7 @@ export default function Layout() {
   const isLoggedIn = Boolean(getToken());
   const handleLogout = () => {
     clearSession();
-    navigate("/login");
+    navigate("/dashboard", { replace: true });
   };
 
   return (
