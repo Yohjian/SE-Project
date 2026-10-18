@@ -47,6 +47,10 @@ namespace QuattroLingo.Services
         {
             await EnsureOwnedAsync(userId, setId);
 
+            var existing = await sets.GetCardsAsync(setId);
+            if (existing.Any(c => string.Equals(c.Term, term, StringComparison.OrdinalIgnoreCase)))
+                throw new ValidationException($"A card with the term \"{term}\" already exists in this set.");
+
             var card = await sets.AddCardAsync(new VocabularyCard
             {
                 Term = term,
@@ -76,6 +80,21 @@ namespace QuattroLingo.Services
                 FileType.Csv => new DownloadFile(await ExportHelper.ToCsvStreamAsync(set), "text/csv", $"{set.Name}.csv"),
                 _ => throw new UnsupportedFileTypeException($"Download of filetype {ft} not supported.")
             };
+        }
+
+        public async Task DeleteSetAsync(string userId, int setId)
+        {
+            await EnsureOwnedAsync(userId, setId);
+            await sets.DeleteSetAsync(setId);
+        }
+
+        public async Task DeleteCardAsync(string userId, int setId, int cardId)
+        {
+            await EnsureOwnedAsync(userId, setId);
+            var cards = await sets.GetCardsAsync(setId);
+            if (cards.All(c => c.Id != cardId))
+                throw new NotFoundException("Card not found.");
+            await sets.DeleteCardAsync(cardId);
         }
 
         private async Task EnsureOwnedAsync(string userId, int setId)

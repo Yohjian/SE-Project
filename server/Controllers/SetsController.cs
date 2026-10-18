@@ -30,6 +30,20 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> AddSet([FromBody] DTOs.Request.CreateSet request) =>
             Ok(await setService.CreateAsync(UserId, request.Name));
 
+        [HttpDelete("{setId}")]
+        public async Task<IActionResult> DeleteSet(int setId)
+        {
+            await setService.DeleteSetAsync(UserId, setId);
+            return NoContent();
+        }
+
+        [HttpDelete("{setId}/cards/{cardId}")]
+        public async Task<IActionResult> DeleteCard(int setId, int cardId)
+        {
+            await setService.DeleteCardAsync(UserId, setId, cardId);
+            return NoContent();
+        }
+
         [HttpPost("{setId}/cards")]
         public async Task<IActionResult> AddCard(int setId, [FromBody] DTOs.Request.CreateCard request) =>
             Ok(await setService.AddCardAsync(UserId, setId, request.Term, request.Definition));

@@ -1,85 +1,138 @@
 .sidebar {
-  width: 220px;
-  border-right: 1px solid #e5e7eb;
-  overflow-y: auto;
-  padding: 1rem;
-  flex-shrink: 0;
-}
-
-.sidebar-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
-}
-
-.sidebar-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.sidebar-item {
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-.sidebar-item:hover {
-  background: #f3f4f6;
-  border-color: #4f46e5;
-}
-
-.sidebar-item.active {
-  background: #4f46e5;
-  color: white;
+    width: 220px;
+    border-right: 1px solid #e5e7eb;
+    overflow-y: auto;
+    padding: 1rem;
+    flex-shrink: 0;
 }
 
 .sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
 }
 
 .sidebar-title {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
 }
 
 .sidebar-add-btn {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: #6366f1;
-  line-height: 1;
-  padding: 0 0.25rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: #6366f1;
+    line-height: 1;
+    padding: 0 0.25rem;
 }
 
 .sidebar-add-btn:hover {
-  color: #4f46e5;
+    color: #4f46e5;
+}
+
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.sidebar-item:hover {
+    background: #f3f4f6;
+}
+
+.sidebar-item.active {
+    background: #4f46e5;
+    color: white;
+}
+
+/* The name is a button so it works with Tab + Enter; reset the button look. */
+.sidebar-item-name {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-item-name:focus-visible,
+.sidebar-item-delete:focus-visible,
+.sidebar-add-btn:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+.sidebar-item-delete {
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+        opacity 0.15s,
+        background 0.15s;
+}
+
+/* Show the delete button on hover, and when the row has keyboard focus. */
+.sidebar-item:hover .sidebar-item-delete,
+.sidebar-item:focus-within .sidebar-item-delete {
+    opacity: 0.6;
+}
+
+.sidebar-item-delete:hover,
+.sidebar-item-delete:focus-visible {
+    opacity: 1;
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+}
+
+.sidebar-item.active .sidebar-item-delete:hover,
+.sidebar-item.active .sidebar-item-delete:focus-visible {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .sidebar-new-set {
-  padding: 0.5rem;
+    padding: 0.5rem;
 }
 
 .sidebar-new-set input {
-  width: 100%;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid #6366f1;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  box-sizing: border-box;
-  outline: none;
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #6366f1;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    box-sizing: border-box;
+    outline: none;
 }

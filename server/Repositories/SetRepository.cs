@@ -41,5 +41,25 @@ namespace QuattroLingo.Repositories
             await db.SaveChangesAsync();
             return card;
         }
+
+        public async Task DeleteSetAsync(int setId)
+        {
+            var set = await db.Sets.FindAsync(setId);
+            if (set is not null)
+            {
+                db.Sets.Remove(set);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteCardAsync(int cardId)
+        {
+            var card = await db.Cards.FindAsync(cardId);
+            if (card is not null)
+            {
+                db.Cards.Remove(card);
+                await db.SaveChangesAsync();
+            }
+        }
     }
 }
