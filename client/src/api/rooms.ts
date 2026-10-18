@@ -6,7 +6,6 @@ export interface Room {
   joinCode: string;
   visibility: number;
   status: number;
-  participantCount: number;
   quizTitle: string;
 }
 
@@ -24,6 +23,9 @@ export const roomApi = {
   getPublic: () => client.get<Room[]>("/rooms/public"),
 
   getMine: () => client.get<Room[]>("/rooms/mine"),
+
+  getByCode: (code: string) =>
+    client.get<Room>(`/rooms/${encodeURIComponent(code)}`),
 
   create: (request: CreateRoomRequest) =>
     client.post<Room>("/rooms", request),
