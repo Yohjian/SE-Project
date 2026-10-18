@@ -6,7 +6,6 @@ export interface Room {
   joinCode: string;
   visibility: number;
   status: number;
-  participantCount: number;
   quizTitle: string;
 }
 

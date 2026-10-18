@@ -153,8 +153,6 @@ export default function Rooms() {
                     <p>
                         Room code: <strong>{room.joinCode}</strong>
                     </p>
-
-                    <p>Participants: {room.participantCount}</p>
                 </div>
             ))}
         </div>
