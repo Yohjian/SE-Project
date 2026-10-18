@@ -53,6 +53,19 @@ public class SetServiceTests
             Cards.Add(card);
             return Task.FromResult(card);
         }
+
+        public Task DeleteSetAsync(int setId)
+        {
+            Sets.RemoveAll(s => s.Id == setId);
+            Cards.RemoveAll(c => c.SetId == setId);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteCardAsync(int cardId)
+        {
+            Cards.RemoveAll(c => c.Id == cardId);
+            return Task.CompletedTask;
+        }
     }
 
     private readonly FakeSetRepository _repo = new();
@@ -232,5 +245,94 @@ public class SetServiceTests
         await Assert.ThrowsAsync<UnsupportedFileTypeException>(
             () => _service.DownloadSetAsync("user-1", set.Id, (FileType)99));
 
+    }
+
+    // ---------- Delete ----------
+
+    [Fact]
+    public async Task DeleteSet_OwnSet_RemovesSetAndItsCards()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+        await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+
+        await _service.DeleteSetAsync("user-1", set.Id);
+
+        Assert.Empty(_repo.Sets);
+        Assert.Empty(_repo.Cards);
+    }
+
+    [Fact]
+    public async Task DeleteSet_SomeoneElsesSet_ThrowsNotFound_AndKeepsIt()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteSetAsync("user-2", set.Id));
+
+        Assert.Single(_repo.Sets);
+    }
+
+    [Fact]
+    public async Task DeleteCard_OwnCard_RemovesOnlyThatCard()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+        var cat = await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+        await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
+
+        await _service.DeleteCardAsync("user-1", set.Id, cat.Id);
+
+        var left = Assert.Single(_repo.Cards);
+        Assert.Equal("dog", left.Term);
+    }
+
+    [Fact]
+    public async Task DeleteCard_InSomeoneElsesSet_ThrowsNotFound()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+        var card = await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => _service.DeleteCardAsync("user-2", set.Id, card.Id));
+
+        Assert.Single(_repo.Cards);
+    }
+
+    [Fact]
+    public async Task DeleteCard_FromADifferentSet_ThrowsNotFound()
+    {
+        var mine = await _service.CreateAsync("user-1", "Mine");
+        var other = await _service.CreateAsync("user-1", "Other");
+        var card = await _service.AddCardAsync("user-1", other.Id, "cat", "kat");
+
+        // Card exists, but not in the set given in the URL
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => _service.DeleteCardAsync("user-1", mine.Id, card.Id));
+
+        Assert.Single(_repo.Cards);
+    }
+
+    // ---------- Duplicate terms ----------
+
+    [Fact]
+    public async Task AddCard_DuplicateTerm_IgnoringCase_ThrowsValidation()
+    {
+        var set = await _service.CreateAsync("user-1", "Mine");
+        await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.AddCardAsync("user-1", set.Id, "Cat", "katė"));
+
+        Assert.Single(_repo.Cards);
+    }
+
+    [Fact]
+    public async Task AddCard_SameTermInDifferentSets_IsAllowed()
+    {
+        var a = await _service.CreateAsync("user-1", "A");
+        var b = await _service.CreateAsync("user-1", "B");
+
+        await _service.AddCardAsync("user-1", a.Id, "cat", "kat");
+        await _service.AddCardAsync("user-1", b.Id, "cat", "kat");
+
+        Assert.Equal(2, _repo.Cards.Count);
     }
 }

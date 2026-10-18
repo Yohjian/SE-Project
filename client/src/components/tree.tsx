@@ -47,13 +47,15 @@ export default function Tree({
     };
 
     return (
-        <div className="sidebar">
+        <aside className="sidebar">
             <div className="sidebar-header">
-                <span className="sidebar-title">{title}</span>
+                <h3 className="sidebar-title">{title}</h3>
                 {onAdd && (
                     <button
                         className="sidebar-add-btn"
                         onClick={() => setIsAdding(true)}
+                        title={`Add to ${title}`}
+                        aria-label={`Add to ${title}`}
                     >
                         +
                     </button>
@@ -61,27 +63,33 @@ export default function Tree({
             </div>
 
             <ul className="sidebar-list">
-                {entries.map((entry) => (
-                    <li
-                        key={entry.id}
-                        className={`sidebar-item ${entry.id === selectedId ? "active" : ""}`}
-                        onClick={() => onSelect(entry.id)}
-                    >
-                        <span className="sidebar-item-name">{entry.name}</span>
-                        {onDelete && (
+                {entries.map((entry) => {
+                    const isActive = entry.id === selectedId;
+                    return (
+                        <li
+                            key={entry.id}
+                            className={`sidebar-item ${isActive ? "active" : ""}`}
+                        >
                             <button
-                                className="sidebar-item-delete"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDelete(entry.id);
-                                }}
-                                title="Delete set"
+                                className="sidebar-item-name"
+                                onClick={() => onSelect(entry.id)}
+                                aria-current={isActive ? "true" : undefined}
                             >
-                                ×
+                                {entry.name}
                             </button>
-                        )}
-                    </li>
-                ))}
+                            {onDelete && (
+                                <button
+                                    className="sidebar-item-delete"
+                                    onClick={() => onDelete(entry.id)}
+                                    title={`Delete ${entry.name}`}
+                                    aria-label={`Delete ${entry.name}`}
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </li>
+                    );
+                })}
             </ul>
 
             {isAdding && (
@@ -89,13 +97,14 @@ export default function Tree({
                     <input
                         ref={inputRef}
                         type="text"
-                        placeholder="Set name…"
+                        placeholder={`${title} name…`}
+                        aria-label={`New ${title} name`}
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         onKeyDown={handleKeyDown}
                     />
                 </div>
             )}
-        </div>
+        </aside>
     );
 }
