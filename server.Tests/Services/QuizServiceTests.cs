@@ -4,380 +4,381 @@ using QuattroLingo.Exceptions;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
 
-namespace QuattroLingo.Tests.Services;
-
-public class QuizServiceTests
+namespace QuattroLingo.Tests.Services
 {
-    private class FakeQuizRepository : IQuizRepository
+    public class QuizServiceTests
     {
-        public readonly List<Quiz> Quizzes = [];
-        private int _nextQuizId = 1;
-
-        public Task<List<Quiz>> GetByOwnerIdAsync(string ownerId) =>
-            Task.FromResult(Quizzes
-                .Where(q => q.OwnerId == ownerId)
-                .ToList());
-
-        public Task<Quiz?> GetByIdAsync(int id) =>
-            Task.FromResult(Quizzes.FirstOrDefault(q => q.Id == id));
-
-        private static void AssignId(object entity, int id) =>
-            entity.GetType()
-                .GetProperty("Id")!
-                .GetSetMethod(nonPublic: true)!
-                .Invoke(entity, [id]);
-
-        public Task AddAsync(Quiz quiz)
+        private class FakeQuizRepository : IQuizRepository
         {
-            AssignId(quiz, _nextQuizId++);
-            Quizzes.Add(quiz);
-            return Task.CompletedTask;
+            public readonly List<Quiz> Quizzes = [];
+            private int _nextQuizId = 1;
+
+            public Task<List<Quiz>> GetByOwnerIdAsync(string ownerId) =>
+                Task.FromResult(Quizzes
+                    .Where(q => q.OwnerId == ownerId)
+                    .ToList());
+
+            public Task<Quiz?> GetByIdAsync(int id) =>
+                Task.FromResult(Quizzes.FirstOrDefault(q => q.Id == id));
+
+            private static void AssignId(object entity, int id) =>
+                entity.GetType()
+                    .GetProperty("Id")!
+                    .GetSetMethod(nonPublic: true)!
+                    .Invoke(entity, [id]);
+
+            public Task AddAsync(Quiz quiz)
+            {
+                AssignId(quiz, _nextQuizId++);
+                Quizzes.Add(quiz);
+                return Task.CompletedTask;
+            }
+
+            public Task UpdateAsync(Quiz quiz) =>
+                Task.CompletedTask;
+
+            public Task DeleteAsync(Quiz quiz)
+            {
+                Quizzes.Remove(quiz);
+                return Task.CompletedTask;
+            }
+
+            public Task<Question?> GetQuestionByIdAsync(int questionId) =>
+                Task.FromResult(
+                    Quizzes
+                        .SelectMany(q => q.Questions)
+                        .FirstOrDefault(q => q.Id == questionId)
+                );
+
+            public Task<AnswerOption?> GetAnswerOptionByIdAsync(int answerOptionId) =>
+                Task.FromResult(
+                    Quizzes
+                        .SelectMany(q => q.Questions)
+                        .SelectMany(q => q.AnswerOptions)
+                        .FirstOrDefault(a => a.Id == answerOptionId)
+                );
+
+            public Task AddQuestionAsync(Question question) =>
+                Task.CompletedTask;
+
+            public Task DeleteQuestionAsync(Question question) =>
+                Task.CompletedTask;
+
+            public Task AddAnswerOptionAsync(AnswerOption answerOption) =>
+                Task.CompletedTask;
+
+            public Task DeleteAnswerOptionAsync(AnswerOption answerOption) =>
+                Task.CompletedTask;
+
+            public Task SaveChangesAsync() =>
+                Task.CompletedTask;
         }
 
-        public Task UpdateAsync(Quiz quiz) =>
-            Task.CompletedTask;
+        private readonly FakeQuizRepository _repo = new();
+        private readonly QuizService _service;
 
-        public Task DeleteAsync(Quiz quiz)
+        public QuizServiceTests()
         {
-            Quizzes.Remove(quiz);
-            return Task.CompletedTask;
+            _service = new QuizService(_repo);
         }
 
-        public Task<Question?> GetQuestionByIdAsync(int questionId) =>
-            Task.FromResult(
-                Quizzes
-                    .SelectMany(q => q.Questions)
-                    .FirstOrDefault(q => q.Id == questionId)
+        private static QuestionRequest ValidQuestion()
+        {
+            return new QuestionRequest(
+                "What is apple?",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", true),
+                    new AnswerOptionRequest("Šuo", false)
+                ]
+            );
+        }
+
+        [Fact]
+        public async Task Update_QuizOwnedBySomeoneElse_ThrowsForbidden()
+        {
+            var created = await _service.CreateAsync(
+                "user-1",
+                new CreateQuizRequest(
+                    "My Quiz",
+                    null,
+                    [ValidQuestion()]
+                )
             );
 
-        public Task<AnswerOption?> GetAnswerOptionByIdAsync(int answerOptionId) =>
-            Task.FromResult(
-                Quizzes
-                    .SelectMany(q => q.Questions)
-                    .SelectMany(q => q.AnswerOptions)
-                    .FirstOrDefault(a => a.Id == answerOptionId)
+            var request = new UpdateQuizRequest(
+                "Changed Quiz",
+                null,
+                [ValidQuestion()]
             );
 
-        public Task AddQuestionAsync(Question question) =>
-            Task.CompletedTask;
+            await Assert.ThrowsAsync<ForbiddenException>(
+                () => _service.UpdateAsync("user-2", created.Id, request)
+            );
+        }
 
-        public Task DeleteQuestionAsync(Question question) =>
-            Task.CompletedTask;
+        [Fact]
+        public async Task Delete_QuizOwnedBySomeoneElse_ThrowsForbidden()
+        {
+            var created = await _service.CreateAsync(
+                "user-1",
+                new CreateQuizRequest(
+                    "My Quiz",
+                    null,
+                    [ValidQuestion()]
+                )
+            );
 
-        public Task AddAnswerOptionAsync(AnswerOption answerOption) =>
-            Task.CompletedTask;
+            await Assert.ThrowsAsync<ForbiddenException>(
+                () => _service.DeleteAsync("user-2", created.Id)
+            );
 
-        public Task DeleteAnswerOptionAsync(AnswerOption answerOption) =>
-            Task.CompletedTask;
+            Assert.Single(_repo.Quizzes);
+        }
 
-        public Task SaveChangesAsync() =>
-            Task.CompletedTask;
-    }
+        [Fact]
+        public async Task Create_QuestionWithNoCorrectAnswer_ThrowsValidation()
+        {
+            var question = new QuestionRequest(
+                "What is apple?",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", false),
+                    new AnswerOptionRequest("Šuo", false)
+                ]
+            );
 
-    private readonly FakeQuizRepository _repo = new();
-    private readonly QuizService _service;
-
-    public QuizServiceTests()
-    {
-        _service = new QuizService(_repo);
-    }
-
-    private static QuestionRequest ValidQuestion()
-    {
-        return new QuestionRequest(
-            "What is apple?",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", true),
-                new AnswerOptionRequest("Šuo", false)
-            ]
-        );
-    }
-
-    [Fact]
-    public async Task Update_QuizOwnedBySomeoneElse_ThrowsForbidden()
-    {
-        var created = await _service.CreateAsync(
-            "user-1",
-            new CreateQuizRequest(
+            var request = new CreateQuizRequest(
                 "My Quiz",
                 null,
-                [ValidQuestion()]
-            )
-        );
+                [question]
+            );
 
-        var request = new UpdateQuizRequest(
-            "Changed Quiz",
-            null,
-            [ValidQuestion()]
-        );
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
 
-        await Assert.ThrowsAsync<ForbiddenException>(
-            () => _service.UpdateAsync("user-2", created.Id, request)
-        );
-    }
+            Assert.Empty(_repo.Quizzes);
+        }
 
-    [Fact]
-    public async Task Delete_QuizOwnedBySomeoneElse_ThrowsForbidden()
-    {
-        var created = await _service.CreateAsync(
-            "user-1",
-            new CreateQuizRequest(
+        [Fact]
+        public async Task Create_QuestionWithMultipleCorrectAnswers_ThrowsValidation()
+        {
+            var question = new QuestionRequest(
+                "What is apple?",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", true),
+                    new AnswerOptionRequest("Šuo", true)
+                ]
+            );
+
+            var request = new CreateQuizRequest(
                 "My Quiz",
                 null,
-                [ValidQuestion()]
-            )
-        );
+                [question]
+            );
 
-        await Assert.ThrowsAsync<ForbiddenException>(
-            () => _service.DeleteAsync("user-2", created.Id)
-        );
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
 
-        Assert.Single(_repo.Quizzes);
-    }
+            Assert.Empty(_repo.Quizzes);
+        }
 
-    [Fact]
-    public async Task Create_QuestionWithNoCorrectAnswer_ThrowsValidation()
-    {
-        var question = new QuestionRequest(
-            "What is apple?",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", false),
-                new AnswerOptionRequest("Šuo", false)
-            ]
-        );
+        [Fact]
+        public async Task Create_QuestionWithLessThanTwoAnswers_ThrowsValidation()
+        {
+            var question = new QuestionRequest(
+                "What is apple?",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", true)
+                ]
+            );
 
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            null,
-            [question]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Create_QuestionWithMultipleCorrectAnswers_ThrowsValidation()
-    {
-        var question = new QuestionRequest(
-            "What is apple?",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", true),
-                new AnswerOptionRequest("Šuo", true)
-            ]
-        );
-
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            null,
-            [question]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Create_QuestionWithLessThanTwoAnswers_ThrowsValidation()
-    {
-        var question = new QuestionRequest(
-            "What is apple?",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", true)
-            ]
-        );
-
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            null,
-            [question]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Create_QuestionWithEmptyText_ThrowsValidation()
-    {
-        var question = new QuestionRequest(
-            "",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", true),
-                new AnswerOptionRequest("Šuo", false)
-            ]
-        );
-
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            null,
-            [question]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Create_QuestionWithEmptyAnswer_ThrowsValidation()
-    {
-        var question = new QuestionRequest(
-            "What is apple?",
-            30,
-            100,
-            0,
-            [
-                new AnswerOptionRequest("Obuolys", true),
-                new AnswerOptionRequest("", false)
-            ]
-        );
-
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            null,
-            [question]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Create_QuestionWithExactlyOneCorrectAnswer_Succeeds()
-    {
-        var request = new CreateQuizRequest(
-            "My Quiz",
-            "Test quiz",
-            [ValidQuestion()]
-        );
-
-        var result = await _service.CreateAsync("user-1", request);
-
-        Assert.Equal("My Quiz", result.Title);
-
-        var quiz = Assert.Single(_repo.Quizzes);
-        var question = Assert.Single(quiz.Questions);
-
-        Assert.Equal(2, question.AnswerOptions.Count);
-        Assert.Single(question.AnswerOptions.Where(a => a.IsCorrect));
-    }
-
-    [Fact]
-    public async Task Create_QuizWithoutTitle_ThrowsValidation()
-    {
-        var request = new CreateQuizRequest(
-            "",
-            null,
-            [ValidQuestion()]
-        );
-
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateAsync("user-1", request)
-        );
-
-        Assert.Empty(_repo.Quizzes);
-    }
-
-    [Fact]
-    public async Task Update_ValidQuiz_SavesChanges()
-    {
-        var created = await _service.CreateAsync(
-            "user-1",
-            new CreateQuizRequest(
-                "Original Quiz",
-                null,
-                [ValidQuestion()]
-            )
-        );
-
-        var request = new UpdateQuizRequest(
-            "Updated Quiz",
-            "Updated description",
-            [ValidQuestion()]
-        );
-
-        var result = await _service.UpdateAsync(
-            "user-1",
-            created.Id,
-            request
-        );
-
-        Assert.Equal("Updated Quiz", result.Title);
-        Assert.Equal("Updated description", result.Description);
-
-        var savedQuiz = Assert.Single(_repo.Quizzes);
-        Assert.Equal("Updated Quiz", savedQuiz.Title);
-        Assert.Single(savedQuiz.Questions);
-    }
-
-    [Fact]
-    public async Task Delete_OwnQuiz_RemovesQuiz()
-    {
-        var created = await _service.CreateAsync(
-            "user-1",
-            new CreateQuizRequest(
+            var request = new CreateQuizRequest(
                 "My Quiz",
                 null,
+                [question]
+            );
+
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
+
+            Assert.Empty(_repo.Quizzes);
+        }
+
+        [Fact]
+        public async Task Create_QuestionWithEmptyText_ThrowsValidation()
+        {
+            var question = new QuestionRequest(
+                "",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", true),
+                    new AnswerOptionRequest("Šuo", false)
+                ]
+            );
+
+            var request = new CreateQuizRequest(
+                "My Quiz",
+                null,
+                [question]
+            );
+
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
+
+            Assert.Empty(_repo.Quizzes);
+        }
+
+        [Fact]
+        public async Task Create_QuestionWithEmptyAnswer_ThrowsValidation()
+        {
+            var question = new QuestionRequest(
+                "What is apple?",
+                30,
+                100,
+                0,
+                [
+                    new AnswerOptionRequest("Obuolys", true),
+                    new AnswerOptionRequest("", false)
+                ]
+            );
+
+            var request = new CreateQuizRequest(
+                "My Quiz",
+                null,
+                [question]
+            );
+
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
+
+            Assert.Empty(_repo.Quizzes);
+        }
+
+        [Fact]
+        public async Task Create_QuestionWithExactlyOneCorrectAnswer_Succeeds()
+        {
+            var request = new CreateQuizRequest(
+                "My Quiz",
+                "Test quiz",
                 [ValidQuestion()]
-            )
-        );
+            );
 
-        await _service.DeleteAsync("user-1", created.Id);
+            var result = await _service.CreateAsync("user-1", request);
 
-        Assert.Empty(_repo.Quizzes);
-    }
+            Assert.Equal("My Quiz", result.Title);
 
-    [Fact]
-    public async Task Get_NonexistentQuiz_ThrowsNotFound()
-    {
-        await Assert.ThrowsAsync<NotFoundException>(
-            () => _service.GetByIdAsync("user-1", 999)
-        );
-    }
+            var quiz = Assert.Single(_repo.Quizzes);
+            var question = Assert.Single(quiz.Questions);
 
-    [Fact]
-    public async Task Create_QuizWithoutQuestions_Succeeds()
-    {
-        var request = new CreateQuizRequest(
-            "Empty Quiz",
-            null,
-            []
-        );
+            Assert.Equal(2, question.AnswerOptions.Count);
+            Assert.Single(question.AnswerOptions, a => a.IsCorrect);
+        }
 
-        var result = await _service.CreateAsync("user-1", request);
+        [Fact]
+        public async Task Create_QuizWithoutTitle_ThrowsValidation()
+        {
+            var request = new CreateQuizRequest(
+                "",
+                null,
+                [ValidQuestion()]
+            );
 
-        Assert.Equal("Empty Quiz", result.Title);
-        Assert.Empty(result.Questions);
-        Assert.Single(_repo.Quizzes);
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _service.CreateAsync("user-1", request)
+            );
+
+            Assert.Empty(_repo.Quizzes);
+        }
+
+        [Fact]
+        public async Task Update_ValidQuiz_SavesChanges()
+        {
+            var created = await _service.CreateAsync(
+                "user-1",
+                new CreateQuizRequest(
+                    "Original Quiz",
+                    null,
+                    [ValidQuestion()]
+                )
+            );
+
+            var request = new UpdateQuizRequest(
+                "Updated Quiz",
+                "Updated description",
+                [ValidQuestion()]
+            );
+
+            var result = await _service.UpdateAsync(
+                "user-1",
+                created.Id,
+                request
+            );
+
+            Assert.Equal("Updated Quiz", result.Title);
+            Assert.Equal("Updated description", result.Description);
+
+            var savedQuiz = Assert.Single(_repo.Quizzes);
+            Assert.Equal("Updated Quiz", savedQuiz.Title);
+            Assert.Single(savedQuiz.Questions);
+        }
+
+        [Fact]
+        public async Task Delete_OwnQuiz_RemovesQuiz()
+        {
+            var created = await _service.CreateAsync(
+                "user-1",
+                new CreateQuizRequest(
+                    "My Quiz",
+                    null,
+                    [ValidQuestion()]
+                )
+            );
+
+            await _service.DeleteAsync("user-1", created.Id);
+
+            Assert.Empty(_repo.Quizzes);
+        }
+
+        [Fact]
+        public async Task Get_NonexistentQuiz_ThrowsNotFound()
+        {
+            await Assert.ThrowsAsync<NotFoundException>(
+                () => _service.GetByIdAsync("user-1", 999)
+            );
+        }
+
+        [Fact]
+        public async Task Create_QuizWithoutQuestions_Succeeds()
+        {
+            var request = new CreateQuizRequest(
+                "Empty Quiz",
+                null,
+                []
+            );
+
+            var result = await _service.CreateAsync("user-1", request);
+
+            Assert.Equal("Empty Quiz", result.Title);
+            Assert.Empty(result.Questions);
+            Assert.Single(_repo.Quizzes);
+        }
     }
 }

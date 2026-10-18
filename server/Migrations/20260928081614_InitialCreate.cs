@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -300,7 +299,7 @@ namespace QuattroLingo.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Translation_WordId_LanguageId",
                 table: "Translation",
-                columns: new[] { "WordId", "LanguageId" },
+                columns: ["WordId", "LanguageId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
