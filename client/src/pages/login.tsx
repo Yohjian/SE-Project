@@ -69,6 +69,10 @@ export default function Login() {
           Register
         </Link>
       </p>
+
+      <Link to="/dashboard" className="back-to-dashboard">
+        Back to Dashboard
+      </Link>
     </div>
   );
 }

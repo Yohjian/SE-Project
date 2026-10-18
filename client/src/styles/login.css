@@ -82,3 +82,20 @@
 .login-link:hover {
   text-decoration: underline;
 }
+
+.back-to-dashboard {
+  display: block;
+  width: fit-content;
+  margin: 20px auto 0;
+  padding: 10px 18px;
+  border: 1px solid #8b5cf6;
+  border-radius: 8px;
+  color: #8b5cf6;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.back-to-dashboard:hover {
+  background-color: #ede9fe;
+}
