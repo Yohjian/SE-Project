@@ -47,6 +47,10 @@ namespace QuattroLingo.Services
         {
             await EnsureOwnedAsync(userId, setId);
 
+            var existing = await sets.GetCardsAsync(setId);
+            if (existing.Any(c => string.Equals(c.Term, term, StringComparison.OrdinalIgnoreCase)))
+                throw new ValidationException($"A card with the term \"{term}\" already exists in this set.");
+
             var card = await sets.AddCardAsync(new VocabularyCard
             {
                 Term = term,

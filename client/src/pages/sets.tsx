@@ -104,7 +104,11 @@ export default function Sets() {
             handleCancel();
         } catch (err: unknown) {
             const message = axios.isAxiosError(err)
-                ? err.response?.data
+                ? typeof err.response?.data === "string"
+                    ? err.response.data
+                    : (err.response?.data?.detail ??
+                      err.response?.data?.title ??
+                      "Failed to add card.")
                 : "Failed to add card.";
             showNotification(message);
         } finally {
