@@ -1,82 +1,101 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../styles/tree.css";
 
-interface Item {
-  id: number;
-  name: string;
+interface Entry {
+    id: number;
+    name: string;
 }
 
-interface TreeProperties {
-  title: string;
-  entries: Item[];
-  selectedId: number | null;
-  onSelect: (id: number) => void;
-  onAdd?: (name: string) => void;
+interface TreeProps {
+    title: string;
+    entries: Entry[];
+    selectedId: number | null;
+    onSelect: (id: number) => void;
+    onAdd?: (name: string) => void;
+    onDelete?: (id: number) => void;
 }
 
 export default function Tree({
-  title,
-  entries,
-  selectedId,
-  onSelect,
-  onAdd,
-}: TreeProperties) {
-  const [isAddingSet, setIsAddingSet] = useState(false);
-  const [newSetName, setNewSetName] = useState("");
+    title,
+    entries,
+    selectedId,
+    onSelect,
+    onAdd,
+    onDelete,
+}: TreeProps) {
+    const [isAdding, setIsAdding] = useState(false);
+    const [newName, setNewName] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleConfirm = () => {
-    if (!newSetName.trim()) return;
-    onAdd?.(newSetName.trim());
-    setNewSetName("");
-    setIsAddingSet(false);
-  };
+    useEffect(() => {
+        if (isAdding) inputRef.current?.focus();
+    }, [isAdding]);
 
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <h3 className="sidebar-title">{title}</h3>
-        {onAdd && (
-          <button
-            className="sidebar-add-btn"
-            onClick={() => setIsAddingSet(true)}
-          >
-            +
-          </button>
-        )}
-      </div>
-      <ul className="sidebar-list">
-        {entries.map((item) => (
-          <li
-            key={item.id}
-            className={`sidebar-item ${item.id === selectedId ? "active" : ""}`}
-            onClick={() => onSelect(item.id)}
-          >
-            {item.name}
-          </li>
-        ))}
-      </ul>
-      {isAddingSet && (
-        <div className="sidebar-new-set">
-          <input
-            autoFocus
-            type="text"
-            placeholder="Set name..."
-            value={newSetName}
-            onChange={(e) => setNewSetName(e.target.value)}
-            onKeyDown={(e) => {
-              switch (e.key) {
-                case "Enter":
-                  handleConfirm();
-                  break;
-                case "Escape":
-                  setIsAddingSet(false);
-                  setNewSetName("");
-                  break;
-              }
-            }}
-          />
+    const handleAdd = () => {
+        const name = newName.trim();
+        if (name) onAdd?.(name);
+        setNewName("");
+        setIsAdding(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") handleAdd();
+        if (e.key === "Escape") {
+            setNewName("");
+            setIsAdding(false);
+        }
+    };
+
+    return (
+        <div className="sidebar">
+            <div className="sidebar-header">
+                <span className="sidebar-title">{title}</span>
+                {onAdd && (
+                    <button
+                        className="sidebar-add-btn"
+                        onClick={() => setIsAdding(true)}
+                    >
+                        +
+                    </button>
+                )}
+            </div>
+
+            <ul className="sidebar-list">
+                {entries.map((entry) => (
+                    <li
+                        key={entry.id}
+                        className={`sidebar-item ${entry.id === selectedId ? "active" : ""}`}
+                        onClick={() => onSelect(entry.id)}
+                    >
+                        <span className="sidebar-item-name">{entry.name}</span>
+                        {onDelete && (
+                            <button
+                                className="sidebar-item-delete"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(entry.id);
+                                }}
+                                title="Delete set"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </li>
+                ))}
+            </ul>
+
+            {isAdding && (
+                <div className="sidebar-new-set">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="Set name…"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                </div>
+            )}
         </div>
-      )}
-    </aside>
-  );
+    );
 }

@@ -78,6 +78,21 @@ namespace QuattroLingo.Services
             };
         }
 
+        public async Task DeleteSetAsync(string userId, int setId)
+        {
+            await EnsureOwnedAsync(userId, setId);
+            await sets.DeleteSetAsync(setId);
+        }
+
+        public async Task DeleteCardAsync(string userId, int setId, int cardId)
+        {
+            await EnsureOwnedAsync(userId, setId);
+            var cards = await sets.GetCardsAsync(setId);
+            if (cards.All(c => c.Id != cardId))
+                throw new NotFoundException("Card not found.");
+            await sets.DeleteCardAsync(cardId);
+        }
+
         private async Task EnsureOwnedAsync(string userId, int setId)
         {
             if (!await sets.ExistsForUserAsync(userId, setId))
