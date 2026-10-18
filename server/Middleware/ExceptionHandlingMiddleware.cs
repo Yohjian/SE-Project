@@ -26,6 +26,7 @@ namespace QuattroLingo.Middleware
                 ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
                 UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
                 ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
+                UnsupportedFileTypeException => (StatusCodes.Status400BadRequest, "Unsupported file type"),
                 NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
                 _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
             };
