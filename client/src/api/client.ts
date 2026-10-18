@@ -34,7 +34,7 @@ client.interceptors.response.use(
       error.config?.url?.includes("/auth/login") ||
       error.config?.url?.includes("/auth/register");
 
-    if (error.response?.status === 401 && !isAuthEndpoint) {
+    if (error.response?.status === 401 && !isAuthEndpoint && getToken()){
       clearSession();
       window.location.href = "/login";
     }

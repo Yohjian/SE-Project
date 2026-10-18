@@ -14,6 +14,8 @@ namespace QuattroLingo.Data
         public DbSet<Language> Languages { get; set; }
         public DbSet<VocabularySet> Sets { get; set; }
         public DbSet<VocabularyCard> Cards { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Participant> Participants { get; set; }
 
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
@@ -55,6 +57,15 @@ namespace QuattroLingo.Data
                 .HasForeignKey(c => c.SetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<Room>()
+                .HasMany(r => r.Participants)
+                .WithOne(p => p.Room)
+                .HasForeignKey(p => p.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Room>()
+                .HasIndex(r => r.JoinCode)
+                .IsUnique();
 
             builder.Entity<Quiz>()
                 .HasMany(q => q.Questions)
