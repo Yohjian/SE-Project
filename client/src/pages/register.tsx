@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authApi } from "../api/client";
 import { getErrorMessages } from "../api/auth";
+import "../styles/login.css";
 
 import "../styles/register.css";
 
@@ -110,6 +111,10 @@ export default function Register() {
           Log in
         </Link>
       </p>
+
+      <Link to="/dashboard" className="back-to-dashboard">
+        Back to Dashboard
+      </Link>
     </div>
   );
 }
