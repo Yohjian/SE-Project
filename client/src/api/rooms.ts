@@ -25,6 +25,9 @@ export const roomApi = {
 
   getMine: () => client.get<Room[]>("/rooms/mine"),
 
+  getByCode: (code: string) =>
+    client.get<Room>(`/rooms/${encodeURIComponent(code)}`),
+
   create: (request: CreateRoomRequest) =>
     client.post<Room>("/rooms", request),
 
