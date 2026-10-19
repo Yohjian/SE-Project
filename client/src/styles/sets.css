@@ -252,8 +252,7 @@
     transition: opacity 0.15s;
 }
 
-.card:hover .card-delete,
-.card:focus-within .card-delete {
+.card:hover .card-delete {
     opacity: 1;
 }
 
@@ -270,8 +269,7 @@
     margin-left: auto;
 }
 
-.card.card-list:hover .card-delete,
-.card.card-list:focus-within .card-delete {
+.card.card-list:hover .card-delete {
     opacity: 1;
 }
 
@@ -283,11 +281,4 @@
 .card-delete:focus-visible {
     outline: 2px solid #6366f1;
     outline-offset: 2px;
-}
-
-@media (hover: none) {
-    .card .card-delete,
-    .card.card-list .card-delete {
-        opacity: 1;
-    }
 }
