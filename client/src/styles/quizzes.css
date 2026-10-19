@@ -42,20 +42,22 @@
 
 .quizzes-header h1 {
   font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .quiz-create {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .quiz-create input {
   font-size: 0.875rem;
   flex: 1;
   padding: 0.4rem 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
   min-width: 0;
   border: 1px solid #d1d5db;
   border-radius: 4px;
@@ -94,8 +96,10 @@
 
 .quiz-card h3 {
   text-align: left;
-  font-size: 1.5rem;
+  font-size: 1rem;
   margin: 0rem;
+  padding-right: 1.5rem;
+  overflow-wrap: anywhere;
 }
 
 .quizzes-page .quiz-delete {

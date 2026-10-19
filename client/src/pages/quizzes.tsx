@@ -264,7 +264,7 @@ export default function Quizzes() {
                   setQuizToDelete(quiz.id);
                 }}
               >
-                x
+                ×
               </button>
           </div>
         ))}

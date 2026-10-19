@@ -99,7 +99,7 @@ export default function QuizQuestionEditor({
               onDeleteQuestion(questionIndex);
             }}
           >
-            x
+            ×
           </button>
 
           <span className="question-toggle">
@@ -195,7 +195,7 @@ export default function QuizQuestionEditor({
                 onDeleteAnswer(questionIndex, answerIndex)
               }
             >
-              x
+              ×
             </button>
           </div>
         ))}

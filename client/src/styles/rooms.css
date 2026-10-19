@@ -4,6 +4,9 @@
 
 .rooms-title {
   margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .create-room-form {
@@ -35,7 +38,7 @@
 }
 
 .create-room-field select:focus {
-  outline: 3px solid #ddd6fe;
+  outline: 2px solid #6366f1;
   outline-offset: 2px;
 }
 
@@ -73,9 +76,7 @@
 
 .room-button-secondary {
   background-color: white;
-  color: #7c3aed;
   border-color: #d1d5db;
-  background-color: white;
   color: #374151;
 }
 
@@ -117,7 +118,7 @@
 }
 
 .create-room-field input:focus {
-  outline: 3px solid #ddd6fe;
+  outline: 2px solid #6366f1;
   outline-offset: 2px;
 }
 
