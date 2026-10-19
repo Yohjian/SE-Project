@@ -185,7 +185,7 @@
     padding: 0.35rem 0.85rem;
     border-radius: 5px;
     border: none;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     cursor: pointer;
 }
 
@@ -271,4 +271,9 @@
 
 .card.card-list:hover .card-delete {
     opacity: 1;
+}
+
+.card strong {
+    font-size: 1rem;
+    font-weight: 600;
 }

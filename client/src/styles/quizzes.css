@@ -7,7 +7,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: 0.2s;
 }
@@ -41,7 +41,7 @@
 
 
 .quizzes-header h1 {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
 }
 
 .quiz-create {
@@ -51,8 +51,17 @@
 }
 
 .quiz-create input {
+  font-size: 0.875rem;
   flex: 1;
   padding: 0.75rem;
+}
+
+.quiz-create h3 {
+  font-size: 1.125rem;
+}
+
+.quiz-create select {
+  font-size: 0.875rem;
 }
 
 .quiz-grid {
@@ -73,7 +82,7 @@
 
 .quiz-card h3 {
   text-align: center;
-  font-size: 1.4rem;
+  font-size: 1rem;
   margin: 0.5rem 0;
 }
 
