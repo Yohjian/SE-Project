@@ -16,40 +16,24 @@ export default function Dashboard() {
       .catch((error) => console.error("Failed to load rooms:", error));
   }, []);
   return (
-    <div className="dashboard" style={{ padding: "2rem" }}>
-      <h1>Dashboard</h1>
-      <p>Welcome back!</p>
+    <div className="dashboard">
+      <h1>Welcome</h1>
+      <p>Welcome to Quattrolingo</p>
 
 
-
-
-
-      <section style={{ marginTop: "32px" }}>
+      <section className="public-rooms">
         <h2>Public Rooms</h2>
 
         {rooms.length === 0 ? (
           <p>No public rooms available.</p>
         ) : (
           <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              marginTop: "16px",
-            }}
+            className="public-rooms-list"
           >
             {rooms.map((room) => (
               <div
                 key={room.id}
-                style={{
-                  border: "2px solid #8b5cf6",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "16px",
-                }}
+                className="public-room-card"
               >
                 <div>
                   <h3>{room.quizTitle}</h3>
