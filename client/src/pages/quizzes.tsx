@@ -255,13 +255,16 @@ export default function Quizzes() {
             {quiz.description && <p>{quiz.description}</p>}
 
               <button
+              className="quiz-delete"
+                aria-label="Delete quiz"
+                title="Delete quiz"
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setQuizToDelete(quiz.id);
                 }}
               >
-                Delete
+                x
               </button>
           </div>
         ))}

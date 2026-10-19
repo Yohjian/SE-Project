@@ -91,13 +91,15 @@ export default function QuizQuestionEditor({
         <div className="question-header-right">
           <button
             className="delete-question-button"
+            aria-label="Delete question"
+            title="Delete question"
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteQuestion(questionIndex);
             }}
           >
-            Delete question
+            x
           </button>
 
           <span className="question-toggle">
@@ -185,17 +187,21 @@ export default function QuizQuestionEditor({
             />
 
             <button
+              className="delete-answer-button"
+              aria-label="Delete answer"
+              title="Delete answer"
               type="button"
               onClick={() =>
                 onDeleteAnswer(questionIndex, answerIndex)
               }
             >
-              Delete
+              x
             </button>
           </div>
         ))}
         <div className="question-actions">
           <button
+            className="add-answer-button"
             type="button"
             onClick={() => onAddAnswer(questionIndex)}
           >
