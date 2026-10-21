@@ -1,78 +1,108 @@
 import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { authApi } from "../api/client";
 import { getErrorMessages, saveSession } from "../api/auth";
+import PasswordInput from "../components/password_input";
 
-import "../styles/login.css";
+import "../styles/auth.css";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const justRegistered = (location.state as { registered?: boolean } | null)
+        ?.registered;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { data } = await authApi.login(email, password);
-      saveSession(data.token, data.role);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setError("Invalid email or password");
-      } else {
-        setError(
-          getErrorMessages(err, "Something went wrong. Please try again.")[0],
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    const [showSuccess, setShowSuccess] = useState(Boolean(justRegistered));
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-  return (
-    <div className="login-page">
-      <h2 className="login-title">Log in</h2>
-      {error && <div className="login-error">{error}</div>}
-      <form onSubmit={handleSubmit} className="login-form">
-        <label className="login-label">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="login-input"
-          />
-        </label>
-        <label className="login-label">
-          Password
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="login-input"
-          />
-        </label>
-        <button type="submit" disabled={loading} className="login-submit">
-          {loading ? "Logging in…" : "Log in"}
-        </button>
-      </form>
-      <p className="login-footer">
-        No account?{" "}
-        <Link to="/register" className="login-link">
-          Register
-        </Link>
-      </p>
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        setShowSuccess(false);
+        setError(null);
+        setLoading(true);
+        try {
+            const { data } = await authApi.login(email.trim(), password);
+            saveSession(data.token, data.role);
+            navigate("/dashboard");
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err) && err.response?.status === 401) {
+                setError("Invalid email or password");
+            } else {
+                setError(
+                    getErrorMessages(
+                        err,
+                        "Something went wrong. Please try again.",
+                    )[0],
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      <Link to="/dashboard" className="back-to-dashboard">
-        Back to Dashboard
-      </Link>
-    </div>
-  );
+    return (
+        <div className="auth-page">
+            <Link to="/" className="auth-logo">
+                QuattroLingo
+            </Link>
+
+            <div className="card">
+                <h1 className="page-title">Log in</h1>
+
+                {showSuccess && (
+                    <div className="alert-success auth-alert" role="status">
+                        Account created successfully!
+                    </div>
+                )}
+                {error && (
+                    <div className="alert-error auth-alert" role="alert">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="field">
+                        <label htmlFor="email">Email</label>
+                        <input
+                            id="email"
+                            type="email"
+                            required
+                            autoComplete="username"
+                            autoFocus
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="input"
+                        />
+                    </div>
+
+                    <div className="field">
+                        <label htmlFor="password">Password</label>
+                        <PasswordInput
+                            id="password"
+                            required
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary btn-block"
+                    >
+                        {loading ? "Logging in…" : "Log in"}
+                    </button>
+                </form>
+
+                <p className="auth-footer text-muted">
+                    No account? <Link to="/register">Register</Link>
+                </p>
+            </div>
+        </div>
+    );
 }

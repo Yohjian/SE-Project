@@ -1,4 +1,3 @@
-
 type DeleteQuizModalProps = {
   onCancel: () => void;
   onConfirm: () => void;
@@ -19,15 +18,12 @@ export default function DeleteQuizModal({
         <h2 id="delete-modal-title">Delete quiz?</h2>
 
         <p>
-          Are you sure you want to delete this quiz?
-          This action cannot be undone.
+          Are you sure you want to delete this quiz? This action
+          cannot be undone.
         </p>
 
         <div className="delete-modal-actions">
-          <button
-            type="button"
-            onClick={onCancel}
-          >
+          <button type="button" onClick={onCancel}>
             Cancel
           </button>
 

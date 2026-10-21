@@ -1,80 +1,69 @@
-import "../styles/dashboards.css";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { roomApi, type Room } from "../api/rooms";
-import "../styles/rooms.css";
-import { useNavigate } from "react-router-dom";
+import JoinByCode from "../components/join_by_code";
+
+import "../styles/dashboards.css";
 
 export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [joinCode, setJoinCode] = useState("");
-  const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    roomApi.getPublic()
-      .then((response) => setRooms(response.data))
-      .catch((error) => console.error("Failed to load rooms:", error));
+    roomApi
+      .getPublic()
+      .then((res) => setRooms(res.data))
+      .catch(() => setError("Could not load public rooms."))
+      .finally(() => setLoading(false));
   }, []);
+
   return (
-    <div className="dashboard">
-      <h1>Welcome</h1>
-      <p>Welcome to Quattrolingo</p>
-
-
-      <section className="public-rooms">
-        <h2>Public Rooms</h2>
-
-        {rooms.length === 0 ? (
-          <p>No public rooms available.</p>
-        ) : (
-          <div
-            className="public-rooms-list"
-          >
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className="public-room-card"
-              >
-                <div>
-                  <h3>{room.quizTitle}</h3>
-                </div>
-
-
-                <button
-                  className="room-button"
-                  onClick={() => navigate(`/rooms/join/${room.joinCode}`)}
-                >
-                  Join Room
-                </button>
-
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="container dashboard">
+      <section className="card">
+        <h2>Join with a code</h2>
+        <JoinByCode />
       </section>
 
-      <section className="join-by-code">
-        <h2>Join by Code</h2>
+      <section>
+        <h2>Public rooms</h2>
 
-        <div className="join-by-code-controls">
-          <input
-            type="text"
-            placeholder="Enter room code"
-            aria-label="Room code"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-            maxLength={6}
-          />
+        {loading && <p className="text-muted">Loading rooms…</p>}
 
-          <button
-            type="button"
-            className="room-button"
-            disabled={!joinCode.trim()}
-            onClick={() => navigate(`/rooms/join/${joinCode.trim()}`)}
-          >
-            Join Room
-          </button>
-        </div>
+        {error && (
+          <div className="alert-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && rooms.length === 0 && (
+          <p className="text-muted">No public rooms right now.</p>
+        )}
+
+        {rooms.length > 0 && (
+          <ul className="room-list">
+            {rooms.map((room) => (
+              <li key={room.id} className="card">
+                <div className="room-row">
+                  <div className="room-row__info">
+                    <h3 className="room-row__title">{room.quizTitle}</h3>
+                    <p className="text-muted">
+                      {room.participantCount}{" "}
+                      {room.participantCount === 1 ? "player" : "players"}{" "}
+                      waiting
+                    </p>
+                  </div>
+                  <Link
+                    to={`/rooms/join/${room.joinCode}`}
+                    className="btn btn-primary"
+                  >
+                    Join
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

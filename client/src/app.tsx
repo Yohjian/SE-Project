@@ -9,9 +9,9 @@ import GuestRoute from "./components/guest_route";
 import Dashboard from "./pages/dashboard";
 import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
-import QuizEditor from "./pages/quizEditor";
+import QuizEditor from "./pages/quiz_editor";
 import Rooms from "./pages/rooms";
-import JoinRoom from "./pages/joinRoom";
+import JoinRoom from "./pages/join_room";
 
 export default function App() {
   return (

@@ -1,39 +1,24 @@
-.dashboard h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
 .dashboard {
-  padding: 1rem;
-}
-
-.public-rooms,
-.dashboard .join-by-code {
-  margin-top: 1.5rem;
-}
-
-.public-rooms-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--space-8);
 }
 
-.public-room-card {
+.dashboard h2 { margin-bottom: var(--space-3); }
+
+.room-list {
+  list-style: none;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.room-row {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  gap: var(--space-4);
 }
-
-.public-room-card h3 {
-  overflow-wrap: anywhere;
-}
-
-.dashboard .join-by-code-controls {
-  margin-top: 0.75rem;
-}
+.room-row__info { min-width: 0; }
+.room-row__title { overflow-wrap: anywhere; }

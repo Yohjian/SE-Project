@@ -1,5 +1,13 @@
 import client from "./client";
 
+export const RoomVisibility = { Public: 0, Private: 1 } as const;
+export const RoomStatus = {
+  Waiting: 0,
+  InProgress: 1,
+  Finished: 2,
+  Cancelled: 3,
+} as const;
+
 export interface Room {
   id: number;
   quizId: number;
@@ -7,6 +15,7 @@ export interface Room {
   visibility: number;
   status: number;
   quizTitle: string;
+  participantCount: number;
 }
 
 export interface CreateRoomRequest {

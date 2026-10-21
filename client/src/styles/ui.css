@@ -46,6 +46,7 @@
 .input:focus { outline: none; border-color: var(--color-primary); }
 .input-error { border-color: var(--color-danger); }
 .field-error { color: var(--color-danger); font-size: 0.875rem; }
+.field-hint { font-size: 0.875rem; color: var(--color-text-muted); }
 
 /* Surfaces */
 .card {
@@ -56,5 +57,9 @@
 }
 .alert-error {
   background: var(--color-danger-soft); color: var(--color-danger);
+  border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+}
+.alert-success {
+  background: var(--color-success-soft); color: var(--color-success);
   border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
 }
