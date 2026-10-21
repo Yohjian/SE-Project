@@ -1,9 +1,10 @@
-namespace QuattroLingo.Extensions;
-
-public static class StringExtensions
+namespace QuattroLingo.Extensions
 {
-    extension(string value)
+    public static class StringExtensions
     {
-        public string ToCsvField() => $"\"{value.Replace("\"", "\"\"")}\"";
+        extension(string value)
+        {
+            public string ToCsvField() => $"\"{value.Replace("\"", "\"\"")}\"";
+        }
     }
 }

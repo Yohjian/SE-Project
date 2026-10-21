@@ -2,10 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuattroLingo.DTOs.Response;
+using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Services;
-using QuattroLingo.Enums;
-using QuattroLingo.DTOs.Response;
 
 namespace QuattroLingo.Controllers
 {

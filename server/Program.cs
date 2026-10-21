@@ -77,7 +77,7 @@ builder.Services.AddScoped<ISetService, SetService>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
-builder.Services.AddScoped<IRoomService, RoomService>(); 
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 var app = builder.Build();
 
