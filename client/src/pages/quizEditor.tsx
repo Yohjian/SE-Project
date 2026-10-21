@@ -49,7 +49,7 @@ export default function QuizEditor() {
         );
       })
       .catch(() => showNotification("Failed to load quiz."));
-  }, [id]);
+  }, [id, showNotification]);
 
   const handleAddQuestion = () => {
     setQuestions((prev) => [

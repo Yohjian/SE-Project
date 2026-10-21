@@ -139,7 +139,7 @@ export default function Rooms() {
             {error && <p>{error}</p>}
 
             {!loading && !error && rooms.length === 0 && (
-                <p className="rooms-empty">You haven't created any rooms yet.</p>
+                <p className="rooms-empty">You have no rooms yet.</p>
             )}
 
             {!loading && !error && rooms.map((room) => (

@@ -29,7 +29,7 @@ export default function Quizzes() {
       .getMine()
       .then((res) => setQuizzes(res.data))
       .catch(() => showNotification("Failed to load quizzes."));
-  }, []);
+  }, [showNotification]);
 
   const handleOpenCreate = async () => {
     setCreateMode("choose");
