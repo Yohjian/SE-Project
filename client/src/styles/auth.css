@@ -13,6 +13,11 @@
   text-decoration: none;
   margin-bottom: var(--space-6);
 }
+.auth-back {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+}
 
 .auth-alert { margin-bottom: var(--space-4); }
 .auth-alert p + p { margin-top: var(--space-1); }
