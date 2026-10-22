@@ -4,6 +4,7 @@ import { roomApi, type Room } from "../api/rooms";
 import JoinByCode from "../components/join_by_code";
 
 import "../styles/dashboards.css";
+import "../styles/rooms.css";
 
 export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);

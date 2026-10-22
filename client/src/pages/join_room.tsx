@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { roomApi, RoomStatus } from "../api/rooms";
 import "../styles/rooms.css";
@@ -59,7 +59,8 @@ export default function JoinRoom() {
         };
     }, [code]);
 
-    const handleJoin = async () => {
+    const handleJoin = async (e: FormEvent) => {
+        e.preventDefault();
         if (!code || !displayName.trim()) return;
 
         setJoining(true);
@@ -81,46 +82,69 @@ export default function JoinRoom() {
     };
 
     return (
-        <div className="rooms-page">
-            <h1 className="rooms-title">Join Room</h1>
+        <div className="container">
+            <div className="join-room">
+                <h1 className="page-title">Join room</h1>
 
-            <p>
-                Room code: <strong>{code}</strong>
-            </p>
+                <div className="card">
+                    <p className="text-muted">Room code</p>
+                    <p className="join-room__code">{code}</p>
 
-            {checkingRoom ? (
-                <p>Checking room...</p>
-            ) : !roomExists ? (
-                <p role="alert">{error}</p>
-            ) : joined ? (
-                <p>Successfully joined the room!</p>
-            ) : (
-                <div className="create-room-form">
-                    <div className="create-room-field">
-                        <label htmlFor="displayName">Your name</label>
+                    {checkingRoom ? (
+                        <p className="text-muted">Checking room…</p>
+                    ) : !roomExists ? (
+                        <>
+                            <div className="alert-error" role="alert">
+                                {error}
+                            </div>
+                            <Link
+                                to="/"
+                                className="btn btn-secondary btn-block"
+                            >
+                                Back to home
+                            </Link>
+                        </>
+                    ) : joined ? (
+                        <div className="alert-success" role="status">
+                            Successfully joined the room!
+                        </div>
+                    ) : (
+                        <form onSubmit={handleJoin}>
+                            <div className="field">
+                                <label htmlFor="displayName">Your name</label>
+                                <input
+                                    id="displayName"
+                                    type="text"
+                                    className="input"
+                                    placeholder="Enter your name"
+                                    autoFocus
+                                    value={displayName}
+                                    onChange={(e) =>
+                                        setDisplayName(e.target.value)
+                                    }
+                                    maxLength={30}
+                                />
+                            </div>
 
-                        <input
-                            id="displayName"
-                            type="text"
-                            placeholder="Enter your name"
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            maxLength={30}
-                        />
-                    </div>
+                            {error && (
+                                <div className="alert-error" role="alert">
+                                    {error}
+                                </div>
+                            )}
 
-                    <button
-                        type="button"
-                        className="room-button"
-                        onClick={handleJoin}
-                        disabled={joining || !displayName.trim() || !code}
-                    >
-                        {joining ? "Joining..." : "Join Room"}
-                    </button>
-
-                    {error && <p role="alert">{error}</p>}
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-block"
+                                disabled={
+                                    joining || !displayName.trim() || !code
+                                }
+                            >
+                                {joining ? "Joining…" : "Join room"}
+                            </button>
+                        </form>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }

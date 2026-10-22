@@ -5,20 +5,3 @@
 }
 
 .dashboard h2 { margin-bottom: var(--space-3); }
-
-.room-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.room-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-}
-.room-row__info { min-width: 0; }
-.room-row__title { overflow-wrap: anywhere; }
