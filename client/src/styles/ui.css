@@ -34,6 +34,7 @@
 
 .btn-danger { background: var(--color-danger); color: #fff; }
 .btn-block { width: 100%; }
+.btn-sm { padding: 6px 14px; font-size: 0.875rem; }
 
 /* Forms */
 .field { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-4); }

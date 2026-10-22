@@ -96,6 +96,7 @@ export default function Tree({
                 <div className="sidebar-new-set">
                     <input
                         ref={inputRef}
+                        className="input"
                         type="text"
                         placeholder={`${title} name…`}
                         aria-label={`New ${title} name`}

@@ -12,6 +12,7 @@
   --color-surface: #ffffff;
   --color-border: #e5e7eb;
   --color-success-soft: #f0fdf4;
+  --color-overlay: rgb(17 24 39 / 0.4);
 
   --space-1: 4px;
   --space-2: 8px;
