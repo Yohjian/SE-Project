@@ -1,281 +1,432 @@
-import { useEffect, useState } from "react";
-import { quizApi, setApi  } from "../api/client";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { quizApi, setApi } from "../api/client";
 import type { QuizSummary, SetSummary } from "../api/types";
+import { getErrorMessages } from "../api/auth";
 import { generateQuestions } from "../utils/quizGeneration";
 import DeleteQuizModal from "../components/delete_quiz_modal";
-import { getErrorMessages } from "../api/auth";
+import Modal from "../components/modal";
 import { useNotification } from "../components/notification";
-import { useNavigate } from "react-router-dom";
 
 import "../styles/quizzes.css";
 
+type CreateMode = "choose" | "manual" | "set";
+
 export default function Quizzes() {
-  const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
-  const [title, setTitle] = useState("");
-  const [createMode, setCreateMode] = useState<
-    "choose" | "manual" | "set" | null
-  >(null);
+    const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [title, setTitle] = useState("");
+    const [createMode, setCreateMode] = useState<CreateMode | null>(null);
 
-  const [sets, setSets] = useState<SetSummary[]>([]);
-  const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
-  const navigate = useNavigate();
+    const [sets, setSets] = useState<SetSummary[]>([]);
+    const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [quizToDelete, setQuizToDelete] = useState<QuizSummary | null>(null);
+    const navigate = useNavigate();
 
-  const { showNotification } = useNotification();
+    const { showNotification } = useNotification();
 
-  useEffect(() => {
-    quizApi
-      .getMine()
-      .then((res) => setQuizzes(res.data))
-      .catch(() => showNotification("Failed to load quizzes."));
-  }, [showNotification]);
+    useEffect(() => {
+        quizApi
+            .getMine()
+            .then((res) => setQuizzes(res.data))
+            .catch(() => showNotification("Failed to load quizzes."))
+            .finally(() => setIsLoading(false));
+    }, [showNotification]);
 
-  const handleOpenCreate = async () => {
-    setCreateMode("choose");
-    setSelectedSetId(null);
-    setTitle("");
+    const handleOpenCreate = async () => {
+        setCreateMode("choose");
+        setSelectedSetId(null);
+        setTitle("");
 
-    try {
-      const response = await setApi.getAll();
-      setSets(response.data);
-    } catch {
-      showNotification("Failed to load sets.");
-    }
-  };
+        try {
+            const response = await setApi.getAll();
+            setSets(response.data);
+        } catch {
+            showNotification("Failed to load sets.");
+        }
+    };
 
-  const handleCreate = async () => {
-    if (!title.trim()) {
-      showNotification("A title is needed!");
-      return;
-    }
+    const handleCancel = () => {
+        setTitle("");
+        setCreateMode(null);
+        setSelectedSetId(null);
+    };
 
-    try {
-      const res = await quizApi.create({title, description: null, questions: []});
-      setQuizzes((prev) => [
-        ...prev,
-        {
-          id: res.data.id,
-          title: res.data.title,
-          description: res.data.description,
-        },
-      ]);
+    const handleBack = () => {
+        setTitle("");
+        setSelectedSetId(null);
+        setCreateMode("choose");
+    };
 
-      setTitle("");
-      setCreateMode(null);
-      showNotification("Quiz created.", "success");
-      navigate(`/quizzes/${res.data.id}/edit`);
-    } catch (error) {
-      const messages = getErrorMessages(error, "Failed to create quiz.");
-      showNotification(messages.join(" "));
-    }
-  };
+    const handleCreate = async (event: FormEvent) => {
+        event.preventDefault();
 
-  const handleCancel = () => {setTitle(""); setCreateMode(null); setSelectedSetId(null)};
+        if (!title.trim()) {
+            showNotification("A title is needed!");
+            return;
+        }
 
-  const handleSetCreate = async () => {
-  if (selectedSetId === null) {
-    showNotification("Please select a set.");
-    return;
-  }
+        try {
+            const res = await quizApi.create({
+                title,
+                description: null,
+                questions: [],
+            });
+            setQuizzes((prev) => [
+                ...prev,
+                {
+                    id: res.data.id,
+                    title: res.data.title,
+                    description: res.data.description,
+                },
+            ]);
 
-  const selectedSet = sets.find(
-    (set) => set.id === selectedSetId
-  );
+            setTitle("");
+            setCreateMode(null);
+            showNotification("Quiz created.", "success");
+            navigate(`/quizzes/${res.data.id}/edit`);
+        } catch (error) {
+            const messages = getErrorMessages(error, "Failed to create quiz.");
+            showNotification(messages.join(" "));
+        }
+    };
 
-  if (!selectedSet) {
-    showNotification("Set not found.");
-    return;
-  }
+    const handleSetCreate = async (event: FormEvent) => {
+        event.preventDefault();
 
-  setIsGenerating(true);
+        if (selectedSetId === null) {
+            showNotification("Please select a set.");
+            return;
+        }
 
-  try {
-    const response = await setApi.getCards(selectedSetId);
+        const selectedSet = sets.find((set) => set.id === selectedSetId);
 
-    const validCards = response.data.filter(
-      (card) => card.term.trim() && card.definition.trim()
-    );
+        if (!selectedSet) {
+            showNotification("Set not found.");
+            return;
+        }
 
-    const distinctAnswers = new Set(
-      validCards.map((card) => card.definition.trim())
-    );
+        setIsGenerating(true);
 
-    if (distinctAnswers.size < 4) {
-      showNotification(
-        "The set needs at least 4 cards with different definitions."
-      );
-      return;
-    }
+        try {
+            const response = await setApi.getCards(selectedSetId);
 
-    const questions = generateQuestions(validCards);
+            const validCards = response.data.filter(
+                (card) => card.term.trim() && card.definition.trim(),
+            );
 
-    const result = await quizApi.create({
-        title: title.trim() || `${selectedSet.name} Quiz`,
-        description: `Generated from ${selectedSet.name}`,
-        questions,
-      });
+            const distinctAnswers = new Set(
+                validCards.map((card) => card.definition.trim()),
+            );
 
-      setQuizzes((prev) => [
-        ...prev,
-        {
-          id: result.data.id,
-          title: result.data.title,
-          description: result.data.description,
-        },
-      ]);
-
-      showNotification("Quiz generated successfully!", "success");
-      navigate(`/quizzes/${result.data.id}/edit`);
-    } catch (error) {
-      const messages = getErrorMessages(error, "Failed to generate quiz.");
-      showNotification(messages.join(" "));
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (quizToDelete === null) return;
-
-    const quizId = quizToDelete;
-
-    try {
-      await quizApi.delete(quizId);
-
-      setQuizzes((prev) =>
-        prev.filter((quiz) => quiz.id !== quizId)
-      );
-
-      setQuizToDelete(null);
-      showNotification("Quiz deleted.", "success");
-    } catch {
-      showNotification("Failed to delete quiz.");
-    }
-  };
-  return (
-    <div className="quizzes-page">
-      <div className="quizzes-header">
-        <h1>Quizzes</h1>
-        <button onClick={handleOpenCreate}>+ Create quiz</button>
-      </div>
-
-  {createMode !== null && (
-    <div className="quiz-create">
-
-      {createMode === "choose" && (
-        <>
-          <h3>Create Quiz</h3>
-          <p>How would you like to create your quiz?</p>
-
-          <button onClick={() => setCreateMode("manual")}>
-            Create manually
-          </button>
-
-          <button
-          className="create-from-set-button"
-          onClick={() => setCreateMode("set")}>
-            Use a set
-          </button>
-        </>
-      )}
-
-      {createMode === "manual" && (
-        <>
-          <h3>Create manually</h3>
-
-          <input
-            type="text"
-            placeholder="Quiz title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-
-          <button onClick={handleCreate}>
-            Create
-          </button>
-        </>
-      )}
-
-      {createMode === "set" && (
-        <>
-          <h3>Create from set</h3>
-
-          <select
-            value={selectedSetId ?? ""}
-            onChange={(e) =>
-              setSelectedSetId(
-                e.target.value === ""
-                  ? null
-                  : Number(e.target.value)
-              )
+            if (distinctAnswers.size < 4) {
+                showNotification(
+                    "The set needs at least 4 cards with different definitions.",
+                );
+                return;
             }
-          >
-            <option value="">Select a set</option>
 
-            {sets.map((set) => (
-              <option key={set.id} value={set.id}>
-                {set.name} ({set.cardCount} cards)
-              </option>
-            ))}
-          </select>
+            const questions = generateQuestions(validCards);
 
-          <input
-            type="text"
-            placeholder="Quiz title (optional)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+            const result = await quizApi.create({
+                title: title.trim() || `${selectedSet.name} Quiz`,
+                description: `Generated from ${selectedSet.name}`,
+                questions,
+            });
 
-          <button
-            onClick={handleSetCreate}
-            disabled={isGenerating || selectedSetId === null}
-          >
-            Generate quiz
-          </button>
-        </>
-      )}
+            setQuizzes((prev) => [
+                ...prev,
+                {
+                    id: result.data.id,
+                    title: result.data.title,
+                    description: result.data.description,
+                },
+            ]);
 
-      <button onClick={handleCancel} disabled={isGenerating}>
-        Cancel
-      </button>
+            showNotification("Quiz generated successfully!", "success");
+            navigate(`/quizzes/${result.data.id}/edit`);
+        } catch (error) {
+            const messages = getErrorMessages(
+                error,
+                "Failed to generate quiz.",
+            );
+            showNotification(messages.join(" "));
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
-    </div>
-  )}
+    const handleDelete = async () => {
+        if (quizToDelete === null) return;
 
-      <div className="quiz-grid">
-        {quizzes.map((quiz) => (
-          <div
-            key={quiz.id}
-            className="quiz-card"
-            onClick={() => navigate(`/quizzes/${quiz.id}/edit`)}
-          >
-            <h3>{quiz.title}</h3>
+        const quizId = quizToDelete.id;
 
-            {quiz.description && <p>{quiz.description}</p>}
+        try {
+            await quizApi.delete(quizId);
 
-              <button
-              className="quiz-delete"
-                aria-label="Delete quiz"
-                title="Delete quiz"
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setQuizToDelete(quiz.id);
-                }}
-              >
-                ×
-              </button>
-          </div>
-        ))}
-      </div>
+            setQuizzes((prev) => prev.filter((quiz) => quiz.id !== quizId));
 
-      {quizToDelete !== null && (
-        <DeleteQuizModal
-          onCancel={() => setQuizToDelete(null)}
-          onConfirm={handleDelete}
-        />
-      )}
-    </div>
-  );
+            setQuizToDelete(null);
+            showNotification("Quiz deleted.", "success");
+        } catch {
+            showNotification("Failed to delete quiz.");
+        }
+    };
+
+    const createModalTitle =
+        createMode === "manual"
+            ? "Create quiz manually"
+            : createMode === "set"
+              ? "Create quiz from a set"
+              : "Create quiz";
+
+    return (
+        <div className="container quizzes-page">
+            <div className="quizzes-header">
+                <h1 className="page-title">My quizzes</h1>
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleOpenCreate}
+                >
+                    + Create quiz
+                </button>
+            </div>
+
+            {!isLoading && quizzes.length === 0 && (
+                <div className="quizzes-empty">
+                    <h2>No quizzes yet</h2>
+                    <p className="text-muted">
+                        Create a quiz to host it in a room or let others
+                        practice it.
+                    </p>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleOpenCreate}
+                    >
+                        Create your first quiz
+                    </button>
+                </div>
+            )}
+
+            {quizzes.length > 0 && (
+                <ul className="quiz-grid">
+                    {quizzes.map((quiz) => (
+                        <li key={quiz.id} className="quiz-card">
+                            <h2 className="quiz-card-title">
+                                <Link
+                                    to={`/quizzes/${quiz.id}/edit`}
+                                    className="quiz-card-link"
+                                >
+                                    {quiz.title}
+                                </Link>
+                            </h2>
+
+                            {quiz.description && (
+                                <p className="quiz-card-description">
+                                    {quiz.description}
+                                </p>
+                            )}
+
+                            <button
+                                className="quiz-delete"
+                                aria-label={`Delete quiz ${quiz.title}`}
+                                title="Delete quiz"
+                                type="button"
+                                onClick={() => setQuizToDelete(quiz)}
+                            >
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M3 6h18" />
+                                    <path d="M8 6V4h8v2" />
+                                    <path d="M19 6l-1 14H6L5 6" />
+                                    <path d="M10 11v6M14 11v6" />
+                                </svg>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {createMode !== null && (
+                <Modal
+                    title={createModalTitle}
+                    onClose={handleCancel}
+                    closeDisabled={isGenerating}
+                >
+                    {createMode === "choose" && (
+                        <>
+                            <div className="create-options">
+                                <button
+                                    type="button"
+                                    className="create-option"
+                                    onClick={() => setCreateMode("manual")}
+                                >
+                                    <span className="create-option-title">
+                                        Start from scratch
+                                    </span>
+                                    <span className="create-option-text">
+                                        Write your own questions and answers.
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="create-option"
+                                    onClick={() => setCreateMode("set")}
+                                >
+                                    <span className="create-option-title">
+                                        Use a set
+                                    </span>
+                                    <span className="create-option-text">
+                                        Generate questions from a set of terms
+                                        and definitions.
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleCancel}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {createMode === "manual" && (
+                        <form onSubmit={handleCreate}>
+                            <div className="field">
+                                <label htmlFor="quiz-title">Quiz title</label>
+                                <input
+                                    id="quiz-title"
+                                    className="input"
+                                    type="text"
+                                    placeholder="e.g. Spanish basics"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleBack}
+                                >
+                                    Back
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                >
+                                    Create quiz
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {createMode === "set" && (
+                        <form onSubmit={handleSetCreate}>
+                            <div className="field">
+                                <label htmlFor="quiz-set">Set</label>
+                                <select
+                                    id="quiz-set"
+                                    className="input"
+                                    value={selectedSetId ?? ""}
+                                    onChange={(e) =>
+                                        setSelectedSetId(
+                                            e.target.value === ""
+                                                ? null
+                                                : Number(e.target.value),
+                                        )
+                                    }
+                                    disabled={isGenerating}
+                                >
+                                    <option value="">Select a set</option>
+                                    {sets.map((set) => (
+                                        <option key={set.id} value={set.id}>
+                                            {set.name} ({set.cardCount} cards)
+                                        </option>
+                                    ))}
+                                </select>
+                                {sets.length === 0 ? (
+                                    <span className="field-hint">
+                                        You don’t have any sets yet.{" "}
+                                        <Link to="/sets">Create one</Link>{" "}
+                                        first.
+                                    </span>
+                                ) : (
+                                    <span className="field-hint">
+                                        The set needs at least 4 cards with
+                                        different definitions.
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="field">
+                                <label htmlFor="quiz-set-title">
+                                    Quiz title (optional)
+                                </label>
+                                <input
+                                    id="quiz-set-title"
+                                    className="input"
+                                    type="text"
+                                    placeholder="Defaults to the set name"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    disabled={isGenerating}
+                                />
+                            </div>
+
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleBack}
+                                    disabled={isGenerating}
+                                >
+                                    Back
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={
+                                        isGenerating || selectedSetId === null
+                                    }
+                                >
+                                    {isGenerating
+                                        ? "Generating…"
+                                        : "Generate quiz"}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </Modal>
+            )}
+
+            {quizToDelete !== null && (
+                <DeleteQuizModal
+                    quizTitle={quizToDelete.title}
+                    onCancel={() => setQuizToDelete(null)}
+                    onConfirm={handleDelete}
+                />
+            )}
+        </div>
+    );
 }
