@@ -18,7 +18,7 @@ export default function Layout() {
         <nav className="navbar">
           <div className="navbar-left">
             <Link to={loggedIn ? "/dashboard" : "/"} className="navbar-brand">
-              Quattrolingo
+              QuattroLingo
             </Link>
             {loggedIn && (
               <div className="navbar-links">
