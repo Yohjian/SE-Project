@@ -22,7 +22,7 @@ namespace QuattroLingo.Tests.Services
                 Task.FromResult(
                     Rooms.Where(r =>
                         r.RoomVisibility == Visibility.Public &&
-                        r.Status == RoomStatus.Waiting
+                    r.Status == RoomStatus.Waiting
                     ).ToList()
                 );
 

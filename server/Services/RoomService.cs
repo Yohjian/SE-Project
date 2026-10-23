@@ -1,9 +1,9 @@
-using QuattroLingo.DTOs.Request;
-using RoomResponse = QuattroLingo.DTOs.Response.Room;
-using QuattroLingo.Repositories;
 using System.Security.Cryptography;
+using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
+using QuattroLingo.Repositories;
+using RoomResponse = QuattroLingo.DTOs.Response.Room;
 
 namespace QuattroLingo.Services
 {

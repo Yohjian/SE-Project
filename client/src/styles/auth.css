@@ -1,0 +1,53 @@
+.auth-page {
+  max-width: 26rem;
+  margin: var(--space-8) auto 0;
+  padding: 0 var(--space-4);
+}
+
+.auth-logo {
+  display: block;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-bottom: var(--space-6);
+}
+.auth-back {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+}
+
+.auth-alert { margin-bottom: var(--space-4); }
+.auth-alert p + p { margin-top: var(--space-1); }
+
+.auth-footer {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-size: 0.875rem;
+}
+.auth-footer a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-footer a:hover { text-decoration: underline; }
+
+/* Password show/hide */
+.password-field { position: relative; }
+.password-field__input { width: 100%; padding-right: 4.5rem; }
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.password-toggle:hover { color: var(--color-text); }

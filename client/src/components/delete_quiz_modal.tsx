@@ -1,45 +1,40 @@
+import Modal from "./modal";
 
 type DeleteQuizModalProps = {
-  onCancel: () => void;
-  onConfirm: () => void;
+    quizTitle?: string;
+    onCancel: () => void;
+    onConfirm: () => void;
 };
 
 export default function DeleteQuizModal({
-  onCancel,
-  onConfirm,
+    quizTitle,
+    onCancel,
+    onConfirm,
 }: DeleteQuizModalProps) {
-  return (
-    <div className="delete-modal-overlay">
-      <div
-        className="delete-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-modal-title"
-      >
-        <h2 id="delete-modal-title">Delete quiz?</h2>
+    return (
+        <Modal title="Delete quiz?" onClose={onCancel}>
+            <p className="modal-text" style={{ marginBottom: 0 }}>
+                {quizTitle ? <strong>“{quizTitle}”</strong> : "This quiz"} and
+                all its questions will be permanently deleted. This can’t be
+                undone.
+            </p>
 
-        <p>
-          Are you sure you want to delete this quiz?
-          This action cannot be undone.
-        </p>
-
-        <div className="delete-modal-actions">
-          <button
-            type="button"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            className="confirm-delete-button"
-            onClick={onConfirm}
-          >
-            Delete quiz
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+            <div className="modal-actions">
+                <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={onCancel}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={onConfirm}
+                >
+                    Delete quiz
+                </button>
+            </div>
+        </Modal>
+    );
 }

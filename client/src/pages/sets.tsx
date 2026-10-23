@@ -201,7 +201,7 @@ export default function Sets() {
 
     const overlay = isAdding
         ? createPortal(
-              <div className="overlay" onClick={handleCancel} />,
+              <div className="sets-overlay" onClick={handleCancel} />,
               document.body,
           )
         : null;
@@ -218,15 +218,19 @@ export default function Sets() {
                     onAdd={handleAddSet}
                     onDelete={handleDeleteSet}
                 />
-                <div className="content">
-                    <div className="toolbar">
+                <div className="sets-content">
+                    <div className="sets-toolbar">
                         <input
                             type="text"
+                            className="input sets-toolbar__search"
                             placeholder="Search cards..."
+                            aria-label="Search cards"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                         <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
                             onClick={() =>
                                 setViewMode((m) =>
                                     m === "grid" ? "list" : "grid",
@@ -235,24 +239,33 @@ export default function Sets() {
                         >
                             {viewMode === "grid" ? "List view" : "Grid view"}
                         </button>
-                        <div className="export-menu-wrapper" ref={exportRef}>
+                        <div className="sets-export" ref={exportRef}>
                             <button
-                                className="export-btn"
+                                type="button"
+                                className="btn btn-secondary btn-sm"
                                 onClick={() =>
                                     setShowExportMenu((prev) => !prev)
                                 }
                                 disabled={!selectedSetId}
+                                aria-haspopup="menu"
+                                aria-expanded={showExportMenu}
                             >
                                 Download ▾
                             </button>
                             {showExportMenu && (
-                                <div className="export-dropdown">
+                                <div className="sets-export__menu">
                                     <button
+                                        type="button"
+                                        className="sets-export__item"
                                         onClick={() => handleExport("json")}
                                     >
                                         JSON
                                     </button>
-                                    <button onClick={() => handleExport("csv")}>
+                                    <button
+                                        type="button"
+                                        className="sets-export__item"
+                                        onClick={() => handleExport("csv")}
+                                    >
                                         CSV
                                     </button>
                                 </div>
@@ -260,70 +273,96 @@ export default function Sets() {
                         </div>
                     </div>
 
-                    <div
-                        className={
-                            viewMode === "grid" ? "cards-grid" : "cards-list"
-                        }
-                    >
-                        {filteredCards.map((card) => (
-                            <div
-                                key={card.id}
-                                className={`card ${viewMode === "list" ? "card-list" : ""}`}
-                            >
-                                <button
-                                    className="card-delete"
-                                    onClick={() => handleDeleteCard(card.id)}
-                                    title="Delete card"
+                    {selectedSetId === null ? (
+                        <p className="sets-empty text-muted">
+                            Select or create a set in the sidebar.
+                        </p>
+                    ) : (
+                        <div
+                            className={`set-cards ${
+                                viewMode === "grid"
+                                    ? "set-cards--grid"
+                                    : "set-cards--list"
+                            }`}
+                        >
+                            {filteredCards.map((card) => (
+                                <div
+                                    key={card.id}
+                                    className={`set-card ${viewMode === "list" ? "set-card--list" : ""}`}
                                 >
-                                    ×
-                                </button>
-                                <strong>{card.term}</strong>
-                                <span>{card.definition}</span>
-                            </div>
-                        ))}
-                        {isAdding ? (
-                            <div className="card card-add-form">
-                                <input
-                                    ref={termRef}
-                                    type="text"
-                                    placeholder="Term"
-                                    value={newTerm}
-                                    onChange={(e) => setNewTerm(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Definition"
-                                    value={newDefinition}
-                                    onChange={(e) =>
-                                        setNewDefinition(e.target.value)
-                                    }
-                                    onKeyDown={handleKeyDown}
-                                />
-                                <div className="card-add-form-actions">
                                     <button
-                                        onClick={handleCancel}
-                                        disabled={isSaving}
+                                        type="button"
+                                        className="set-card__delete"
+                                        onClick={() =>
+                                            handleDeleteCard(card.id)
+                                        }
+                                        title="Delete card"
+                                        aria-label={`Delete ${card.term}`}
                                     >
-                                        Cancel
+                                        ×
                                     </button>
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={isSaving}
-                                    >
-                                        Save
-                                    </button>
+                                    <strong className="set-card__term">
+                                        {card.term}
+                                    </strong>
+                                    <span className="set-card__definition">
+                                        {card.definition}
+                                    </span>
                                 </div>
-                            </div>
-                        ) : (
-                            <div
-                                className="card card-add"
-                                onClick={() => setIsAdding(true)}
-                            >
-                                <span>+ Add card</span>
-                            </div>
-                        )}
-                    </div>
+                            ))}
+
+                            {isAdding ? (
+                                <div className="set-card set-card-form">
+                                    <input
+                                        ref={termRef}
+                                        className="input"
+                                        type="text"
+                                        placeholder="Term"
+                                        value={newTerm}
+                                        onChange={(e) =>
+                                            setNewTerm(e.target.value)
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                    <input
+                                        className="input"
+                                        type="text"
+                                        placeholder="Definition"
+                                        value={newDefinition}
+                                        onChange={(e) =>
+                                            setNewDefinition(e.target.value)
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                    <div className="set-card-form__actions">
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={handleCancel}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            onClick={handleSave}
+                                            disabled={isSaving}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="set-card set-card--add"
+                                    onClick={() => setIsAdding(true)}
+                                >
+                                    + Add card
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </>

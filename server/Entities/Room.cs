@@ -12,7 +12,7 @@ namespace QuattroLingo.Entities
         public RoomStatus Status { get; set; } = RoomStatus.Waiting;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? StartedAt { get; set; }
-        public DateTime? FinishedAt {get; set;}
+        public DateTime? FinishedAt { get; set; }
         public ICollection<Participant> Participants { get; set; } = [];
     }
 }

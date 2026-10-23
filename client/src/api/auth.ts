@@ -17,10 +17,6 @@ export function getToken(): string | null {
   return sessionStorage.getItem(TOKEN_KEY);
 }
 
-export function getRole(): string | null {
-  return sessionStorage.getItem(ROLE_KEY);
-}
-
 export function isLoggedIn(): boolean {
   return getToken() !== null;
 }

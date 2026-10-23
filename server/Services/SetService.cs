@@ -1,9 +1,9 @@
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
-using QuattroLingo.Exceptions;
-using QuattroLingo.Repositories;
 using QuattroLingo.Enums;
+using QuattroLingo.Exceptions;
 using QuattroLingo.Helpers;
+using QuattroLingo.Repositories;
 
 namespace QuattroLingo.Services
 {

@@ -1,0 +1,328 @@
+.quiz-editor {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+}
+
+/* Header */
+.quiz-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.quiz-editor-header .page-title {
+  margin: 0;
+}
+
+/* Title + description */
+.quiz-details {
+  margin-bottom: var(--space-8);
+}
+
+.quiz-details .field:last-child {
+  margin-bottom: 0;
+}
+
+.quiz-description-input {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Questions section */
+.quiz-questions-heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.quiz-questions-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.bulk-settings {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.bulk-settings summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bulk-settings summary:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+.bulk-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.bulk-setting {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.bulk-setting .field {
+  margin: 0;
+}
+
+.bulk-setting .input {
+  width: 120px;
+}
+
+.questions-empty {
+  margin-bottom: var(--space-4);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.questions-empty p {
+  margin: 0;
+}
+
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+/* Question card */
+.question-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.question-move {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.question-toggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-2);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.question-toggle:hover {
+  background: var(--color-bg);
+}
+
+.question-toggle:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.question-number {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: 50%;
+}
+
+.question-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.question-preview.is-empty {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.question-pill {
+  flex-shrink: 0;
+  padding: 2px var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.question-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.question-toggle[aria-expanded="true"] .question-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .question-chevron {
+    transition: transform 0.15s;
+  }
+}
+
+@media (max-width: 520px) {
+  .question-pill {
+    display: none;
+  }
+}
+
+/* Question body */
+.question-details {
+  padding: var(--space-4);
+  border-top: 2px solid var(--color-border);
+}
+
+.question-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.question-settings .field {
+  flex: 1 1 140px;
+}
+
+/* Answers */
+.answers {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: none;
+}
+
+.answers legend {
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.answers-hint {
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+}
+
+.answer-row.is-correct {
+  background: var(--color-success-soft);
+  border-color: var(--color-success);
+}
+
+.answer-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.answer-radio {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-success);
+  cursor: pointer;
+}
+
+/* Icon buttons (move / delete) */
+.editor-icon-btn {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.question-move .editor-icon-btn {
+  width: 28px;
+  height: 20px;
+  border-radius: var(--radius-md);
+}
+
+.editor-icon-btn:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.editor-icon-btn-danger:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.editor-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.editor-icon-btn:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.editor-icon-btn-danger:focus-visible {
+  outline-color: var(--color-danger);
+}
+
+/* Footer */
+.quiz-editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--color-border);
+} 
