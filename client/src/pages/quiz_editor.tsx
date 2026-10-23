@@ -6,7 +6,7 @@ import type { QuestionRequest } from "../api/types";
 import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
 
-import "../styles/quizEditor.css";
+import "../styles/quiz_editor.css";
 
 type EditorQuestion = QuestionRequest & {
     clientId: string;
