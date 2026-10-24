@@ -67,6 +67,22 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [HttpPatch("{id}/visibility")]
+        public async Task<IActionResult> UpdateVisibility(
+            int id,
+            UpdateQuizVisibilityRequest request)
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            var result = await quizzes.UpdateVisibilityAsync(
+                userId,
+                id,
+                request.IsPublic
+            );
+
+            return Ok(result);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

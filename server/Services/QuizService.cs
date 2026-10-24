@@ -76,6 +76,23 @@ namespace QuattroLingo.Services
             return ToResponse(quiz);
         }
 
+        public async Task<QuizEditorResponse> UpdateVisibilityAsync(
+            string userId,
+            int quizId,
+            bool isPublic)
+        {
+            var quiz = await quizzes.GetByIdAsync(quizId)
+                ?? throw new NotFoundException(QuizNotFound);
+
+            if (quiz.OwnerId != userId)
+                throw new ForbiddenException(QuizForbidden);
+
+            quiz.IsPublic = isPublic;
+
+            await quizzes.UpdateAsync(quiz);
+
+            return ToResponse(quiz);
+        }
         public async Task DeleteAsync(string userId, int quizId)
         {
             var quiz = await quizzes.GetByIdAsync(quizId)
@@ -262,7 +279,7 @@ namespace QuattroLingo.Services
             return new QuizEditorResponse(quiz.Id, quiz.Title, quiz.Description, quiz.Questions.OrderBy(q => q.OrderIndex)
                 .Select(q => new QuestionResponse(q.Id, q.Text, q.TimeLimitSeconds, q.Points, q.OrderIndex,
                     q.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList()))
-                .ToList());
+                .ToList(), quiz.IsPublic);
         }
 
         private static QuestionResponse ToQuestionResponse(Question question)

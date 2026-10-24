@@ -6,7 +6,7 @@ namespace QuattroLingo.Extensions
     public static class QuizMappingExtensions
     {
         public static QuizSummary ToSummary(this Quiz quiz) =>
-            new(quiz.Id, quiz.Title, quiz.Description);
+            new(quiz.Id, quiz.Title, quiz.Description, quiz.IsPublic);
 
         public static AnswerOptionResponse ToAnswerResponse(this AnswerOption option) =>
             new(option.Id, option.Text, option.IsCorrect);

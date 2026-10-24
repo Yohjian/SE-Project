@@ -4,6 +4,7 @@ namespace QuattroLingo.DTOs.Response
         int Id,
         string Title,
         string? Description,
-        List<QuestionResponse> Questions
+        List<QuestionResponse> Questions,
+        bool IsPublic
     );
 }
