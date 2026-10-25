@@ -84,6 +84,8 @@ export const quizApi = {
         client.post<QuizEditorResponse>("/quizzes", request),
     update: (quizId: number, request: UpdateQuizRequest) =>
         client.put<QuizEditorResponse>(`/quizzes/${quizId}`, request),
+    updateVisibility: (quizId: number, isPublic: boolean) =>
+        client.patch<QuizEditorResponse>( `/quizzes/${quizId}/visibility`, { isPublic },),
     delete: (quizId: number) => client.delete(`/quizzes/${quizId}`),
 
     addQuestion: (quizId: number, request: QuestionRequest) =>

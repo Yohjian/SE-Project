@@ -30,6 +30,7 @@ export interface QuizSummary {
   id: number;
   title: string;
   description: string | null;
+  isPublic: boolean;
 }
 
 export interface QuizEditorResponse {
@@ -37,6 +38,7 @@ export interface QuizEditorResponse {
   title: string;
   description: string | null;
   questions: QuestionResponse[];
+  isPublic: boolean;
 }
 
 export interface AnswerOptionRequest {

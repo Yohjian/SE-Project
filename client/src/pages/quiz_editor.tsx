@@ -5,6 +5,7 @@ import { getErrorMessages } from "../api/auth";
 import type { QuestionRequest } from "../api/types";
 import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
+import QuizVisibilityModal from "../components/modals/quiz_visibility_modal";
 
 import "../styles/quiz_editor.css";
 
@@ -28,6 +29,10 @@ export default function QuizEditor() {
     const [allTime, setAllTime] = useState<number | "">(30);
     const [allPoints, setAllPoints] = useState<number | "">(100);
 
+    const [isPublic, setIsPublic] = useState(false);
+    const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(null);
+    const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+
     const { showNotification } = useNotification();
 
     useEffect(() => {
@@ -38,6 +43,7 @@ export default function QuizEditor() {
             .then((res) => {
                 setTitle(res.data.title);
                 setDescription(res.data.description ?? "");
+                setIsPublic(res.data.isPublic);
 
                 setQuestions(
                     res.data.questions.map((question) => ({
@@ -315,6 +321,44 @@ export default function QuizEditor() {
         }
     };
 
+    const handleVisibilityChange = (newVisibility: boolean) => {
+        if (newVisibility === isPublic || isUpdatingVisibility) return;
+
+        setPendingVisibility(newVisibility);
+    };
+
+    const handleCancelVisibility = () => {
+        if (isUpdatingVisibility) return;
+
+        setPendingVisibility(null);
+    };
+
+    const handleConfirmVisibility = async () => {
+        if (!id || pendingVisibility === null || isUpdatingVisibility) return;
+
+        setIsUpdatingVisibility(true);
+
+        try {
+            const response = await quizApi.updateVisibility(
+                Number(id),
+                pendingVisibility,
+            );
+
+            setIsPublic(response.data.isPublic);
+            setPendingVisibility(null);
+            showNotification("Quiz visibility updated.", "success");
+        } catch (error) {
+            const messages = getErrorMessages(
+                error,
+                "Failed to update quiz visibility.",
+            );
+
+            showNotification(messages.join(" "));
+        } finally {
+            setIsUpdatingVisibility(false);
+        }
+    };
+
     return (
         <div className="quiz-editor">
             <header className="quiz-editor-header">
@@ -350,6 +394,31 @@ export default function QuizEditor() {
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="What is this quiz about?"
                     />
+                </div>
+                <div className="field">
+                    <label>Visibility</label>
+
+                    <div className="quiz-visibility-options">
+                        <button
+                            type="button"
+                            className={`btn ${!isPublic ? "btn-primary" : "btn-secondary"}`}
+                            onClick={() => handleVisibilityChange(false)}
+                            disabled={isUpdatingVisibility}
+                            aria-pressed={!isPublic}
+                        >
+                            Private
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`btn ${isPublic ? "btn-primary" : "btn-secondary"}`}
+                            onClick={() => handleVisibilityChange(true)}
+                            disabled={isUpdatingVisibility}
+                            aria-pressed={isPublic}
+                        >
+                            Public
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -476,6 +545,14 @@ export default function QuizEditor() {
                     {isSaving ? "Saving…" : "Save quiz"}
                 </button>
             </footer>
+            {pendingVisibility !== null && (
+                <QuizVisibilityModal
+                    isPublic={pendingVisibility}
+                    isSaving={isUpdatingVisibility}
+                    onConfirm={handleConfirmVisibility}
+                    onCancel={handleCancelVisibility}
+                />
+            )}
         </div>
     );
 }
