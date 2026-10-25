@@ -95,5 +95,14 @@ namespace QuattroLingo.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Quiz>> GetPublicAsync()
+        {
+            return await _context.Quizzes
+                .AsNoTracking()
+                .Where(q => q.IsPublic)
+                .OrderBy(q => q.Title)
+                .ToListAsync();
+        }
     }
 }

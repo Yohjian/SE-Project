@@ -5,3 +5,32 @@
 }
 
 .dashboard h2 { margin-bottom: var(--space-3); }
+
+.dashboard-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+}
+
+.dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+}
+
+.dashboard-column .input {
+    width: 100%;
+}
+
+.dashboard-column .room-row__info {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+    .dashboard-columns {
+        grid-template-columns: 1fr;
+    }
+}

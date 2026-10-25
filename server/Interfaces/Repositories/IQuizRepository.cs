@@ -16,5 +16,6 @@ namespace QuattroLingo.Repositories
         Task AddAnswerOptionAsync(AnswerOption answerOption);
         Task DeleteAnswerOptionAsync(AnswerOption answerOption);
         Task SaveChangesAsync();
+        Task<List<Quiz>> GetPublicAsync();
     }
 }

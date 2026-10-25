@@ -41,5 +41,7 @@ namespace QuattroLingo.Services
         Task DeleteAnswerOptionAsync(
             string userId,
             int answerOptionId);
+
+        Task<List<QuizSummary>> GetPublicQuizzesAsync();
     }
 }

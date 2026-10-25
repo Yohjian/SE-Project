@@ -287,5 +287,12 @@ namespace QuattroLingo.Services
             return new QuestionResponse(question.Id, question.Text, question.TimeLimitSeconds, question.Points, question.OrderIndex,
                 question.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList());
         }
+
+        public async Task<List<QuizSummary>> GetPublicQuizzesAsync()
+        {
+            var items = await quizzes.GetPublicAsync();
+
+            return items.Select(q => q.ToSummary()).ToList();
+        }
     }
 }
