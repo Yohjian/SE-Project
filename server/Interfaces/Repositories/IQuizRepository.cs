@@ -1,6 +1,6 @@
 using QuattroLingo.Entities;
 
-namespace QuattroLingo.Repositories
+namespace QuattroLingo.Interfaces.Repositories
 {
     public interface IQuizRepository
     {

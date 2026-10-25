@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
-using QuattroLingo.Services;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Controllers
 {

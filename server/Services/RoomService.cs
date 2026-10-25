@@ -2,7 +2,8 @@ using System.Security.Cryptography;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
-using QuattroLingo.Repositories;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
 using RoomResponse = QuattroLingo.DTOs.Response.Room;
 
 namespace QuattroLingo.Services
@@ -85,7 +86,6 @@ namespace QuattroLingo.Services
 
         public async Task<RoomResponse?> GetByCodeAsync(string code)
         {
-            // Patikriname, ar kodas įvestas
             if (string.IsNullOrWhiteSpace(code))
             {
                 return null;

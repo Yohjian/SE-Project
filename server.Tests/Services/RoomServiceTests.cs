@@ -1,7 +1,7 @@
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
-using QuattroLingo.Repositories;
+using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Services;
 
 namespace QuattroLingo.Tests.Services

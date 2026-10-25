@@ -1,7 +1,7 @@
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.DTOs.Response;
 
-namespace QuattroLingo.Services
+namespace QuattroLingo.Interfaces.Services
 {
     public interface IQuizService
     {

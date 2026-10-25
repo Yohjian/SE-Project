@@ -1,7 +1,7 @@
 using QuattroLingo.DTOs.Request;
 using RoomResponse = QuattroLingo.DTOs.Response.Room;
 
-namespace QuattroLingo.Services
+namespace QuattroLingo.Interfaces.Services
 {
     public interface IRoomService
     {

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuattroLingo.Data;
 using QuattroLingo.Entities;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
 using QuattroLingo.Middleware;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;

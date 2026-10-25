@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using QuattroLingo.Entities;
 using QuattroLingo.Exceptions;
-using QuattroLingo.Repositories;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
 using QuattroLingo.Services;
 
 namespace QuattroLingo.Tests.Services

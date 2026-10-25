@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using QuattroLingo.Entities;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Services
 {
