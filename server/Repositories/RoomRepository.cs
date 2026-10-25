@@ -3,6 +3,7 @@ using QuattroLingo.Data;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Interfaces.Repositories;
+using Npgsql;
 
 namespace QuattroLingo.Repositories
 {
@@ -33,11 +34,22 @@ namespace QuattroLingo.Repositories
             .ToListAsync();
         }
 
-        public async Task<Room> CreateRoomAsync(Room room)
+        public async Task<bool> TryCreateRoomAsync(Room room)
         {
             _context.Rooms.Add(room);
-            await _context.SaveChangesAsync();
-            return room;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateException ex)
+                when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+            {
+                // Stop the context from retrying the failed insert on the next SaveChanges.
+                _context.Entry(room).State = EntityState.Detached;
+                return false;
+            }
         }
 
         public async Task<Participant> AddParticipantAsync(Participant participant)

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { roomApi, RoomStatus } from "../api/rooms";
+import { getErrorMessages } from "../api/auth";
 import "../styles/rooms.css";
 
 export default function JoinRoom() {
@@ -74,8 +75,7 @@ export default function JoinRoom() {
 
             setJoined(true);
         } catch (err) {
-            console.error("Failed to join room:", err);
-            setError("Could not join room. Please try again.");
+            setError(getErrorMessages(err, "Could not join room. Please try again.")[0]);
         } finally {
             setJoining(false);
         }

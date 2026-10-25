@@ -7,7 +7,7 @@ namespace QuattroLingo.Interfaces.Services
     {
         Task<RoomResponse> CreateRoomAsync(CreateRoom dto, string userId);
         Task<List<RoomResponse>> GetPublicRoomAsync();
-        Task<RoomResponse?> GetByCodeAsync(string code);
+        Task<RoomResponse> GetByCodeAsync(string code);
         Task<RoomResponse> JoinRoomAsync(JoinRoom dto);
         Task<List<RoomResponse>> GetMyRoomsAsync(string userId);
     }
