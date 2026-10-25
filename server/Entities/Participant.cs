@@ -8,5 +8,6 @@ namespace QuattroLingo.Entities
         public string DisplayName { get; set; } = string.Empty;
         public int Score { get; set; } = 0;
         public Room Room { get; set; } = null!;
+        public string PlayerTokenHash { get; set; } = string.Empty;
     }
 }

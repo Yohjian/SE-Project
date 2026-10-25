@@ -317,6 +317,10 @@ namespace QuattroLingo.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PlayerTokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
 

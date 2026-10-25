@@ -1,12 +1,15 @@
 using System.Security.Cryptography;
 using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Extensions;
 using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Interfaces.Services;
+using QuattroLingo.Helpers;
 using RoomResponse = QuattroLingo.DTOs.Response.Room;
+using RoomEntity = QuattroLingo.Entities.Room;
 
 namespace QuattroLingo.Services
 {
@@ -46,7 +49,7 @@ namespace QuattroLingo.Services
 
             for (var attempt = 0; attempt < MaxCodeAttempts; attempt++)
             {
-                var room = new Room
+                var room = new RoomEntity
                 {
                     QuizId = quiz.Id,
                     Quiz = quiz,
@@ -82,9 +85,10 @@ namespace QuattroLingo.Services
             return room.ToResponse();
         }
 
-        public async Task<RoomResponse> JoinRoomAsync(JoinRoom dto)
+        public async Task<JoinedRoom> JoinRoomAsync(JoinRoom dto)
         {
-            var code = NormalizeCode(dto.JoinCode) ?? throw new NotFoundException(RoomNotFound);
+            var code = NormalizeCode(dto.JoinCode)
+                ?? throw new NotFoundException(RoomNotFound);
 
             var name = dto.DisplayName?.Trim();
 
@@ -118,19 +122,27 @@ namespace QuattroLingo.Services
                 throw new ConflictException("That name is already taken in this room.");
             }
 
-            // Read the count BEFORE adding: EF adds the new participant to
-            // room.Participants itself, so reading it afterwards double-counts.
+            // Read the count before adding the participant.
             var countBefore = room.Participants.Count;
 
-            await _roomRepository.AddParticipantAsync(new Participant
+            var (token, tokenHash) = PlayerTokens.Generate();
+
+            var participant = await _roomRepository.AddParticipantAsync(new Participant
             {
                 RoomId = room.Id,
                 DisplayName = name,
                 UserId = null,
-                Score = 0
+                Score = 0,
+                PlayerTokenHash = tokenHash
             });
 
-            return room.ToResponse(countBefore + 1);
+            return new JoinedRoom
+            {
+                Room = room.ToResponse(countBefore + 1),
+                ParticipantId = participant.Id,
+                DisplayName = participant.DisplayName,
+                PlayerToken = token
+            };
         }
 
         public async Task<List<RoomResponse>> GetMyRoomsAsync(string userId)

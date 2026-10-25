@@ -1,4 +1,5 @@
 using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
 using RoomResponse = QuattroLingo.DTOs.Response.Room;
 
 namespace QuattroLingo.Interfaces.Services
@@ -8,7 +9,7 @@ namespace QuattroLingo.Interfaces.Services
         Task<RoomResponse> CreateRoomAsync(CreateRoom dto, string userId);
         Task<List<RoomResponse>> GetPublicRoomAsync();
         Task<RoomResponse> GetByCodeAsync(string code);
-        Task<RoomResponse> JoinRoomAsync(JoinRoom dto);
+        Task<JoinedRoom> JoinRoomAsync(JoinRoom dto);
         Task<List<RoomResponse>> GetMyRoomsAsync(string userId);
     }
 }
