@@ -1,6 +1,7 @@
 import client from "./client";
 
 export const RoomVisibility = { Public: 0, Private: 1 } as const;
+
 export const RoomStatus = {
   Waiting: 0,
   InProgress: 1,
@@ -28,6 +29,13 @@ export interface JoinRoomRequest {
   displayName: string;
 }
 
+export interface JoinedRoom {
+  room: Room;
+  participantId: number;
+  displayName: string;
+  playerToken: string;
+}
+
 export const roomApi = {
   getPublic: () => client.get<Room[]>("/rooms/public"),
 
@@ -40,5 +48,5 @@ export const roomApi = {
     client.post<Room>("/rooms", request),
 
   join: (request: JoinRoomRequest) =>
-    client.post<Room>("/rooms/join", request),
+    client.post<JoinedRoom>("/rooms/join", request),
 };
