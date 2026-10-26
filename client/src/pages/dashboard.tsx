@@ -4,6 +4,7 @@ import { roomApi, type Room } from "../api/rooms";
 import { quizApi } from "../api/client";
 import type { QuizSummary } from "../api/types";
 import JoinByCode from "../components/join_by_code";
+import { useNotification } from "../components/notification";
 
 import "../styles/dashboards.css";
 import "../styles/rooms.css";
@@ -11,6 +12,8 @@ import "../styles/rooms.css";
 export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
+  const [savingQuizId, setSavingQuizId] = useState<number | null>(null);
+  const { showNotification } = useNotification();
   const [quizSearch, setQuizSearch] = useState("");
   const [quizzesLoading, setQuizzesLoading] = useState(true);
   const [quizzesError, setQuizzesError] = useState<string | null>(null);
@@ -32,6 +35,20 @@ export default function Dashboard() {
     const filteredQuizzes = quizzes.filter((quiz) =>
       quiz.title.toLowerCase().includes(quizSearch.trim().toLowerCase()),
   );
+
+    const handleSaveQuiz = async (quizId: number) => {
+      setSavingQuizId(quizId);
+
+      try {
+          await quizApi.copyPublic(quizId);
+
+          showNotification("Quiz saved to My Quizzes!", "success");
+      } catch {
+          showNotification("Failed to save quiz.");
+      } finally {
+          setSavingQuizId(null);
+      }
+  };
 
   return (
     <div className="container dashboard">
@@ -136,7 +153,18 @@ export default function Dashboard() {
                                                     {quiz.description}
                                                 </p>
                                             )}
-                                        </div>
+                                                                                    </div>
+
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            onClick={() => handleSaveQuiz(quiz.id)}
+                                            disabled={savingQuizId !== null}
+                                        >
+                                            {savingQuizId === quiz.id
+                                                ? "Saving..."
+                                                : "Save"}
+                                        </button>
                                     </div>
                                 </li>
                             ))}

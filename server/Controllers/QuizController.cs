@@ -42,6 +42,19 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [HttpPost("{id}/copy")]
+        public async Task<IActionResult> CopyPublicQuiz(int id)
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            var result = await quizzes.CopyPublicQuizAsync(userId, id);
+
+            return CreatedAtAction(
+                nameof(Get),
+                new { id = result.Id },
+                result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(CreateQuizRequest request)
         {

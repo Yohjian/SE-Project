@@ -83,6 +83,8 @@ export const quizApi = {
         client.get<QuizEditorResponse>(`/quizzes/${quizId}`),
     create: (request: CreateQuizRequest) =>
         client.post<QuizEditorResponse>("/quizzes", request),
+    copyPublic: (quizId: number) =>
+        client.post<QuizEditorResponse>(`/quizzes/${quizId}/copy`),
     update: (quizId: number, request: UpdateQuizRequest) =>
         client.put<QuizEditorResponse>(`/quizzes/${quizId}`, request),
     updateVisibility: (quizId: number, isPublic: boolean) =>
