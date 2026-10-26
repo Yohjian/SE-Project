@@ -10,6 +10,7 @@ namespace QuattroLingo.Services
         Task<QuizEditorResponse> GetByIdAsync(string userId, int quizId);
         Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request);
         Task<QuizEditorResponse> UpdateAsync(string userId, int quizId, UpdateQuizRequest request);
+        Task<QuizEditorResponse> GetPublicQuizByIdAsync(int quizId);
         Task<QuizEditorResponse> UpdateVisibilityAsync(
             string userId,
             int quizId,

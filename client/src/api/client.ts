@@ -79,6 +79,8 @@ export const cardApi = {
 export const quizApi = {
     getMine: () => client.get<QuizSummary[]>("/quizzes/mine"),
     getPublic: () => client.get<QuizSummary[]>("/quizzes/public"),
+    getPublicById: (quizId: number) =>
+        client.get<QuizEditorResponse>(`/quizzes/public/${quizId}`),
     getById: (quizId: number) =>
         client.get<QuizEditorResponse>(`/quizzes/${quizId}`),
     create: (request: CreateQuizRequest) =>

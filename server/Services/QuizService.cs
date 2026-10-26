@@ -40,6 +40,17 @@ namespace QuattroLingo.Services
             return ToResponse(quiz);
         }
 
+        public async Task<QuizEditorResponse> GetPublicQuizByIdAsync(int quizId)
+        {
+            var quiz = await quizzes.GetByIdAsync(quizId)
+                ?? throw new NotFoundException(QuizNotFound);
+
+            if (!quiz.IsPublic)
+                throw new NotFoundException(QuizNotFound);
+
+            return ToResponse(quiz);
+        }
+
         public async Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request)
         {
             ValidateQuiz(request.Title, request.Questions);

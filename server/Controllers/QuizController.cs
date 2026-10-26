@@ -32,6 +32,14 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [HttpGet("public/{id:int}")]
+        public async Task<IActionResult> GetPublicById(int id)
+        {
+            var result = await quizzes.GetPublicQuizByIdAsync(id);
+
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {

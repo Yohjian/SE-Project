@@ -153,7 +153,15 @@ export default function Dashboard() {
                                                     {quiz.description}
                                                 </p>
                                             )}
-                                                                                    </div>
+
+                                        </div>
+
+                                            <Link
+                                                to={`/quizzes/${quiz.id}/view`}
+                                                className="btn btn-primary"
+                                            >
+                                                View quiz
+                                            </Link>
 
                                         <button
                                             type="button"
