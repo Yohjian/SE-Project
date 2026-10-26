@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Data;
 using QuattroLingo.Entities;
 using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Enums;
 
 
 namespace QuattroLingo.Repositories
@@ -96,5 +97,9 @@ namespace QuattroLingo.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public Task<bool> HasActiveRoomAsync(int quizId) =>
+            _context.Rooms.AnyAsync(r => r.QuizId == quizId
+                && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
     }
 }

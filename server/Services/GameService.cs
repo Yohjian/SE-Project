@@ -95,10 +95,12 @@ namespace QuattroLingo.Services
 
                 UpdateEmptiness(game, _time.GetUtcNow());
                 _connections[connectionId] = new ConnectionInfo(game.JoinCode, player?.Id);
+
+                // Join the SignalR group before building the snapshot.
+                await _notifier.AddToRoomAsync(connectionId, game.JoinCode);
+
                 snapshot = BuildSnapshot(game, player, isHost);
             }
-
-            await _notifier.AddToRoomAsync(connectionId, game.JoinCode);
 
             if (announce is not null)
             {

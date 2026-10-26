@@ -11,6 +11,9 @@ using QuattroLingo.Middleware;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
 using Scalar.AspNetCore;
+using QuattroLingo.BackgroundServices;
+using QuattroLingo.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 DotNetEnv.Env.Load(/*"../.env"*/);
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +43,7 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.MapInboundClaims = false;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -50,6 +54,23 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSection["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         RoleClaimType = TokenService.RoleClaimType,
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            // Only for hub URLs; tokens in query strings can end up in access logs.
+            if (!string.IsNullOrEmpty(accessToken) &&
+                context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -65,6 +86,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
+              .AllowCredentials()
               .WithExposedHeaders("Content-Disposition"));
 });
 
@@ -81,6 +103,14 @@ builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 
+builder.Services.AddSignalR(options => options.AddFilter<ExceptionHubFilter>());
+
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(new GameOptions());
+builder.Services.AddSingleton<IGameNotifier, SignalRGameNotifier>();
+builder.Services.AddSingleton<IGameService, GameService>();
+builder.Services.AddHostedService<RoomCleanupService>();
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -95,6 +125,7 @@ app.UseCors("DevPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<GameHub>("/hubs/game");
 
 // Auto-apply migrations on startup
 using (var scope = app.Services.CreateScope())
@@ -103,6 +134,9 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsRelational())
         db.Database.Migrate();
 }
+
+// Live games die with the process: anything left InProgress can never finish.
+await app.Services.GetRequiredService<IGameService>().ReconcileOnStartupAsync();
 
 app.Run();
 
