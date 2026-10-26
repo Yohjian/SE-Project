@@ -265,6 +265,11 @@ export default function QuizEditor() {
             return;
         }
 
+        if (questions.length < 1) {
+            showNotification("A quiz must have at least 1 question.");
+            return;
+        }
+
         if (
             questions.some(
                 (question) =>

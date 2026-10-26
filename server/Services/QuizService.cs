@@ -97,6 +97,9 @@ namespace QuattroLingo.Services
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
 
+            if (request.Questions.Count < 1)
+                throw new ValidationException("A quiz must have at least 1 question.");
+
             ValidateQuiz(request.Title, request.Questions);
 
             quiz.Title = request.Title;
