@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { roomApi, RoomStatus } from "../api/rooms";
+import { getErrorMessages } from "../api/auth";
+import { savePlayerSession } from "../api/player_session";
 import "../styles/rooms.css";
 
 export default function JoinRoom() {
@@ -67,15 +69,20 @@ export default function JoinRoom() {
         setError("");
 
         try {
-            await roomApi.join({
+            const { data } = await roomApi.join({
                 joinCode: code,
                 displayName: displayName.trim(),
             });
 
+            savePlayerSession(code, {
+                participantId: data.participantId,
+                displayName: data.displayName,
+                playerToken: data.playerToken,
+            });
+
             setJoined(true);
         } catch (err) {
-            console.error("Failed to join room:", err);
-            setError("Could not join room. Please try again.");
+            setError(getErrorMessages(err, "Could not join room. Please try again.")[0]);
         } finally {
             setJoining(false);
         }

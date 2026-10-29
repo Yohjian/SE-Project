@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
-using QuattroLingo.Services;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Controllers
 {

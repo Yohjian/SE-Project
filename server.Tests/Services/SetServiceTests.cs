@@ -2,6 +2,7 @@ using System.Text.Json;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
+using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
 

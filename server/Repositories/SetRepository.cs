@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Data;
 using QuattroLingo.Entities;
+using QuattroLingo.Interfaces.Repositories;
 
 namespace QuattroLingo.Repositories
 {

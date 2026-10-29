@@ -3,7 +3,8 @@ using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Extensions;
-using QuattroLingo.Repositories;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Services
 {
@@ -22,6 +23,7 @@ namespace QuattroLingo.Services
         private const string AnswerTextRequired = "Answer text is required.";
         private const string MinimumQuestionTime = "Question time limit must be at least 5 seconds.";
         private const string MinimumQuestionPoints = "Question must have at least 1 point.";
+        private const string QuizInUse = "This quiz is used by an active room. Edit it after the game has finished.";
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
         {
@@ -64,6 +66,8 @@ namespace QuattroLingo.Services
 
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+            
+            await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             ValidateQuiz(request.Title, request.Questions);
 
@@ -83,6 +87,8 @@ namespace QuattroLingo.Services
 
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+            
+            await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             await quizzes.DeleteAsync(quiz);
         }
@@ -94,6 +100,8 @@ namespace QuattroLingo.Services
 
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+
+            await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             ValidateQuestion(request);
 
@@ -112,6 +120,8 @@ namespace QuattroLingo.Services
 
             if (question.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+
+            await EnsureQuizIsNotInUseAsync(question.QuizId);
 
             ValidateQuestion(request);
 
@@ -138,6 +148,8 @@ namespace QuattroLingo.Services
             if (question.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
 
+            await EnsureQuizIsNotInUseAsync(question.QuizId);
+
             await quizzes.DeleteQuestionAsync(question);
         }
 
@@ -148,6 +160,8 @@ namespace QuattroLingo.Services
 
             if (question.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
+
+            await EnsureQuizIsNotInUseAsync(question.QuizId);
 
             if (string.IsNullOrWhiteSpace(request.Text))
                 throw new ValidationException(AnswerTextRequired);
@@ -177,6 +191,8 @@ namespace QuattroLingo.Services
 
             var question = answerOption.Question;
 
+            await EnsureQuizIsNotInUseAsync(answerOption.Question.QuizId);
+
             if (string.IsNullOrWhiteSpace(request.Text))
                 throw new ValidationException(AnswerTextRequired);
 
@@ -202,6 +218,8 @@ namespace QuattroLingo.Services
             if (answerOption.Question?.Quiz?.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
 
+            await EnsureQuizIsNotInUseAsync(answerOption.Question.QuizId);
+
             if (answerOption.Question.AnswerOptions.Count <= 2)
                 throw new ValidationException(CannotDeleteAnswer);
 
@@ -218,6 +236,11 @@ namespace QuattroLingo.Services
 
             foreach (var question in questions)
                 ValidateQuestion(question);
+        }
+        private async Task EnsureQuizIsNotInUseAsync(int quizId)
+        {
+            if (await quizzes.HasActiveRoomAsync(quizId))
+                throw new ConflictException(QuizInUse);
         }
 
         private static void ValidateQuestion(QuestionRequest question)

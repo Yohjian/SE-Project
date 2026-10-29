@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using QuattroLingo.Entities;
 
-namespace QuattroLingo.Repositories
+namespace QuattroLingo.Interfaces.Repositories
 {
     public interface IUserRepository
     {
