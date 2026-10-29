@@ -261,50 +261,6 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entities.Category", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Language", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.ToTable("Languages");
-                });
-
             modelBuilder.Entity("QuattroLingo.Entities.Participant", b =>
                 {
                     b.Property<int>("Id")
@@ -441,34 +397,6 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Rooms");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("LanguageId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("WordId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("WordId", "LanguageId")
-                        .IsUnique();
-
-                    b.ToTable("Translations");
-                });
-
             modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
                     b.Property<int>("Id")
@@ -517,27 +445,6 @@ namespace QuattroLingo.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sets");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Words");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -646,25 +553,6 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Quiz");
                 });
 
-            modelBuilder.Entity("QuattroLingo.Entities.Translation", b =>
-                {
-                    b.HasOne("QuattroLingo.Entities.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QuattroLingo.Entities.Word", "Word")
-                        .WithMany("Translations")
-                        .HasForeignKey("WordId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-
-                    b.Navigation("Word");
-                });
-
             modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
                     b.HasOne("QuattroLingo.Entities.VocabularySet", "Set")
@@ -674,22 +562,6 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
 
                     b.Navigation("Set");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
-                {
-                    b.HasOne("QuattroLingo.Entities.Category", "Category")
-                        .WithMany("Words")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Category", b =>
-                {
-                    b.Navigation("Words");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.Question", b =>
@@ -710,11 +582,6 @@ namespace QuattroLingo.Migrations
             modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>
                 {
                     b.Navigation("Cards");
-                });
-
-            modelBuilder.Entity("QuattroLingo.Entities.Word", b =>
-                {
-                    b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618
         }
