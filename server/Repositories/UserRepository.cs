@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using QuattroLingo.Entities;
+using QuattroLingo.Interfaces.Repositories;
 
 namespace QuattroLingo.Repositories
 {

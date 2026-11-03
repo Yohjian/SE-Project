@@ -3,7 +3,8 @@ using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Helpers;
-using QuattroLingo.Repositories;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Services
 {

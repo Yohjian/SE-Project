@@ -10,6 +10,12 @@ export default defineConfig({
 				target: "http://server:8080", // target .NET
 				changeOrigin: true,
 			},
+			"/hubs": {
+				target: "http://server:8080",
+				changeOrigin: true,
+				ws: true, // forward the WebSocket upgrade
+			},
 		},
+
 	},
 });

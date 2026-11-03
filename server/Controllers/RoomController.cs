@@ -3,7 +3,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
-using QuattroLingo.Services;
+using QuattroLingo.Exceptions;
+using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Controllers
 {
@@ -11,12 +12,15 @@ namespace QuattroLingo.Controllers
     [Route("api/rooms")]
     public class RoomController(IRoomService roomService) : ControllerBase
     {
+        private string UserId =>
+            User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? throw new UnauthorizedException("User id is missing from the token.");
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateRoom(CreateRoom dto)
         {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-            var result = await roomService.CreateRoomAsync(dto, userId);
+            var result = await roomService.CreateRoomAsync(dto, UserId);
 
             return CreatedAtAction(
                 nameof(GetByCode),
@@ -36,9 +40,7 @@ namespace QuattroLingo.Controllers
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyRooms()
         {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-
-            var result = await roomService.GetMyRoomsAsync(userId);
+            var result = await roomService.GetMyRoomsAsync(UserId);
 
             return Ok(result);
         }

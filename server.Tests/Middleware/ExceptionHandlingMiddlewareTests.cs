@@ -81,5 +81,14 @@ namespace QuattroLingo.Tests.Middleware
             Assert.Equal(500, context.Response.StatusCode);
             Assert.DoesNotContain("secret db password", body);
         }
+
+        [Fact]
+        public async Task ConflictException_Returns409()
+        {
+            var (context, body) = await RunAsync(_ => throw new ConflictException("Name taken."));
+
+            Assert.Equal(409, context.Response.StatusCode);
+            Assert.Contains("Name taken.", body);
+        }
     }
 }

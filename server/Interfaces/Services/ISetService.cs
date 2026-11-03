@@ -1,7 +1,7 @@
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Enums;
 
-namespace QuattroLingo.Services
+namespace QuattroLingo.Interfaces.Services
 {
     public interface ISetService
     {
