@@ -1,14 +1,27 @@
 using System.Security.Cryptography;
 using QuattroLingo.DTOs.Request;
+using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
-using QuattroLingo.Repositories;
+using QuattroLingo.Exceptions;
+using QuattroLingo.Extensions;
+using QuattroLingo.Interfaces.Repositories;
+using QuattroLingo.Interfaces.Services;
+using QuattroLingo.Helpers;
 using RoomResponse = QuattroLingo.DTOs.Response.Room;
+using RoomEntity = QuattroLingo.Entities.Room;
 
 namespace QuattroLingo.Services
 {
     public class RoomService : IRoomService
     {
+        public const int MaxDisplayNameLength = 30;
+        public const int MaxParticipants = 50;
+
+        private const int JoinCodeLength = 6;
+        private const int MaxCodeAttempts = 5;
+        private const string RoomNotFound = "Room not found.";
+
         private readonly IRoomRepository _roomRepository;
         private readonly IQuizRepository _quizRepository;
 
@@ -21,155 +34,132 @@ namespace QuattroLingo.Services
 
         public async Task<RoomResponse> CreateRoomAsync(CreateRoom dto, string userId)
         {
-            var quiz = await _quizRepository.GetByIdAsync(dto.QuizId);
-
-            if (quiz == null)
+            if (!Enum.IsDefined(dto.RoomVisibility))
             {
-                throw new KeyNotFoundException("Quiz not found.");
+                throw new ValidationException("Invalid room visibility.");
             }
+
+            var quiz = await _quizRepository.GetByIdAsync(dto.QuizId)
+                ?? throw new NotFoundException("Quiz not found.");
 
             if (quiz.OwnerId != userId)
             {
-                throw new UnauthorizedAccessException("You can only create rooms for your own quizzes.");
+                throw new ForbiddenException("You can only create rooms for your own quizzes.");
             }
 
-            string joinCode;
-
-            do
+            for (var attempt = 0; attempt < MaxCodeAttempts; attempt++)
             {
-                joinCode = RandomNumberGenerator
-                .GetInt32(100000, 1000000)
-                .ToString();
+                var room = new RoomEntity
+                {
+                    QuizId = quiz.Id,
+                    Quiz = quiz,
+                    HostId = userId,
+                    JoinCode = GenerateJoinCode(),
+                    RoomVisibility = dto.RoomVisibility,
+                    Status = RoomStatus.Waiting,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                if (await _roomRepository.TryCreateRoomAsync(room))
+                {
+                    return room.ToResponse();
+                }
             }
-            while (await _roomRepository.GetByJoinCodeAsync(joinCode) != null);
 
-            var room = new Room
-            {
-                QuizId = dto.QuizId,
-                HostId = userId,
-                JoinCode = joinCode,
-                RoomVisibility = dto.RoomVisibility,
-                Status = RoomStatus.Waiting,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var createdRoom = await _roomRepository.CreateRoomAsync(room);
-
-            return new RoomResponse
-            {
-                Id = createdRoom.Id,
-                QuizId = createdRoom.QuizId,
-                QuizTitle = quiz.Title,
-                JoinCode = createdRoom.JoinCode,
-                Visibility = createdRoom.RoomVisibility,
-                Status = createdRoom.Status,
-                ParticipantCount = 0
-            };
+            throw new InvalidOperationException("Could not generate a unique join code.");
         }
 
         public async Task<List<RoomResponse>> GetPublicRoomAsync()
         {
             var rooms = await _roomRepository.GetPublicWaitingRoomsAsync();
-
-            return rooms.Select(room => new RoomResponse
-            {
-                Id = room.Id,
-                QuizId = room.QuizId,
-                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
-                JoinCode = room.JoinCode,
-                Visibility = room.RoomVisibility,
-                Status = room.Status,
-                ParticipantCount = room.Participants.Count
-            }).ToList();
+            return rooms.Select(room => room.ToResponse()).ToList();
         }
 
-        public async Task<RoomResponse?> GetByCodeAsync(string code)
+        public async Task<RoomResponse> GetByCodeAsync(string code)
         {
-            // Patikriname, ar kodas įvestas
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                return null;
-            }
+            var normalized = NormalizeCode(code) ?? throw new NotFoundException(RoomNotFound);
 
-            var room = await _roomRepository.GetByJoinCodeAsync(code);
+            var room = await _roomRepository.GetByJoinCodeAsync(normalized)
+                ?? throw new NotFoundException(RoomNotFound);
 
-            if (room == null)
-            {
-                return null;
-            }
-
-            return new RoomResponse
-            {
-                Id = room.Id,
-                QuizId = room.QuizId,
-                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
-                JoinCode = room.JoinCode,
-                Visibility = room.RoomVisibility,
-                Status = room.Status,
-                ParticipantCount = room.Participants.Count
-            };
+            return room.ToResponse();
         }
 
-        public async Task<RoomResponse> JoinRoomAsync(JoinRoom dto)
+        public async Task<JoinedRoom> JoinRoomAsync(JoinRoom dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.JoinCode))
+            var code = NormalizeCode(dto.JoinCode)
+                ?? throw new NotFoundException(RoomNotFound);
+
+            var name = dto.DisplayName?.Trim();
+
+            if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException("Join code is required.");
+                throw new ValidationException("Display name is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(dto.DisplayName))
+            if (name.Length > MaxDisplayNameLength)
             {
-                throw new ArgumentException("Display name is required.");
+                throw new ValidationException(
+                    $"Display name can be at most {MaxDisplayNameLength} characters.");
             }
 
-            var room = await _roomRepository.GetByJoinCodeAsync(dto.JoinCode.Trim());
-
-            if (room == null)
-            {
-                throw new KeyNotFoundException("Room not found.");
-            }
+            var room = await _roomRepository.GetByJoinCodeAsync(code)
+                ?? throw new NotFoundException(RoomNotFound);
 
             if (room.Status != RoomStatus.Waiting)
             {
-                throw new InvalidOperationException("This room is not accepting participants.");
+                throw new ConflictException("This room is not accepting participants.");
             }
 
-            var participant = new Participant
+            if (room.Participants.Count >= MaxParticipants)
+            {
+                throw new ConflictException("This room is full.");
+            }
+
+            if (room.Participants.Any(p =>
+                    string.Equals(p.DisplayName, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ConflictException("That name is already taken in this room.");
+            }
+
+            // Read the count before adding the participant.
+            var countBefore = room.Participants.Count;
+
+            var (token, tokenHash) = PlayerTokens.Generate();
+
+            var participant = await _roomRepository.AddParticipantAsync(new Participant
             {
                 RoomId = room.Id,
-                DisplayName = dto.DisplayName.Trim(),
+                DisplayName = name,
                 UserId = null,
-                Score = 0
-            };
+                Score = 0,
+                PlayerTokenHash = tokenHash
+            });
 
-            await _roomRepository.AddParticipantAsync(participant);
-
-            return new RoomResponse
+            return new JoinedRoom
             {
-                Id = room.Id,
-                QuizId = room.QuizId,
-                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
-                JoinCode = room.JoinCode,
-                Visibility = room.RoomVisibility,
-                Status = room.Status,
-                ParticipantCount = room.Participants.Count + 1
+                Room = room.ToResponse(countBefore + 1),
+                ParticipantId = participant.Id,
+                DisplayName = participant.DisplayName,
+                PlayerToken = token
             };
         }
 
         public async Task<List<RoomResponse>> GetMyRoomsAsync(string userId)
         {
             var rooms = await _roomRepository.GetRoomsByHostIdAsync(userId);
+            return rooms.Select(room => room.ToResponse()).ToList();
+        }
 
-            return rooms.Select(room => new RoomResponse
-            {
-                Id = room.Id,
-                QuizId = room.QuizId,
-                QuizTitle = room.Quiz?.Title ?? "Unknown Quiz",
-                JoinCode = room.JoinCode,
-                Visibility = room.RoomVisibility,
-                Status = room.Status,
-                ParticipantCount = room.Participants.Count
-            }).ToList();
+        private static string GenerateJoinCode() =>
+            RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        private static string? NormalizeCode(string? code)
+        {
+            var trimmed = code?.Trim();
+            return trimmed is { Length: JoinCodeLength } && trimmed.All(char.IsAsciiDigit)
+                ? trimmed
+                : null;
         }
     }
 }

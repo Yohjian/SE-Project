@@ -1,6 +1,7 @@
 using QuattroLingo.Entities;
+using QuattroLingo.Repositories;
 
-namespace QuattroLingo.Repositories
+namespace QuattroLingo.Interfaces.Repositories
 {
     public interface ISetRepository
     {

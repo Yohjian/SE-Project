@@ -1,6 +1,6 @@
 using QuattroLingo.Entities;
 
-namespace QuattroLingo.Repositories
+namespace QuattroLingo.Interfaces.Repositories
 {
     public interface IQuizRepository
     {
@@ -16,6 +16,8 @@ namespace QuattroLingo.Repositories
         Task AddAnswerOptionAsync(AnswerOption answerOption);
         Task DeleteAnswerOptionAsync(AnswerOption answerOption);
         Task SaveChangesAsync();
-        Task<List<Quiz>> GetPublicAsync();
+
+        /// <summary>True while a Waiting or InProgress room uses this quiz.</summary>
+        Task<bool> HasActiveRoomAsync(int izId);
     }
 }
