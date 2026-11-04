@@ -101,6 +101,7 @@ builder.Services.AddScoped<ISetService, SetService>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<IPracticeService, PracticeService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 
 builder.Services.AddSignalR(options => options.AddFilter<ExceptionHubFilter>());
