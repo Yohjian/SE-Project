@@ -6,9 +6,15 @@ namespace QuattroLingo.Interfaces.Services
     public interface IQuizService
     {
         Task<List<QuizSummary>> GetMyQuizzesAsync(string userId);
+        Task<QuizEditorResponse> CopyPublicQuizAsync(string userId, int quizId);
         Task<QuizEditorResponse> GetByIdAsync(string userId, int quizId);
         Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request);
         Task<QuizEditorResponse> UpdateAsync(string userId, int quizId, UpdateQuizRequest request);
+        Task<QuizEditorResponse> GetPublicQuizByIdAsync(int quizId);
+        Task<QuizEditorResponse> UpdateVisibilityAsync(
+            string userId,
+            int quizId,
+            bool isPublic);
         Task DeleteAsync(string userId, int quizId);
         Task<QuestionResponse> AddQuestionAsync(
             string userId,
@@ -37,5 +43,7 @@ namespace QuattroLingo.Interfaces.Services
         Task DeleteAnswerOptionAsync(
             string userId,
             int answerOptionId);
+
+        Task<List<QuizSummary>> GetPublicQuizzesAsync();
     }
 }

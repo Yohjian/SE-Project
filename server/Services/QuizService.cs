@@ -42,6 +42,17 @@ namespace QuattroLingo.Services
             return ToResponse(quiz);
         }
 
+        public async Task<QuizEditorResponse> GetPublicQuizByIdAsync(int quizId)
+        {
+            var quiz = await quizzes.GetByIdAsync(quizId)
+                ?? throw new NotFoundException(QuizNotFound);
+
+            if (!quiz.IsPublic)
+                throw new NotFoundException(QuizNotFound);
+
+            return ToResponse(quiz);
+        }
+
         public async Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request)
         {
             ValidateQuiz(request.Title, request.Questions);
@@ -59,6 +70,38 @@ namespace QuattroLingo.Services
             return ToResponse(quiz);
         }
 
+        public async Task<QuizEditorResponse> CopyPublicQuizAsync(string userId, int quizId)
+        {
+            var original = await quizzes.GetByIdAsync(quizId)
+                ?? throw new NotFoundException(QuizNotFound);
+
+            if (!original.IsPublic)
+                throw new NotFoundException(QuizNotFound);
+
+            var copy = new Quiz
+            {
+                OwnerId = userId,
+                Title = $"Saved - {original.Title}",
+                Description = original.Description,
+                IsPublic = false,
+                Questions = original.Questions.Select(question => new Question
+                {
+                    Text = question.Text,
+                    TimeLimitSeconds = question.TimeLimitSeconds,
+                    Points = question.Points,
+                    OrderIndex = question.OrderIndex,
+                    AnswerOptions = question.AnswerOptions.Select(answer => new AnswerOption
+                    {
+                        Text = answer.Text,
+                        IsCorrect = answer.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            await quizzes.AddAsync(copy);
+
+            return ToResponse(copy);
+        }
         public async Task<QuizEditorResponse> UpdateAsync(string userId, int quizId, UpdateQuizRequest request)
         {
             var quiz = await quizzes.GetByIdAsync(quizId)
@@ -68,6 +111,9 @@ namespace QuattroLingo.Services
                 throw new ForbiddenException(QuizForbidden);
             
             await EnsureQuizIsNotInUseAsync(quiz.Id);
+
+            if (request.Questions.Count < 1)
+                throw new ValidationException("A quiz must have at least 1 question.");
 
             ValidateQuiz(request.Title, request.Questions);
 
@@ -80,6 +126,23 @@ namespace QuattroLingo.Services
             return ToResponse(quiz);
         }
 
+        public async Task<QuizEditorResponse> UpdateVisibilityAsync(
+            string userId,
+            int quizId,
+            bool isPublic)
+        {
+            var quiz = await quizzes.GetByIdAsync(quizId)
+                ?? throw new NotFoundException(QuizNotFound);
+
+            if (quiz.OwnerId != userId)
+                throw new ForbiddenException(QuizForbidden);
+
+            quiz.IsPublic = isPublic;
+
+            await quizzes.UpdateAsync(quiz);
+
+            return ToResponse(quiz);
+        }
         public async Task DeleteAsync(string userId, int quizId)
         {
             var quiz = await quizzes.GetByIdAsync(quizId)
@@ -285,13 +348,20 @@ namespace QuattroLingo.Services
             return new QuizEditorResponse(quiz.Id, quiz.Title, quiz.Description, quiz.Questions.OrderBy(q => q.OrderIndex)
                 .Select(q => new QuestionResponse(q.Id, q.Text, q.TimeLimitSeconds, q.Points, q.OrderIndex,
                     q.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList()))
-                .ToList());
+                .ToList(), quiz.IsPublic);
         }
 
         private static QuestionResponse ToQuestionResponse(Question question)
         {
             return new QuestionResponse(question.Id, question.Text, question.TimeLimitSeconds, question.Points, question.OrderIndex,
                 question.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList());
+        }
+
+        public async Task<List<QuizSummary>> GetPublicQuizzesAsync()
+        {
+            var items = await quizzes.GetPublicAsync();
+
+            return items.Select(q => q.ToSummary()).ToList();
         }
     }
 }

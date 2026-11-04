@@ -10,6 +10,11 @@ namespace QuattroLingo.Tests.Services
     {
         private class FakeQuizRepository : IQuizRepository
         {
+            public Task<List<Quiz>> GetPublicAsync()
+            {
+                return Task.FromResult(new List<Quiz>());
+            }
+
             public readonly List<Quiz> Quizzes = [];
             private int _nextQuizId = 1;
 

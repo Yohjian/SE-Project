@@ -98,8 +98,18 @@ namespace QuattroLingo.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task<bool> HasActiveRoomAsync(int quizId) =>
-            _context.Rooms.AnyAsync(r => r.QuizId == quizId
-                && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
+public async Task<List<Quiz>> GetPublicAsync()
+{
+    return await _context.Quizzes
+        .AsNoTracking()
+        .Where(q => q.IsPublic)
+        .Include(q => q.Owner)
+        .OrderBy(q => q.Title)
+        .ToListAsync();
+}
+
+public Task<bool> HasActiveRoomAsync(int quizId) =>
+    _context.Rooms.AnyAsync(r => r.QuizId == quizId
+        && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
     }
 }
