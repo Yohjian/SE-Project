@@ -10,6 +10,16 @@ namespace QuattroLingo.Entities
         public required string Title { get; set; }
         public string? Description { get; set; }
 
+        public QuizKind Kind { get; set; } = QuizKind.Custom;
+
+        public int? CategoryId { get; set; }
+        public Category? Category { get; set; }
+
+        public int? LanguageId { get; set; }
+        public Language? Language { get; set; }
+
+        public QuizDifficulty? Difficulty { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Question> Questions { get; set; }

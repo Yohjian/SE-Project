@@ -16,6 +16,10 @@ namespace QuattroLingo.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<AnswerOption> AnswerOptions { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Language> Languages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -60,6 +64,37 @@ namespace QuattroLingo.Data
                 .WithOne(q => q.Quiz)
                 .HasForeignKey(q => q.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Quiz>()
+                .Property(q => q.Kind)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasDefaultValue(QuizKind.Custom);
+
+            builder.Entity<Quiz>()
+                .Property(q => q.Difficulty)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            builder.Entity<Category>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
+            builder.Entity<Language>()
+                .HasIndex(l => l.Name)
+                .IsUnique();
+
+            builder.Entity<Quiz>()
+                .HasOne(q => q.Category)
+                .WithMany(c => c.Quizzes)
+                .HasForeignKey(q => q.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Quiz>()
+                .HasOne(q => q.Language)
+                .WithMany(l => l.Quizzes)
+                .HasForeignKey(q => q.LanguageId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Question>()
                 .HasMany(q => q.AnswerOptions)
