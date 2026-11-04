@@ -153,6 +153,10 @@ export default function Dashboard() {
                                                     {quiz.description}
                                                 </p>
                                             )}
+                                            
+                                            <p className="text-muted">
+                                                Created by {quiz.creatorName}
+                                            </p>
 
                                         </div>
 

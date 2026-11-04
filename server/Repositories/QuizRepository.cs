@@ -101,6 +101,7 @@ namespace QuattroLingo.Repositories
             return await _context.Quizzes
                 .AsNoTracking()
                 .Where(q => q.IsPublic)
+                .Include(q => q.Owner)
                 .OrderBy(q => q.Title)
                 .ToListAsync();
         }
