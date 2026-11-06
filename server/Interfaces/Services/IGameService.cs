@@ -15,5 +15,8 @@ namespace QuattroLingo.Interfaces.Services
 
         /// <summary>Live games die with the process, so rooms left InProgress are cancelled on startup.</summary>
         Task ReconcileOnStartupAsync();
+        
+        /// <summary>Host closes a Waiting room before the game starts.</summary>
+        Task CancelRoomAsync(string joinCode, string hostUserId);
     }
 }
