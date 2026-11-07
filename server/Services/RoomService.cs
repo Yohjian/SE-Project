@@ -150,6 +150,25 @@ namespace QuattroLingo.Services
             var rooms = await _roomRepository.GetRoomsByHostIdAsync(userId);
             return rooms.Select(room => room.ToResponse()).ToList();
         }
+        public async Task DeleteRoomAsync(string code, string userId)
+        {
+            var normalized = NormalizeCode(code) ?? throw new NotFoundException(RoomNotFound);
+
+            var room = await _roomRepository.GetByJoinCodeAsync(normalized)
+                ?? throw new NotFoundException(RoomNotFound);
+
+            if (room.HostId != userId)
+            {
+                throw new ForbiddenException("Only the host can delete this room.");
+            }
+
+            if (room.Status is RoomStatus.Waiting or RoomStatus.InProgress)
+            {
+                throw new ConflictException("Close the room before deleting it.");
+            }
+
+            await _roomRepository.DeleteRoomAsync(room.Id);
+        }
 
         private static string GenerateJoinCode() =>
             RandomNumberGenerator.GetInt32(100000, 1000000).ToString();

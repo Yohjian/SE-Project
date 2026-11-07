@@ -53,6 +53,11 @@ namespace QuattroLingo.Tests.Services
             public Task SetStatusAsync(int roomId, RoomStatus status, DateTime? startedAt = null, DateTime? finishedAt = null) => Task.CompletedTask;
             public Task SaveScoresAsync(int roomId, IReadOnlyDictionary<int, int> scores) => Task.CompletedTask;
             public Task RemoveParticipantAsync(int participantId) => Task.CompletedTask;
+            public Task DeleteRoomAsync(int roomId)
+            {
+                Rooms.RemoveAll(r => r.Id == roomId);
+                return Task.CompletedTask;
+            }
             public Task<int> CancelWaitingRoomsOlderThanAsync(DateTime cutoffUtc) => Task.FromResult(0);
             public Task<int> CancelInProgressRoomsAsync() => Task.FromResult(0);
         }
@@ -347,6 +352,68 @@ namespace QuattroLingo.Tests.Services
             var bob = await service.JoinRoomAsync(new JoinRoom { JoinCode = "123456", DisplayName = "Bob" });
 
             Assert.NotEqual(anna.PlayerToken, bob.PlayerToken);
+        }
+
+        // ---------- Deleting ----------
+
+        private static (RoomService Service, FakeRoomRepository Repo) RoomWithStatus(RoomStatus status)
+        {
+            var repo = new FakeRoomRepository();
+            repo.Rooms.Add(new Room
+            {
+                Id = 1,
+                HostId = "host-1",
+                JoinCode = "123456",
+                Status = status
+            });
+            return (new RoomService(repo, QuizRepoWith()), repo);
+        }
+
+        [Theory]
+        [InlineData(RoomStatus.Finished)]
+        [InlineData(RoomStatus.Cancelled)]
+        public async Task DeleteRoom_FinishedOrCancelled_RemovesIt(RoomStatus status)
+        {
+            var (service, repo) = RoomWithStatus(status);
+
+            await service.DeleteRoomAsync("123456", "host-1");
+
+            Assert.Empty(repo.Rooms);
+        }
+
+        [Theory]
+        [InlineData(RoomStatus.Waiting)]
+        [InlineData(RoomStatus.InProgress)]
+        public async Task DeleteRoom_WaitingOrInProgress_ThrowsConflict(RoomStatus status)
+        {
+            var (service, repo) = RoomWithStatus(status);
+
+            await Assert.ThrowsAsync<ConflictException>(
+                () => service.DeleteRoomAsync("123456", "host-1"));
+
+            Assert.Single(repo.Rooms);
+        }
+
+        [Fact]
+        public async Task DeleteRoom_ByAnotherUser_ThrowsForbidden()
+        {
+            var (service, repo) = RoomWithStatus(RoomStatus.Finished);
+
+            await Assert.ThrowsAsync<ForbiddenException>(
+                () => service.DeleteRoomAsync("123456", "someone-else"));
+
+            Assert.Single(repo.Rooms);
+        }
+
+        [Theory]
+        [InlineData("999999")]
+        [InlineData("abc")]
+        public async Task DeleteRoom_UnknownOrInvalidCode_ThrowsNotFound(string code)
+        {
+            var (service, _) = RoomWithStatus(RoomStatus.Finished);
+
+            await Assert.ThrowsAsync<NotFoundException>(
+                () => service.DeleteRoomAsync(code, "host-1"));
         }
 
         private static AppDbContext NewContext() => new(
