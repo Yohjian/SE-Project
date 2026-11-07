@@ -10,6 +10,8 @@ import QuizEditor from "./pages/quiz_editor";
 import Rooms from "./pages/rooms";
 import JoinRoom from "./pages/join_room";
 import GameLobby from "./pages/game_lobby";
+import GamePlay from "./pages/game_play";
+import GameResults from "./pages/game_results";
 
 // components
 import Layout from "./components/nav_bar";
@@ -43,6 +45,8 @@ export default function App() {
 
             <Route path="/rooms/:code" element={<GameRoomLayout />}>
                 <Route path="lobby" element={<GameLobby />} />
+                <Route path="play" element={<GamePlay />} />
+                <Route path="results" element={<GameResults />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

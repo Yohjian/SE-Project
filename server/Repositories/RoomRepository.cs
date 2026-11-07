@@ -131,5 +131,16 @@ namespace QuattroLingo.Repositories
             return rooms.Count;
         }
 
+        public async Task DeleteRoomAsync(int roomId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Participants)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+            if (room is null) return;
+
+            _context.Rooms.Remove(room);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

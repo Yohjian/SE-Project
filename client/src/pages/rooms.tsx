@@ -93,6 +93,16 @@ export default function Rooms() {
         }
     };
 
+    const handleDeleteRoom = async (room: Room) => {
+        if (!window.confirm("Delete this room permanently?")) return;
+        try {
+            await roomApi.delete(room.joinCode);
+            setRooms((current) => current.filter((r) => r.id !== room.id));
+        } catch (err: unknown) {
+            setError(getErrorMessages(err, "Failed to delete the room.")[0]);
+        }
+    };
+
     const noQuizzes = !quizzesLoading && !quizzesError && quizzes.length === 0;
 
     return (
@@ -258,6 +268,20 @@ export default function Rooms() {
                                                 Close room
                                             </button>
                                         )}
+                                    </div>
+                                )}
+                                {(room.status === RoomStatus.Finished ||
+                                    room.status === RoomStatus.Cancelled) && (
+                                    <div className="room-row__actions">
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={() =>
+                                                void handleDeleteRoom(room)
+                                            }
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                 )}
                                 <div
