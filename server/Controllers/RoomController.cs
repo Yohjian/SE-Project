@@ -67,5 +67,13 @@ namespace QuattroLingo.Controllers
 
             return Ok(result);
         }
+        
+        [Authorize]
+        [HttpDelete("{code}")]
+        public async Task<IActionResult> DeleteRoom(string code)
+        {
+            await roomService.DeleteRoomAsync(code, UserId);
+            return NoContent();
+        }
     }
 }
