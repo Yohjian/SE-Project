@@ -63,3 +63,49 @@ export interface UpdateQuizRequest {
   description: string | null;
   questions: QuestionRequest[];
 }
+
+export interface PracticeQuizSummary {
+  id: number;
+  title: string;
+  description: string | null;
+  categoryId: number | null;
+  languageId: number | null;
+  difficulty: number | null;
+  questionCount: number;
+}
+
+export interface PracticeFilters {
+  category?: number;
+  language?: number;
+  difficulty?: number;
+}
+
+export interface PracticeAnswerOptionResponse {
+  id: number;
+  text: string;
+}
+
+export interface PracticeQuestionResponse {
+  id: number;
+  text: string;
+  orderIndex: number;
+  answerOptions: PracticeAnswerOptionResponse[];
+}
+
+export interface PracticeQuizResponse {
+  id: number;
+  title: string;
+  description: string | null;
+  questions: PracticeQuestionResponse[];
+}
+
+export interface PracticeAnswerRequest {
+  quizId: number;
+  questionId: number;
+  answerOptionId: number;
+}
+
+export interface PracticeAnswerResponse {
+  isCorrect: boolean;
+  correctAnswerOptionId: number;
+}
