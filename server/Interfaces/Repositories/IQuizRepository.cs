@@ -6,6 +6,7 @@ namespace QuattroLingo.Interfaces.Repositories
     {
         Task<List<Quiz>> GetByOwnerIdAsync(string ownerId);
         Task<Quiz?> GetByIdAsync(int id);
+        Task<List<Quiz>> GetCopiesBySourceAsync(string userId, int sourceQuizId);
         Task AddAsync(Quiz quiz);
         Task UpdateAsync(Quiz quiz);
         Task DeleteAsync(Quiz quiz);

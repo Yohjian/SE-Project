@@ -33,6 +33,17 @@ namespace QuattroLingo.Repositories
                 .FirstOrDefaultAsync(q => q.Id == id);
         }
 
+        public async Task<List<Quiz>> GetCopiesBySourceAsync(
+            string userId,
+            int sourceQuizId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.OwnerId == userId
+                    && q.SourceQuizId == sourceQuizId)
+                .OrderBy(q => q.Id)
+                .ToListAsync();
+        }
+
         public async Task AddAsync(Quiz quiz)
         {
             await _context.Quizzes.AddAsync(quiz);

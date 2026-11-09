@@ -78,10 +78,45 @@ namespace QuattroLingo.Services
             if (!original.IsPublic)
                 throw new NotFoundException(QuizNotFound);
 
+
+            int sourceQuizId = original.SourceQuizId ?? original.Id;
+
+            var existingCopies = await quizzes.GetCopiesBySourceAsync(
+                userId,
+                sourceQuizId);
+
+            if (existingCopies.Count >= 3)
+                throw new ValidationException(
+                    "You can save the same quiz only 3 times.");
+
+            var sourceQuiz = original;
+
+            if (original.SourceQuizId.HasValue)
+            {
+                sourceQuiz = await quizzes.GetByIdAsync(sourceQuizId)
+                    ?? throw new NotFoundException(QuizNotFound);
+            }
+
+            string baseTitle = sourceQuiz.Title;
+
+            string copyTitle = existingCopies.Count switch
+            {
+                0 => $"Saved - {baseTitle}",
+                1 => $"Saved(1) - {baseTitle}",
+                2 => $"Saved(2) - {baseTitle}",
+                _ => throw new ValidationException(
+                    "You can save the same quiz only 3 times.")
+            };
+
+            if (copyTitle.Length > 200)
+                throw new ValidationException(
+                    "The saved quiz title is too long.");
+
             var copy = new Quiz
             {
                 OwnerId = userId,
-                Title = $"Saved - {original.Title}",
+                Title = copyTitle,
+                SourceQuizId = sourceQuizId,
                 Description = original.Description,
                 IsPublic = false,
                 Questions = original.Questions.Select(question => new Question

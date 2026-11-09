@@ -5,6 +5,7 @@ import { quizApi } from "../api/client";
 import type { QuizSummary } from "../api/types";
 import JoinByCode from "../components/join_by_code";
 import { useNotification } from "../components/notification";
+import { getErrorMessages } from "../api/auth";
 
 import "../styles/dashboards.css";
 import "../styles/rooms.css";
@@ -43,8 +44,9 @@ export default function Dashboard() {
           await quizApi.copyPublic(quizId);
 
           showNotification("Quiz saved to My Quizzes!", "success");
-      } catch {
-          showNotification("Failed to save quiz.");
+      } catch (error) {
+          const messages = getErrorMessages(error, "Failed to save quiz.");
+          showNotification(messages.join(" "));
       } finally {
           setSavingQuizId(null);
       }
