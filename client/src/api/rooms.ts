@@ -49,4 +49,10 @@ export const roomApi = {
 
   join: (request: JoinRoomRequest) =>
     client.post<JoinedRoom>("/rooms/join", request),
+
+  cancel: (code: string) =>
+    client.post<void>(`/rooms/${encodeURIComponent(code)}/cancel`),
+
+  delete: (code: string) =>
+    client.delete<void>(`/rooms/${encodeURIComponent(code)}`),
 };

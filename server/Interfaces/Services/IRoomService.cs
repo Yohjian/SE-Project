@@ -11,5 +11,6 @@ namespace QuattroLingo.Interfaces.Services
         Task<RoomResponse> GetByCodeAsync(string code);
         Task<JoinedRoom> JoinRoomAsync(JoinRoom dto);
         Task<List<RoomResponse>> GetMyRoomsAsync(string userId);
+        Task DeleteRoomAsync(string code, string userId);
     }
 }

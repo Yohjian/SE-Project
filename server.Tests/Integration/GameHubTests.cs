@@ -14,6 +14,8 @@ using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Helpers;
 using QuattroLingo.Services;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace QuattroLingo.Tests.Integration
 {
@@ -85,7 +87,7 @@ namespace QuattroLingo.Tests.Integration
             return new Seed(token, correct.Id);
         }
 
-        private static string HostJwt()
+        private static string HostJwt(string sub = HostId)
         {
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey)),
@@ -94,7 +96,7 @@ namespace QuattroLingo.Tests.Integration
             var token = new JwtSecurityToken(
                 issuer: JwtIssuer,
                 audience: JwtIssuer,
-                claims: [new Claim(JwtRegisteredClaimNames.Sub, HostId)],
+                claims: [new Claim(JwtRegisteredClaimNames.Sub, sub)],
                 expires: DateTime.UtcNow.AddMinutes(5),
                 signingCredentials: credentials);
 
@@ -139,6 +141,15 @@ namespace QuattroLingo.Tests.Integration
             connection.On<JsonElement>(method, payload => tcs.TrySetResult(payload));
             return tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
         }
+
+        private static async Task<HttpResponseMessage> CancelOverHttpAsync(
+            QuattroLingoFactory factory, string jwt)
+        {
+            using var http = factory.CreateClient();
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
+            return await http.PostAsync($"/api/rooms/{JoinCode}/cancel", content: null);
+        }
+
 
         [Fact]
         public async Task PlayerJoinsWithToken_AndHostJoinsWithJwtFromTheQueryString()
@@ -214,6 +225,57 @@ namespace QuattroLingo.Tests.Integration
             var room = await db.Rooms.Include(r => r.Participants).SingleAsync();
             Assert.Equal(RoomStatus.Finished, room.Status);
             Assert.True(room.Participants.Single().Score > 0);
+        }
+
+        [Fact]
+        public async Task HostClosesWaitingRoomOverHttp_ConnectedClientsGetGameCancelled()
+        {
+            await using var factory = new FastGameFactory();
+            var seed = await SeedAsync(factory.Services);
+            await using var host = Connect(factory, HostJwt());
+            await using var player = Connect(factory);
+
+            var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            player.On("GameCancelled", () => cancelled.TrySetResult());
+
+            await host.StartAsync();
+            await player.StartAsync();
+            await player.InvokeAsync<JsonElement>("JoinRoom", JoinCode, seed.PlayerToken);
+            await host.InvokeAsync<JsonElement>("JoinRoom", JoinCode, (string?)null);
+
+            var response = await CancelOverHttpAsync(factory, HostJwt());
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            await cancelled.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+            // The status is saved before the event is sent, so the database is already final.
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var room = await db.Rooms.SingleAsync();
+                Assert.Equal(RoomStatus.Cancelled, room.Status);
+            }
+
+            // The room is gone from memory and closed in the database: nobody can enter it any more.
+            await using var late = Connect(factory);
+            await late.StartAsync();
+            await Assert.ThrowsAsync<HubException>(
+                () => late.InvokeAsync<JsonElement>("JoinRoom", JoinCode, seed.PlayerToken));
+        }
+
+        [Fact]
+        public async Task CloseRoomOverHttp_ByAnotherUser_IsForbidden()
+        {
+            await using var factory = new FastGameFactory();
+            await SeedAsync(factory.Services);
+
+            var response = await CancelOverHttpAsync(factory, HostJwt("someone-else"));
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+
+            using var scope = factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(RoomStatus.Waiting, (await db.Rooms.SingleAsync()).Status);
         }
     }
 }

@@ -104,7 +104,10 @@ namespace QuattroLingo.Tests.Services
 
                 var room = new RoomEntity
                 {
-                    Id = 1, QuizId = 1, HostId = "host-1", JoinCode = Code,
+                    Id = 1,
+                    QuizId = 1,
+                    HostId = "host-1",
+                    JoinCode = Code,
                     Status = RoomStatus.Waiting,
                     CreatedAt = Time.GetUtcNow().UtcDateTime
                 };
@@ -116,7 +119,10 @@ namespace QuattroLingo.Tests.Services
                     Tokens[name] = token;
                     room.Participants.Add(new Participant
                     {
-                        Id = id++, RoomId = 1, DisplayName = name, PlayerTokenHash = hash
+                        Id = id++,
+                        RoomId = 1,
+                        DisplayName = name,
+                        PlayerTokenHash = hash
                     });
                 }
 
@@ -125,15 +131,21 @@ namespace QuattroLingo.Tests.Services
                 {
                     var question = new Question
                     {
-                        Id = i + 1, QuizId = 1, Text = $"Question {i}",
-                        TimeLimitSeconds = 10, Points = 100, OrderIndex = i
+                        Id = i + 1,
+                        QuizId = 1,
+                        Text = $"Question {i}",
+                        TimeLimitSeconds = 10,
+                        Points = 100,
+                        OrderIndex = i
                     };
                     for (var k = 1; k <= 3; k++)
                     {
                         question.AnswerOptions.Add(new AnswerOption
                         {
-                            Id = (i + 1) * 10 + k, QuestionId = i + 1,
-                            Text = $"Option {k}", IsCorrect = k == 1
+                            Id = (i + 1) * 10 + k,
+                            QuestionId = i + 1,
+                            Text = $"Option {k}",
+                            IsCorrect = k == 1
                         });
                     }
                     quiz.Questions.Add(question);
@@ -224,6 +236,90 @@ namespace QuattroLingo.Tests.Services
 
             await Assert.ThrowsAsync<NotFoundException>(
                 () => h.Service.JoinAsync("c-x", "999999", null, "host-1"));
+        }
+
+        // ---------- Closing a room ----------
+
+        [Fact]
+        public async Task CancelRoom_ByHost_CancelsLoadedGameAndNotifies()
+        {
+            var h = new Harness(["Anna"], 1);
+            await h.JoinHost();
+            await h.JoinPlayer("Anna");
+
+            await h.Service.CancelRoomAsync(Harness.Code, "host-1");
+
+            Assert.Contains("GameCancelled", h.Notifier.Events);
+            await h.Rooms.Received(1).SetStatusAsync(
+                1, RoomStatus.Cancelled, Arg.Any<DateTime?>(), Arg.Any<DateTime?>());
+        }
+
+        [Fact]
+        public async Task CancelRoom_ByNonHost_ThrowsForbidden()
+        {
+            var h = new Harness(["Anna"], 1);
+            await h.JoinHost();
+
+            await Assert.ThrowsAsync<ForbiddenException>(
+                () => h.Service.CancelRoomAsync(Harness.Code, "someone-else"));
+
+            Assert.DoesNotContain("GameCancelled", h.Notifier.Events);
+        }
+
+        [Fact]
+        public async Task CancelRoom_AfterGameStarted_ThrowsConflict()
+        {
+            var h = new Harness(["Anna"], 1);
+            await h.StartAndOpenFirstQuestionAsync();
+
+            await Assert.ThrowsAsync<ConflictException>(
+                () => h.Service.CancelRoomAsync(Harness.Code, "host-1"));
+
+            Assert.DoesNotContain("GameCancelled", h.Notifier.Events);
+        }
+
+        [Fact]
+        public async Task CancelRoom_UnknownRoom_ThrowsNotFound()
+        {
+            var h = new Harness(["Anna"], 1);
+
+            await Assert.ThrowsAsync<NotFoundException>(
+                () => h.Service.CancelRoomAsync("999999", "host-1"));
+        }
+
+        [Fact]
+        public async Task CancelRoom_NotLoadedInMemory_UpdatesOnlyTheDatabase()
+        {
+            var h = new Harness(["Anna"], 1);
+
+            await h.Service.CancelRoomAsync(Harness.Code, "host-1");
+
+            await h.Rooms.Received(1).SetStatusAsync(
+                1, RoomStatus.Cancelled, Arg.Any<DateTime?>(), Arg.Any<DateTime?>());
+            Assert.Empty(h.Notifier.Events);
+        }
+
+        [Fact]
+        public async Task CancelRoom_NotLoadedAndNotTheHost_ThrowsForbidden()
+        {
+            var h = new Harness(["Anna"], 1);
+
+            await Assert.ThrowsAsync<ForbiddenException>(
+                () => h.Service.CancelRoomAsync(Harness.Code, "someone-else"));
+
+            await h.Rooms.DidNotReceive().SetStatusAsync(
+                Arg.Any<int>(), Arg.Any<RoomStatus>(), Arg.Any<DateTime?>(), Arg.Any<DateTime?>());
+        }
+
+        [Fact]
+        public async Task CancelRoom_NotLoadedAndNotWaiting_ThrowsConflict()
+        {
+            var h = new Harness(["Anna"], 1);
+            var room = await h.Rooms.GetByJoinCodeAsync(Harness.Code);
+            room!.Status = RoomStatus.Finished;
+
+            await Assert.ThrowsAsync<ConflictException>(
+                () => h.Service.CancelRoomAsync(Harness.Code, "host-1"));
         }
 
         // ---------- Starting ----------

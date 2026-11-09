@@ -373,10 +373,15 @@ namespace QuattroLingo.Services
             await _notifier.GameFinishedAsync(game.JoinCode, board);
         }
 
-        private async Task CancelGameAsync(LiveGame game)
+        private async Task CancelGameAsync(LiveGame game, bool onlyIfWaiting = false)
         {
             using (await game.LockAsync())
             {
+                if (onlyIfWaiting && game.Phase != GamePhase.Waiting)
+                {
+                    throw new ConflictException("Only a waiting room can be closed.");
+                }
+
                 if (game.Phase is GamePhase.Cancelled or GamePhase.Finished) return;
                 game.Phase = GamePhase.Cancelled;
             }
@@ -395,6 +400,57 @@ namespace QuattroLingo.Services
 
             await _notifier.GameCancelledAsync(game.JoinCode);
             RemoveGame(game);
+        }
+        public async Task CancelRoomAsync(string joinCode, string hostUserId)
+        {
+            var code = joinCode?.Trim() ?? string.Empty;
+
+            if (!_games.TryGetValue(code, out var game))
+            {
+                // Holding the load lock stops the hub from loading this room while we cancel it.
+                await _loadLock.WaitAsync();
+                try
+                {
+                    if (!_games.TryGetValue(code, out game))
+                    {
+                        await CancelUnloadedRoomAsync(code, hostUserId);
+                        return;
+                    }
+                }
+                finally
+                {
+                    _loadLock.Release();
+                }
+            }
+
+            if (game.HostId != hostUserId)
+            {
+                throw new ForbiddenException("Only the host can close this room.");
+            }
+
+            await CancelGameAsync(game, onlyIfWaiting: true);
+        }
+
+        private async Task CancelUnloadedRoomAsync(string code, string hostUserId)
+        {
+            using var scope = _scopes.CreateScope();
+            var rooms = scope.ServiceProvider.GetRequiredService<IRoomRepository>();
+
+            var room = await rooms.GetByJoinCodeAsync(code)
+                ?? throw new NotFoundException("Room not found.");
+
+            if (room.HostId != hostUserId)
+            {
+                throw new ForbiddenException("Only the host can close this room.");
+            }
+
+            if (room.Status != RoomStatus.Waiting)
+            {
+                throw new ConflictException("Only a waiting room can be closed.");
+            }
+
+            await rooms.SetStatusAsync(
+                room.Id, RoomStatus.Cancelled, finishedAt: _time.GetUtcNow().UtcDateTime);
         }
 
         // ---------- Housekeeping ----------
