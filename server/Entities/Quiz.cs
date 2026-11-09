@@ -9,7 +9,8 @@ namespace QuattroLingo.Entities
 
         public required string Title { get; set; }
         public string? Description { get; set; }
-
+        public bool IsPublic { get; set; } = false;
+        public int? SourceQuizId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Question> Questions { get; set; }

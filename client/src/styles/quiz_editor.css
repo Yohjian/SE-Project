@@ -325,4 +325,10 @@
   margin-top: var(--space-8);
   padding-top: var(--space-4);
   border-top: 2px solid var(--color-border);
-} 
+}
+
+.quiz-visibility-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}

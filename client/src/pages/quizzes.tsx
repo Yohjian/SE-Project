@@ -4,8 +4,8 @@ import { quizApi, setApi } from "../api/client";
 import type { QuizSummary, SetSummary } from "../api/types";
 import { getErrorMessages } from "../api/auth";
 import { generateQuestions } from "../utils/quizGeneration";
-import DeleteQuizModal from "../components/delete_quiz_modal";
-import Modal from "../components/modal";
+import DeleteQuizModal from "../components/modals/delete_quiz_modal";
+import Modal from "../components/modals/modal";
 import { useNotification } from "../components/notification";
 
 import "../styles/quizzes.css";
@@ -79,6 +79,7 @@ export default function Quizzes() {
                     id: res.data.id,
                     title: res.data.title,
                     description: res.data.description,
+                    isPublic: res.data.isPublic,
                 },
             ]);
 
@@ -141,6 +142,7 @@ export default function Quizzes() {
                     id: result.data.id,
                     title: result.data.title,
                     description: result.data.description,
+                    isPublic: result.data.isPublic,
                 },
             ]);
 

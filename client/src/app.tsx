@@ -7,6 +7,7 @@ import Dashboard from "./pages/dashboard";
 import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
 import QuizEditor from "./pages/quiz_editor";
+import QuizView from "./pages/quiz_view";
 import Rooms from "./pages/rooms";
 import JoinRoom from "./pages/join_room";
 import GameLobby from "./pages/game_lobby";
@@ -18,6 +19,7 @@ import Layout from "./components/nav_bar";
 import ProtectedRoute from "./components/protected_route";
 import GuestRoute from "./components/guest_route";
 import GameRoomLayout from "./components/game_room_layout";
+
 
 export default function App() {
     return (
@@ -39,6 +41,7 @@ export default function App() {
                     <Route path="/sets" element={<Sets />} />
                     <Route path="/quizzes" element={<Quizzes />} />
                     <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
+                    <Route path="/quizzes/:id/view" element={<QuizView />} />
                     <Route path="/rooms" element={<Rooms />} />
                 </Route>
             </Route>
@@ -48,6 +51,7 @@ export default function App() {
                 <Route path="play" element={<GamePlay />} />
                 <Route path="results" element={<GameResults />} />
             </Route>
+
 
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

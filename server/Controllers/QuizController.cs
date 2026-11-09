@@ -24,6 +24,22 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [HttpGet("public")]
+        public async Task<IActionResult> GetPublic()
+        {
+            var result = await quizzes.GetPublicQuizzesAsync();
+
+            return Ok(result);
+        }
+
+        [HttpGet("public/{id:int}")]
+        public async Task<IActionResult> GetPublicById(int id)
+        {
+            var result = await quizzes.GetPublicQuizByIdAsync(id);
+
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -32,6 +48,19 @@ namespace QuattroLingo.Controllers
             var result = await quizzes.GetByIdAsync(userId, id);
 
             return Ok(result);
+        }
+
+        [HttpPost("{id}/copy")]
+        public async Task<IActionResult> CopyPublicQuiz(int id)
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            var result = await quizzes.CopyPublicQuizAsync(userId, id);
+
+            return CreatedAtAction(
+                nameof(Get),
+                new { id = result.Id },
+                result);
         }
 
         [HttpPost]
@@ -63,6 +92,22 @@ namespace QuattroLingo.Controllers
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 
             var result = await quizzes.UpdateAsync(userId, id, request);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("{id}/visibility")]
+        public async Task<IActionResult> UpdateVisibility(
+            int id,
+            UpdateQuizVisibilityRequest request)
+        {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
+
+            var result = await quizzes.UpdateVisibilityAsync(
+                userId,
+                id,
+                request.IsPublic
+            );
 
             return Ok(result);
         }

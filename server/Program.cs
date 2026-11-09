@@ -15,7 +15,7 @@ using QuattroLingo.BackgroundServices;
 using QuattroLingo.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
-DotNetEnv.Env.Load(/*"../.env"*/);
+DotNetEnv.Env.Load("../.env");
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
