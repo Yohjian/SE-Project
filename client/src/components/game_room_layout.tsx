@@ -71,15 +71,18 @@ export default function GameRoomLayout() {
         const hub = new GameHub(
             { joinCode: code, playerToken },
             {
-                onSnapshot: (snapshot) => dispatch({ type: "snapshot", snapshot }),
-                onPlayerJoined: (player) => dispatch({ type: "playerJoined", player }),
+                onSnapshot: (snapshot) =>
+                    dispatch({ type: "snapshot", snapshot }),
+                onPlayerJoined: (player) =>
+                    dispatch({ type: "playerJoined", player }),
                 onPlayerLeft: (participantId) =>
                     dispatch({ type: "playerLeft", participantId }),
                 onGameStarted: (info) =>
                     dispatch({ type: "gameStarted", ...info }),
                 onQuestionStarted: (question) =>
                     dispatch({ type: "questionStarted", question }),
-                onQuestionEnded: (result) => dispatch({ type: "questionEnded", result }),
+                onQuestionEnded: (result) =>
+                    dispatch({ type: "questionEnded", result }),
                 onScoreUpdated: (leaderboard) =>
                     dispatch({ type: "scoreUpdated", leaderboard }),
                 onGameFinished: (leaderboard) =>
@@ -90,7 +93,10 @@ export default function GameRoomLayout() {
                 onReconnecting: () => setReconnecting(true),
                 onReconnected: () => setReconnecting(false),
                 onConnectionLost: () => {
-                    if (!disposed) setError("Connection lost. Reload the page to try again.");
+                    if (!disposed)
+                        setError(
+                            "Connection lost. Reload the page to try again.",
+                        );
                 },
             },
         );
@@ -98,7 +104,11 @@ export default function GameRoomLayout() {
 
         hub.start().catch((e: unknown) => {
             if (!disposed) {
-                setError(e instanceof Error ? e.message : "Could not enter this room.");
+                setError(
+                    e instanceof Error
+                        ? e.message
+                        : "Could not enter this room.",
+                );
             }
         });
 
@@ -152,7 +162,19 @@ export default function GameRoomLayout() {
             const question = state.question;
             if (!question) return;
             dispatch({ type: "answered", optionId });
-            await call((hub) => hub.submitAnswer(question.index, optionId));
+            try {
+                await call((hub) => hub.submitAnswer(question.index, optionId));
+            } catch (e) {
+                const alreadyAnswered =
+                    e instanceof Error &&
+                    e.message.includes("already answered");
+
+                if (!alreadyAnswered) {
+                    dispatch({ type: "answerFailed", optionId });
+                }
+
+                throw e;
+            }
         },
         setLeaving: (leaving) => {
             leavingRef.current = leaving;

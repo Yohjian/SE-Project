@@ -35,7 +35,8 @@ export type GameRoomAction =
     | { type: "scoreUpdated"; leaderboard: LeaderboardEntry[] }
     | { type: "gameFinished"; leaderboard: LeaderboardEntry[] }
     | { type: "cancelled" }
-    | { type: "answered"; optionId: number };
+    | { type: "answered"; optionId: number }
+    | { type: "answerFailed"; optionId: number };
 
 export function gameRoomReducer(
     state: GameRoomState | null,
@@ -59,13 +60,13 @@ export function gameRoomReducer(
             myAnswerOptionId: s.myAnswerOptionId,
             result:
                 s.phase === GamePhase.QuestionReview &&
-                s.currentQuestion &&
-                s.correctOptionId !== null
+                    s.currentQuestion &&
+                    s.correctOptionId !== null
                     ? {
-                          questionIndex: s.currentQuestion.index,
-                          correctOptionId: s.correctOptionId,
-                          optionCounts: {},
-                      }
+                        questionIndex: s.currentQuestion.index,
+                        correctOptionId: s.correctOptionId,
+                        optionCounts: {},
+                    }
                     : null,
             leaderboard: s.leaderboard,
         };
@@ -80,8 +81,8 @@ export function gameRoomReducer(
                 ...state,
                 players: exists
                     ? state.players.map((p) =>
-                          p.id === action.player.id ? action.player : p,
-                      )
+                        p.id === action.player.id ? action.player : p,
+                    )
                     : [...state.players, action.player],
             };
         }
@@ -122,6 +123,10 @@ export function gameRoomReducer(
             return { ...state, phase: GamePhase.Cancelled };
         case "answered":
             return { ...state, myAnswerOptionId: action.optionId };
+        case "answerFailed":
+            return state.myAnswerOptionId === action.optionId
+                ? { ...state, myAnswerOptionId: null }
+                : state;
         default:
             return state;
     }
