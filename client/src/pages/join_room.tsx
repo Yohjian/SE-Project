@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { roomApi, RoomStatus } from "../api/rooms";
 import { getErrorMessages } from "../api/auth";
@@ -7,11 +7,12 @@ import { savePlayerSession } from "../api/player_session";
 import "../styles/rooms.css";
 
 export default function JoinRoom() {
+    const navigate = useNavigate();
+
     const { code } = useParams<{ code: string }>();
 
     const [displayName, setDisplayName] = useState("");
     const [joining, setJoining] = useState(false);
-    const [joined, setJoined] = useState(false);
     const [error, setError] = useState("");
     const [checkingRoom, setCheckingRoom] = useState(true);
     const [roomExists, setRoomExists] = useState(false);
@@ -80,9 +81,14 @@ export default function JoinRoom() {
                 playerToken: data.playerToken,
             });
 
-            setJoined(true);
+            navigate(`/rooms/${code}/lobby`);
         } catch (err) {
-            setError(getErrorMessages(err, "Could not join room. Please try again.")[0]);
+            setError(
+                getErrorMessages(
+                    err,
+                    "Could not join room. Please try again.",
+                )[0],
+            );
         } finally {
             setJoining(false);
         }
@@ -111,10 +117,6 @@ export default function JoinRoom() {
                                 Back to home
                             </Link>
                         </>
-                    ) : joined ? (
-                        <div className="alert-success" role="status">
-                            Successfully joined the room!
-                        </div>
                     ) : (
                         <form onSubmit={handleJoin}>
                             <div className="field">
