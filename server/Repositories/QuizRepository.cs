@@ -33,6 +33,17 @@ namespace QuattroLingo.Repositories
                 .FirstOrDefaultAsync(q => q.Id == id);
         }
 
+        public async Task<List<Quiz>> GetCopiesBySourceAsync(
+            string userId,
+            int sourceQuizId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.OwnerId == userId
+                    && q.SourceQuizId == sourceQuizId)
+                .OrderBy(q => q.Id)
+                .ToListAsync();
+        }
+
         public async Task AddAsync(Quiz quiz)
         {
             await _context.Quizzes.AddAsync(quiz);
@@ -98,8 +109,18 @@ namespace QuattroLingo.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task<bool> HasActiveRoomAsync(int quizId) =>
-            _context.Rooms.AnyAsync(r => r.QuizId == quizId
-                && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
+public async Task<List<Quiz>> GetPublicAsync()
+{
+    return await _context.Quizzes
+        .AsNoTracking()
+        .Where(q => q.IsPublic)
+        .Include(q => q.Owner)
+        .OrderBy(q => q.Title)
+        .ToListAsync();
+}
+
+public Task<bool> HasActiveRoomAsync(int quizId) =>
+    _context.Rooms.AnyAsync(r => r.QuizId == quizId
+        && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
     }
 }

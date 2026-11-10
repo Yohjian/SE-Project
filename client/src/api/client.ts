@@ -83,12 +83,19 @@ export const cardApi = {
 
 export const quizApi = {
     getMine: () => client.get<QuizSummary[]>("/quizzes/mine"),
+    getPublic: () => client.get<QuizSummary[]>("/quizzes/public"),
+    getPublicById: (quizId: number) =>
+        client.get<QuizEditorResponse>(`/quizzes/public/${quizId}`),
     getById: (quizId: number) =>
         client.get<QuizEditorResponse>(`/quizzes/${quizId}`),
     create: (request: CreateQuizRequest) =>
         client.post<QuizEditorResponse>("/quizzes", request),
+    copyPublic: (quizId: number) =>
+        client.post<QuizEditorResponse>(`/quizzes/${quizId}/copy`),
     update: (quizId: number, request: UpdateQuizRequest) =>
         client.put<QuizEditorResponse>(`/quizzes/${quizId}`, request),
+    updateVisibility: (quizId: number, isPublic: boolean) =>
+        client.patch<QuizEditorResponse>( `/quizzes/${quizId}/visibility`, { isPublic },),
     delete: (quizId: number) => client.delete(`/quizzes/${quizId}`),
 
     addQuestion: (quizId: number, request: QuestionRequest) =>

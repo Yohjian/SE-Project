@@ -3,45 +3,59 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Register from "./pages/register";
 import Login from "./pages/login";
 import Landing from "./pages/landing";
-import Layout from "./components/nav_bar";
-import ProtectedRoute from "./components/protected_route";
-import GuestRoute from "./components/guest_route";
 import Dashboard from "./pages/dashboard";
 import Sets from "./pages/sets";
 import Quizzes from "./pages/quizzes";
 import QuizEditor from "./pages/quiz_editor";
+import QuizView from "./pages/quiz_view";
 import Rooms from "./pages/rooms";
 import JoinRoom from "./pages/join_room";
 import Practice from "./pages/practice";
 import PracticePlay from "./pages/practice_play";
+import GameLobby from "./pages/game_lobby";
+import GamePlay from "./pages/game_play";
+import GameResults from "./pages/game_results";
+
+// components
+import Layout from "./components/nav_bar";
+import ProtectedRoute from "./components/protected_route";
+import GuestRoute from "./components/guest_route";
+import GameRoomLayout from "./components/game_room_layout";
 
 export default function App() {
-  return (
-    <Routes>
-      <Route element={<GuestRoute />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Route>
+    return (
+        <Routes>
+            <Route element={<GuestRoute />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Route>
 
-      <Route element={<Layout />}>
-        <Route element={<GuestRoute />}>
-          <Route path="/" element={<Landing />} />
-        </Route>
+            <Route element={<Layout />}>
+                <Route element={<GuestRoute />}>
+                    <Route path="/" element={<Landing />} />
+                </Route>
 
-        <Route path="/rooms/join/:code" element={<JoinRoom />} />
+                <Route path="/rooms/join/:code" element={<JoinRoom />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/sets" element={<Sets />} />
           <Route path="/quizzes" element={<Quizzes />} />
           <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
+          <Route path="/quizzes/:id/view" element={<QuizView />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/practice" element={<Practice />} />
           <Route path="/practice/:id" element={<PracticePlay />} />
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+            <Route path="/rooms/:code" element={<GameRoomLayout />}>
+                <Route path="lobby" element={<GameLobby />} />
+                <Route path="play" element={<GamePlay />} />
+                <Route path="results" element={<GameResults />} />
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
 }

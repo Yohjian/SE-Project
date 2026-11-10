@@ -1,6 +1,6 @@
 import { useEffect, useId, type ReactNode } from "react";
 
-import "../styles/modal.css";
+import "../../styles/modal.css";
 
 type ModalProps = {
     title: string;

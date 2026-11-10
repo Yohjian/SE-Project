@@ -385,6 +385,9 @@ namespace QuattroLingo.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -399,6 +402,9 @@ namespace QuattroLingo.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("SourceQuizId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -410,6 +416,8 @@ namespace QuattroLingo.Migrations
                     b.HasIndex("LanguageId");
 
                     b.HasIndex("OwnerId");
+
+                    b.HasIndex("SourceQuizId");
 
                     b.ToTable("Quizzes");
                 });
@@ -609,6 +617,11 @@ namespace QuattroLingo.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("QuattroLingo.Entities.Quiz", null)
+                        .WithMany()
+                        .HasForeignKey("SourceQuizId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Category");
 

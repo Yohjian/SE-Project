@@ -6,6 +6,7 @@ import { getErrorMessages } from "../api/auth";
 import type { QuizSummary } from "../api/types";
 
 import "../styles/rooms.css";
+import "../styles/game.css";
 
 const STATUS_LABELS: Record<number, string> = {
     [RoomStatus.Waiting]: "Waiting",
@@ -68,6 +69,37 @@ export default function Rooms() {
             setCreateError(getErrorMessages(err, "Failed to create room.")[0]);
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleCloseRoom = async (room: Room) => {
+        if (
+            !window.confirm(
+                "Close this room? Players waiting in it will be removed.",
+            )
+        )
+            return;
+        try {
+            await roomApi.cancel(room.joinCode);
+            setRooms((current) =>
+                current.map((r) =>
+                    r.id === room.id
+                        ? { ...r, status: RoomStatus.Cancelled }
+                        : r,
+                ),
+            );
+        } catch (err: unknown) {
+            setError(getErrorMessages(err, "Failed to close the room.")[0]);
+        }
+    };
+
+    const handleDeleteRoom = async (room: Room) => {
+        if (!window.confirm("Delete this room permanently?")) return;
+        try {
+            await roomApi.delete(room.joinCode);
+            setRooms((current) => current.filter((r) => r.id !== room.id));
+        } catch (err: unknown) {
+            setError(getErrorMessages(err, "Failed to delete the room.")[0]);
         }
     };
 
@@ -216,6 +248,42 @@ export default function Rooms() {
                                             : "players"}
                                     </p>
                                 </div>
+                                {(room.status === RoomStatus.Waiting ||
+                                    room.status === RoomStatus.InProgress) && (
+                                    <div className="room-row__actions">
+                                        <Link
+                                            to={`/rooms/${room.joinCode}/lobby`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            Open
+                                        </Link>
+                                        {room.status === RoomStatus.Waiting && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() =>
+                                                    void handleCloseRoom(room)
+                                                }
+                                            >
+                                                Close room
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {(room.status === RoomStatus.Finished ||
+                                    room.status === RoomStatus.Cancelled) && (
+                                    <div className="room-row__actions">
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={() =>
+                                                void handleDeleteRoom(room)
+                                            }
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                                 <div
                                     className="room-code"
                                     aria-label="Room code"

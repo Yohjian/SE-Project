@@ -6,6 +6,7 @@ namespace QuattroLingo.Interfaces.Repositories
     {
         Task<List<Quiz>> GetByOwnerIdAsync(string ownerId);
         Task<Quiz?> GetByIdAsync(int id);
+        Task<List<Quiz>> GetCopiesBySourceAsync(string userId, int sourceQuizId);
         Task AddAsync(Quiz quiz);
         Task UpdateAsync(Quiz quiz);
         Task DeleteAsync(Quiz quiz);
@@ -16,7 +17,7 @@ namespace QuattroLingo.Interfaces.Repositories
         Task AddAnswerOptionAsync(AnswerOption answerOption);
         Task DeleteAnswerOptionAsync(AnswerOption answerOption);
         Task SaveChangesAsync();
-
+        Task<List<Quiz>> GetPublicAsync();
         /// <summary>True while a Waiting or InProgress room uses this quiz.</summary>
         Task<bool> HasActiveRoomAsync(int izId);
     }

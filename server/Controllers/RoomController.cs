@@ -10,7 +10,7 @@ namespace QuattroLingo.Controllers
 {
     [ApiController]
     [Route("api/rooms")]
-    public class RoomController(IRoomService roomService) : ControllerBase
+    public class RoomController(IRoomService roomService, IGameService gameService) : ControllerBase
     {
         private string UserId =>
             User.FindFirstValue(JwtRegisteredClaimNames.Sub)
@@ -49,13 +49,15 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> GetByCode(string code)
         {
             var result = await roomService.GetByCodeAsync(code);
-
-            if (result == null)
-            {
-                return NotFound();
-            }
-
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("{code}/cancel")]
+        public async Task<IActionResult> CancelRoom(string code)
+        {
+            await gameService.CancelRoomAsync(code, UserId);
+            return NoContent();
         }
 
         [HttpPost("join")]
@@ -64,6 +66,14 @@ namespace QuattroLingo.Controllers
             var result = await roomService.JoinRoomAsync(dto);
 
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpDelete("{code}")]
+        public async Task<IActionResult> DeleteRoom(string code)
+        {
+            await roomService.DeleteRoomAsync(code, UserId);
+            return NoContent();
         }
     }
 }

@@ -107,6 +107,13 @@ namespace QuattroLingo.Data
                 .WithMany()
                 .HasForeignKey(q => q.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Quiz>()
+                .HasOne<Quiz>()
+                .WithMany()
+                .HasForeignKey(q => q.SourceQuizId)
+                .OnDelete(DeleteBehavior.SetNull);
+
         }
     }
 }

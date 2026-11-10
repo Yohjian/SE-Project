@@ -20,6 +20,8 @@ namespace QuattroLingo.Entities
 
         public QuizDifficulty? Difficulty { get; set; }
 
+        public bool IsPublic { get; set; } = false;
+        public int? SourceQuizId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Question> Questions { get; set; }
