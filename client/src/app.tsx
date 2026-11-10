@@ -13,6 +13,7 @@ import QuizEditor from "./pages/quiz_editor";
 import Rooms from "./pages/rooms";
 import JoinRoom from "./pages/join_room";
 import Practice from "./pages/practice";
+import PracticePlay from "./pages/practice_play";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/quizzes/:id/edit" element={<QuizEditor />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/practice" element={<Practice />} />
+          <Route path="/practice/:id" element={<PracticePlay />} />
         </Route>
       </Route>
 

@@ -11,43 +11,44 @@ export default function Practice() {
 
     useEffect(() => {
         practiceApi.getQuizzes().then((response) => {
-        setQuizzes(response.data);})
-        .catch((error) => {
-            console.error("Error fetching quizzes:", error);
-            setError("Failed to load quizzes.");
+            setQuizzes(response.data);
         })
-        .finally(() => {
-            setLoading(false);
-        });
+            .catch((error) => {
+                console.error("Error fetching quizzes:", error);
+                setError("Failed to load quizzes.");
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, []);
 
     return (
-      <main>
-        <h1>Practice Mode</h1>
-        <p>Choose a quiz to start practicing.</p>
+        <main>
+            <h1>Practice Mode</h1>
+            <p>Choose a quiz to start practicing.</p>
 
-        {loading && <p>Loading quizzes...</p>}
+            {loading && <p>Loading quizzes...</p>}
 
-        {!loading && error && <p>{error}</p>}
+            {!loading && error && <p>{error}</p>}
 
-        {!loading && !error && quizzes.length === 0 && (
-            <p>No practice quizzes available.</p>
-        )}
-        
-        {!loading && 
-          quizzes.map((quiz) => (
-            <div key={quiz.id}>
-                <h2>{quiz.title}</h2>
-                <p>{quiz.description}</p>
-                <p>Questions: {quiz.questionCount}</p>
-                
-                <button
-                  onClick={() => navigate(`/practice/${quiz.id}`)}
-                >
-                  Start Practice
-                </button>
-            </div>
-        ))}
-      </main>
+            {!loading && !error && quizzes.length === 0 && (
+                <p>No practice quizzes available.</p>
+            )}
+
+            {!loading &&
+                quizzes.map((quiz) => (
+                    <div key={quiz.id}>
+                        <h2>{quiz.title}</h2>
+                        <p>{quiz.description}</p>
+                        <p>Questions: {quiz.questionCount}</p>
+
+                        <button
+                            onClick={() => navigate(`/practice/${quiz.id}`)}
+                        >
+                            Start Practice
+                        </button>
+                    </div>
+                ))}
+        </main>
     );
 }
