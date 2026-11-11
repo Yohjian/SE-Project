@@ -37,7 +37,7 @@ namespace QuattroLingo.Tests.BackgroundServices
             }
         }
 
-        // ---- ExecuteAsync ----
+
 
         [Fact]
         public async Task ExecuteAsync_BeforeFirstInterval_DoesNotRunCleanup()

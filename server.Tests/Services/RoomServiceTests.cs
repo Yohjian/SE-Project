@@ -5,10 +5,10 @@ using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
+using QuattroLingo.Helpers;
 using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
-using QuattroLingo.Helpers;
 
 namespace QuattroLingo.Tests.Services
 {
@@ -85,7 +85,7 @@ namespace QuattroLingo.Tests.Services
             return (new RoomService(repo, QuizRepoWith()), repo);
         }
 
-        // ---------- CreateRoom ----------
+
 
         [Fact]
         public async Task CreateRoom_OwnQuiz_CreatesPublicWaitingRoom()
@@ -175,7 +175,7 @@ namespace QuattroLingo.Tests.Services
                 new CreateRoom { QuizId = 1, RoomVisibility = (Visibility)99 }, "user-1"));
         }
 
-        // ---------- Lookup ----------
+
 
         [Fact]
         public async Task GetPublicRooms_ExcludesPrivateRooms()
@@ -219,7 +219,7 @@ namespace QuattroLingo.Tests.Services
             await Assert.ThrowsAsync<NotFoundException>(() => service.GetByCodeAsync(code));
         }
 
-        // ---------- Join ----------
+
 
         [Fact]
         public async Task JoinRoom_ValidRequest_AddsTrimmedParticipantAndCountsCorrectly()
@@ -354,7 +354,7 @@ namespace QuattroLingo.Tests.Services
             Assert.NotEqual(anna.PlayerToken, bob.PlayerToken);
         }
 
-        // ---------- Deleting ----------
+
 
         private static (RoomService Service, FakeRoomRepository Repo) RoomWithStatus(RoomStatus status)
         {

@@ -40,7 +40,7 @@ namespace QuattroLingo.Tests.Hubs
         private static object? Property(object? payload, string name) =>
             payload!.GetType().GetProperty(name)?.GetValue(payload);
 
-        // ---- AddToRoomAsync / RemoveFromRoomAsync ----
+
 
         [Fact]
         public async Task AddToRoomAsync_ConnectionAndJoinCode_AddsConnectionToRoomGroup()
@@ -58,7 +58,7 @@ namespace QuattroLingo.Tests.Hubs
             await _hub.Groups.Received(1).RemoveFromGroupAsync("conn-1", RoomGroup, Arg.Any<CancellationToken>());
         }
 
-        // ---- Broadcasts ----
+
 
         [Fact]
         public async Task PlayerJoinedAsync_NewPlayer_SendsPlayerJoinedWithPlayerInfoToRoomOnly()

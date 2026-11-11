@@ -1,4 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -14,8 +16,6 @@ using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Helpers;
 using QuattroLingo.Services;
-using System.Net;
-using System.Net.Http.Headers;
 
 namespace QuattroLingo.Tests.Integration
 {

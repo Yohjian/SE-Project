@@ -34,7 +34,7 @@ namespace QuattroLingo.Tests.Controllers
             Status = RoomStatus.Waiting
         };
 
-        // ---- CreateRoom ----
+
 
         [Fact]
         public async Task CreateRoom_SignedInUser_PassesDtoAndUserIdToService()
@@ -70,7 +70,7 @@ namespace QuattroLingo.Tests.Controllers
             await _rooms.DidNotReceiveWithAnyArgs().CreateRoomAsync(default!, default!);
         }
 
-        // ---- GetPublicRooms ----
+
 
         [Fact]
         public async Task GetPublicRooms_AnonymousRequest_ReturnsOkWithServiceRooms()
@@ -84,7 +84,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(rooms, ok.Value);
         }
 
-        // ---- GetMyRooms ----
+
 
         [Fact]
         public async Task GetMyRooms_SignedInUser_ReturnsOkWithThatUsersRooms()
@@ -105,7 +105,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<UnauthorizedException>(() => _controller.GetMyRooms());
         }
 
-        // ---- GetByCode ----
+
 
         [Fact]
         public async Task GetByCode_ExistingCode_ReturnsOkWithRoom()
@@ -119,7 +119,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(room, ok.Value);
         }
 
-        // ---- CancelRoom ----
+
 
         [Fact]
         public async Task CancelRoom_SignedInUser_CancelsThroughGameServiceAsHost()
@@ -135,7 +135,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.CancelRoom("ABC123"));
         }
 
-        // ---- JoinRoom ----
+
 
         [Fact]
         public async Task JoinRoom_AnonymousPlayer_ReturnsOkWithJoinedRoomAndPlayerToken()
@@ -150,7 +150,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(joined, ok.Value);
         }
 
-        // ---- DeleteRoom ----
+
 
         [Fact]
         public async Task DeleteRoom_SignedInUser_PassesCodeAndUserIdToService()
@@ -166,7 +166,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.DeleteRoom("ABC123"));
         }
 
-        // ---- Missing user id ----
+
 
         [Fact]
         public async Task CancelRoom_TokenWithoutUserId_ThrowsUnauthorizedAndCancelsNothing()
@@ -186,7 +186,7 @@ namespace QuattroLingo.Tests.Controllers
             await _rooms.DidNotReceiveWithAnyArgs().DeleteRoomAsync(default!, default!);
         }
 
-        // ---- Service errors pass through to the middleware ----
+
 
         [Fact]
         public async Task CreateRoom_QuizOwnedBySomeoneElse_LetsForbiddenBubbleToMiddleware()
@@ -238,7 +238,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<ConflictException>(() => _controller.DeleteRoom("ABC123"));
         }
 
-        // ---- Routing & authorization ----
+
 
         [Theory]
         [InlineData(nameof(RoomController.CreateRoom), "POST", "api/rooms")]

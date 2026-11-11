@@ -19,7 +19,7 @@ namespace QuattroLingo.Tests.Controllers
             _controller = new AuthController(_auth).Anonymous();
         }
 
-        // ---- Register ----
+
 
         [Fact]
         public async Task Register_ValidRequest_PassesEmailAndPasswordToService()
@@ -48,7 +48,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.Register(new Register("ona@example.com", "Password123")));
         }
 
-        // ---- Login ----
+
 
         [Fact]
         public async Task Login_ValidCredentials_ReturnsOkWithServiceResponse()
@@ -72,7 +72,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.Login(new Login("ona@example.com", "wrong")));
         }
 
-        // ---- Me ----
+
 
         [Fact]
         public void Me_SignedInUser_ReturnsIdEmailAndRoleFromToken()
@@ -108,7 +108,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.Login(new Login("ona@example.com", "Password123")));
         }
 
-        // ---- Routing & authorization ----
+
 
         [Theory]
         [InlineData(nameof(AuthController.Register), "POST", "api/auth/register")]

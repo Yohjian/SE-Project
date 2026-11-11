@@ -40,7 +40,7 @@ namespace QuattroLingo.Tests.Controllers
         private static CreateQuizRequest MakeCreateRequest() =>
             new("Lithuanian basics", "Greetings", [MakeQuestionRequest()]);
 
-        // ---- GetMine ----
+
 
         [Fact]
         public async Task GetMine_SignedInUser_ReturnsOkWithThatUsersQuizzes()
@@ -53,7 +53,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(mine, ok.Value);
         }
 
-        // ---- GetPublic / GetPublicById ----
+
 
         [Fact]
         public async Task GetPublic_AnyUser_ReturnsOkWithPublicQuizzes()
@@ -85,7 +85,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetPublicById(8));
         }
 
-        // ---- Get ----
+
 
         [Fact]
         public async Task Get_OwnQuiz_ReturnsOkWithEditorView()
@@ -106,7 +106,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<ForbiddenException>(() => _controller.Get(7));
         }
 
-        // ---- CopyPublicQuiz ----
+
 
         [Fact]
         public async Task CopyPublicQuiz_PublicQuiz_ReturnsCreatedAtGetWithNewQuizId()
@@ -121,7 +121,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(copy, created.Value);
         }
 
-        // ---- Create ----
+
 
         [Fact]
         public async Task Create_ActiveUser_PassesUserIdAndRequestToService()
@@ -174,7 +174,7 @@ namespace QuattroLingo.Tests.Controllers
             await _quizzes.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!);
         }
 
-        // ---- Update ----
+
 
         [Fact]
         public async Task Update_OwnQuiz_ReturnsOkWithUpdatedQuiz()
@@ -198,7 +198,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.Update(7, new UpdateQuizRequest("Title", null, [])));
         }
 
-        // ---- UpdateVisibility ----
+
 
         [Theory]
         [InlineData(true)]
@@ -215,7 +215,7 @@ namespace QuattroLingo.Tests.Controllers
             await _quizzes.Received(1).UpdateVisibilityAsync(UserId, 7, isPublic);
         }
 
-        // ---- Delete ----
+
 
         [Fact]
         public async Task Delete_OwnQuiz_DeletesThroughServiceAndReturnsNoContent()
@@ -225,7 +225,7 @@ namespace QuattroLingo.Tests.Controllers
             await _quizzes.Received(1).DeleteAsync(UserId, 7);
         }
 
-        // ---- AddQuestion / UpdateQuestion / DeleteQuestion ----
+
 
         [Fact]
         public async Task AddQuestion_OwnQuiz_ReturnsOkWithCreatedQuestion()
@@ -259,7 +259,7 @@ namespace QuattroLingo.Tests.Controllers
             await _quizzes.Received(1).DeleteQuestionAsync(UserId, 3);
         }
 
-        // ---- AddAnswerOption / UpdateAnswerOption / DeleteAnswerOption ----
+
 
         [Fact]
         public async Task AddAnswerOption_OwnQuestion_ReturnsOkWithCreatedOption()
@@ -293,7 +293,7 @@ namespace QuattroLingo.Tests.Controllers
             await _quizzes.Received(1).DeleteAnswerOptionAsync(UserId, 4);
         }
 
-        // ---- Service errors pass through to the middleware ----
+
 
         [Fact]
         public async Task CopyPublicQuiz_PrivateOrMissingQuiz_LetsNotFoundBubbleToMiddleware()
@@ -383,7 +383,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<ConflictException>(() => _controller.DeleteAnswerOption(4));
         }
 
-        // ---- Routing & authorization ----
+
 
         [Theory]
         [InlineData(nameof(QuizController.GetMine), "GET", "api/quizzes/mine")]

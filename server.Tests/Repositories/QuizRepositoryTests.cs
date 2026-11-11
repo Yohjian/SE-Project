@@ -22,12 +22,12 @@ namespace QuattroLingo.Tests.Repositories
 
         private static Quiz MakeQuiz(string ownerId = "user-1", string title = "Lithuanian basics",
             bool isPublic = false, int? sourceQuizId = null) => new()
-        {
-            OwnerId = ownerId,
-            Title = title,
-            IsPublic = isPublic,
-            SourceQuizId = sourceQuizId,
-            Questions =
+            {
+                OwnerId = ownerId,
+                Title = title,
+                IsPublic = isPublic,
+                SourceQuizId = sourceQuizId,
+                Questions =
             [
                 new Question
                 {
@@ -41,7 +41,7 @@ namespace QuattroLingo.Tests.Repositories
                     ]
                 }
             ]
-        };
+            };
 
         private async Task<Quiz> SeedAsync(Quiz quiz)
         {
@@ -57,7 +57,7 @@ namespace QuattroLingo.Tests.Repositories
             await _db.SaveChangesAsync();
         }
 
-        // ---- GetByOwnerIdAsync ----
+
 
         [Fact]
         public async Task GetByOwnerIdAsync_SeveralOwners_ReturnsOnlyThatOwnersQuizzes()
@@ -89,7 +89,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Empty(await _repository.GetByOwnerIdAsync("user-1"));
         }
 
-        // ---- GetByIdAsync ----
+
 
         [Fact]
         public async Task GetByIdAsync_ExistingQuiz_IncludesQuestionsAndAnswerOptions()
@@ -108,7 +108,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.GetByIdAsync(999));
         }
 
-        // ---- GetCopiesBySourceAsync ----
+
 
         [Fact]
         public async Task GetCopiesBySourceAsync_SeveralCopies_ReturnsOnlyThatUsersCopiesOfThatSourceOrderedById()
@@ -121,7 +121,7 @@ namespace QuattroLingo.Tests.Repositories
 
             var copies = await _repository.GetCopiesBySourceAsync("user-1", source.Id);
 
-            Assert.Equal(new[] { first.Id, second.Id }, copies.Select(q => q.Id));
+            Assert.Equal([first.Id, second.Id], copies.Select(q => q.Id));
         }
 
         [Fact]
@@ -132,7 +132,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Empty(await _repository.GetCopiesBySourceAsync("user-1", source.Id));
         }
 
-        // ---- AddAsync / UpdateAsync / DeleteAsync ----
+
 
         [Fact]
         public async Task AddAsync_NewQuiz_SavesQuizWithQuestionsAndOptions()
@@ -170,7 +170,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Empty(await _db.AnswerOptions.ToListAsync());
         }
 
-        // ---- GetQuestionByIdAsync ----
+
 
         [Fact]
         public async Task GetQuestionByIdAsync_ExistingQuestion_IncludesQuizAndAnswerOptions()
@@ -191,7 +191,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.GetQuestionByIdAsync(999));
         }
 
-        // ---- GetAnswerOptionByIdAsync ----
+
 
         [Fact]
         public async Task GetAnswerOptionByIdAsync_ExistingOption_IncludesQuestionItsQuizAndSiblingOptions()
@@ -213,7 +213,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.GetAnswerOptionByIdAsync(999));
         }
 
-        // ---- AddQuestionAsync / DeleteQuestionAsync ----
+
 
         [Fact]
         public async Task AddQuestionAsync_ExistingQuiz_SavesQuestionUnderQuiz()
@@ -238,7 +238,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(1, await _db.Quizzes.CountAsync());
         }
 
-        // ---- AddAnswerOptionAsync / DeleteAnswerOptionAsync ----
+
 
         [Fact]
         public async Task AddAnswerOptionAsync_ExistingQuestion_SavesOptionUnderQuestion()
@@ -263,7 +263,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal("Hello", (await _db.AnswerOptions.SingleAsync()).Text);
         }
 
-        // ---- SaveChangesAsync ----
+
 
         [Fact]
         public async Task SaveChangesAsync_TrackedEntityModified_PersistsChange()
@@ -278,7 +278,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal("Edited", (await _db.Quizzes.SingleAsync()).Description);
         }
 
-        // ---- GetPublicAsync ----
+
 
         [Fact]
         public async Task GetPublicAsync_MixedVisibility_ReturnsOnlyPublicQuizzesOrderedByTitle()
@@ -290,7 +290,7 @@ namespace QuattroLingo.Tests.Repositories
 
             var result = await _repository.GetPublicAsync();
 
-            Assert.Equal(new[] { "Animals", "Zebra words" }, result.Select(q => q.Title));
+            Assert.Equal(["Animals", "Zebra words"], result.Select(q => q.Title));
         }
 
         [Fact]
@@ -315,7 +315,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(EntityState.Detached, _db.Entry(quiz).State);
         }
 
-        // ---- HasActiveRoomAsync ----
+
 
         [Theory]
         [InlineData(RoomStatus.Waiting, true)]

@@ -20,7 +20,7 @@ namespace QuattroLingo.Tests.Extensions
                 .ToList()
         };
 
-        // ---- ToResponse ----
+
 
         [Fact]
         public void ToResponse_AnyRoom_CopiesIdQuizIdJoinCodeVisibilityAndStatus()

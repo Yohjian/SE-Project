@@ -21,7 +21,7 @@ namespace QuattroLingo.Tests.Helpers
             return await reader.ReadToEndAsync();
         }
 
-        // ---- ToCsvField ----
+
 
         [Theory]
         [InlineData("labas", "\"labas\"")]
@@ -34,7 +34,7 @@ namespace QuattroLingo.Tests.Helpers
             Assert.Equal(expected, input.ToCsvField());
         }
 
-        // ---- ToCsvStreamAsync ----
+
 
         [Fact]
         public async Task ToCsvStreamAsync_SetWithCards_ReturnsStreamRewoundToStart()
@@ -75,7 +75,7 @@ namespace QuattroLingo.Tests.Helpers
             Assert.Contains("\"Straße\",\"street\"", csv);
         }
 
-        // ---- ToJsonStreamAsync ----
+
 
         [Fact]
         public async Task ToJsonStreamAsync_SetWithCards_ReturnsStreamRewoundToStart()

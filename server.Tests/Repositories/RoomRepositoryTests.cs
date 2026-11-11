@@ -22,15 +22,15 @@ namespace QuattroLingo.Tests.Repositories
 
         private static Room MakeRoom(int id, string code, RoomStatus status = RoomStatus.Waiting,
             Visibility visibility = Visibility.Public, string hostId = "host-1", DateTime? createdAt = null) => new()
-        {
-            Id = id,
-            QuizId = 1,
-            HostId = hostId,
-            JoinCode = code,
-            Status = status,
-            RoomVisibility = visibility,
-            CreatedAt = createdAt ?? DateTime.UtcNow
-        };
+            {
+                Id = id,
+                QuizId = 1,
+                HostId = hostId,
+                JoinCode = code,
+                Status = status,
+                RoomVisibility = visibility,
+                CreatedAt = createdAt ?? DateTime.UtcNow
+            };
 
         private async Task SeedAsync(params Room[] rooms)
         {
@@ -40,7 +40,7 @@ namespace QuattroLingo.Tests.Repositories
             _db.ChangeTracker.Clear();   // make the repository load from the store, not the tracker
         }
 
-        // ---- GetByJoinCodeAsync ----
+
 
         [Fact]
         public async Task GetByJoinCodeAsync_ExistingCode_IncludesQuizAndParticipants()
@@ -64,7 +64,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.GetByJoinCodeAsync("654321"));
         }
 
-        // ---- GetPublicWaitingRoomsAsync ----
+
 
         [Fact]
         public async Task GetPublicWaitingRoomsAsync_MixedRooms_ReturnsOnlyPublicWaitingRooms()
@@ -90,7 +90,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal("English Quiz", room.Quiz!.Title);
         }
 
-        // ---- TryCreateRoomAsync ----
+
 
         [Fact]
         public async Task TryCreateRoomAsync_NewCode_SavesRoomAndReturnsTrue()
@@ -106,7 +106,7 @@ namespace QuattroLingo.Tests.Repositories
         // The duplicate-code path (Postgres unique violation → false) needs a real Postgres database;
         // RoomService's retry behaviour is covered with a fake repository in RoomServiceTests.
 
-        // ---- AddParticipantAsync ----
+
 
         [Fact]
         public async Task AddParticipantAsync_LoadedRoom_AddsParticipantToRoomsCollection()
@@ -120,7 +120,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Same(participant, Assert.Single(room.Participants));   // EF relationship fix-up
         }
 
-        // ---- GetRoomsByHostIdAsync ----
+
 
         [Fact]
         public async Task GetRoomsByHostIdAsync_SeveralHosts_ReturnsOnlyThatHostsRoomsNewestFirst()
@@ -133,10 +133,10 @@ namespace QuattroLingo.Tests.Repositories
 
             var rooms = await _repository.GetRoomsByHostIdAsync("host-1");
 
-            Assert.Equal(new[] { "222222", "111111" }, rooms.Select(r => r.JoinCode));
+            Assert.Equal(["222222", "111111"], rooms.Select(r => r.JoinCode));
         }
 
-        // ---- SetStatusAsync ----
+
 
         [Fact]
         public async Task SetStatusAsync_StartedAtGiven_UpdatesStatusAndStartedAtOnly()
@@ -177,7 +177,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(RoomStatus.Waiting, (await _db.Rooms.SingleAsync()).Status);
         }
 
-        // ---- SaveScoresAsync ----
+
 
         [Fact]
         public async Task SaveScoresAsync_ScoresForSeveralRooms_WritesOnlyThisRoomsParticipants()
@@ -207,7 +207,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(40, (await _db.Participants.FindAsync(2))!.Score);
         }
 
-        // ---- RemoveParticipantAsync ----
+
 
         [Fact]
         public async Task RemoveParticipantAsync_ExistingParticipant_RemovesOnlyThatParticipant()
@@ -233,7 +233,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Single(_db.Participants);
         }
 
-        // ---- CancelWaitingRoomsOlderThanAsync ----
+
 
         [Fact]
         public async Task CancelWaitingRoomsOlderThanAsync_MixedRooms_CancelsOnlyOldWaitingRoomsAndReturnsCount()
@@ -263,7 +263,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.NotNull((await _db.Rooms.FindAsync(1))!.FinishedAt);
         }
 
-        // ---- CancelInProgressRoomsAsync ----
+
 
         [Fact]
         public async Task CancelInProgressRoomsAsync_MixedRooms_CancelsOnlyInProgressAndReturnsCount()
@@ -282,7 +282,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(RoomStatus.Finished, (await _db.Rooms.FindAsync(3))!.Status);
         }
 
-        // ---- DeleteRoomAsync ----
+
 
         [Fact]
         public async Task DeleteRoomAsync_ExistingRoom_RemovesRoomAndItsParticipants()

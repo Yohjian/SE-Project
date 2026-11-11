@@ -161,7 +161,7 @@ namespace QuattroLingo.Tests.Services
             await Assert.ThrowsAsync<NotFoundException>(() => _service.GetCardsAsync("user-2", set.Id));
         }
 
-        // ---------- Export ----------
+
 
         private static async Task<string> ReadAllAsync(Stream stream)
         {
@@ -248,7 +248,7 @@ namespace QuattroLingo.Tests.Services
 
         }
 
-        // ---------- Delete ----------
+
 
         [Fact]
         public async Task DeleteSet_OwnSet_RemovesSetAndItsCards()
@@ -311,7 +311,7 @@ namespace QuattroLingo.Tests.Services
             Assert.Single(_repo.Cards);
         }
 
-        // ---------- Duplicate terms ----------
+
 
         [Fact]
         public async Task AddCard_DuplicateTerm_IgnoringCase_ThrowsValidation()

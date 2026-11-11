@@ -26,7 +26,7 @@ namespace QuattroLingo.Tests.Controllers
         private static SetSummary MakeSummary(int id = 1, string name = "My Set") =>
             new(id, name, 0, new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
 
-        // ---- GetAllSets ----
+
 
         [Fact]
         public async Task GetAllSets_SignedInUser_ReturnsOkWithThatUsersSets()
@@ -39,7 +39,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(sets, ok.Value);
         }
 
-        // ---- GetSet ----
+
 
         [Fact]
         public async Task GetSet_OwnSet_ReturnsOkWithSetContents()
@@ -60,7 +60,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetSet(4));
         }
 
-        // ---- AddSet ----
+
 
         [Fact]
         public async Task AddSet_SignedInUser_CreatesSetOwnedByThatUser()
@@ -83,7 +83,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(summary, ok.Value);
         }
 
-        // ---- DeleteSet ----
+
 
         [Fact]
         public async Task DeleteSet_OwnSet_PassesUserIdAndSetIdToService()
@@ -99,7 +99,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.DeleteSet(4));
         }
 
-        // ---- DeleteCard ----
+
 
         [Fact]
         public async Task DeleteCard_OwnCard_PassesUserIdSetIdAndCardIdToService()
@@ -115,7 +115,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.DeleteCard(4, 9));
         }
 
-        // ---- AddCard ----
+
 
         [Fact]
         public async Task AddCard_OwnSet_PassesTermAndDefinitionToService()
@@ -148,7 +148,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.AddCard(4, new CreateCard("labas", "hello")));
         }
 
-        // ---- GetCards ----
+
 
         [Fact]
         public async Task GetCards_OwnSet_ReturnsOkWithCards()
@@ -161,7 +161,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(cards, ok.Value);
         }
 
-        // ---- DownloadSet ----
+
 
         [Theory]
         [InlineData(FileType.Json, "application/json", "My Set.json")]
@@ -188,7 +188,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<UnsupportedFileTypeException>(() => _controller.DownloadSet(4, (FileType)99));
         }
 
-        // ---- Missing user id ----
+
 
         public static TheoryData<string, Func<SetsController, Task<IActionResult>>> EveryAction => new()
         {
@@ -213,7 +213,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.False(_sets.ReceivedCalls().Any(), $"{action} called the service without a user id.");
         }
 
-        // ---- Service errors pass through to the middleware ----
+
 
         [Fact]
         public async Task DeleteSet_SomeoneElsesSet_LetsNotFoundBubbleToMiddleware()
@@ -247,7 +247,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<ValidationException>(() => _controller.AddCard(4, new CreateCard("labas", "hello")));
         }
 
-        // ---- Routing & authorization ----
+
 
         [Theory]
         [InlineData(nameof(SetsController.GetAllSets), "GET", "api/sets")]

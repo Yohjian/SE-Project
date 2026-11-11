@@ -31,7 +31,7 @@ namespace QuattroLingo.Tests.Services
 
         private static string Claim(JwtSecurityToken jwt, string type) => jwt.Claims.First(c => c.Type == type).Value;
 
-        // ---- GenerateAuthToken ----
+
 
         [Theory]
         [InlineData(UserRole.User, "User")]

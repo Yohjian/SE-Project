@@ -183,7 +183,7 @@ namespace QuattroLingo.Tests.Services
             }
         }
 
-        // ---------- Joining ----------
+
 
         [Fact]
         public async Task JoinPlayer_ReturnsSnapshotAndAnnouncesThem()
@@ -238,7 +238,7 @@ namespace QuattroLingo.Tests.Services
                 () => h.Service.JoinAsync("c-x", "999999", null, "host-1"));
         }
 
-        // ---------- Closing a room ----------
+
 
         [Fact]
         public async Task CancelRoom_ByHost_CancelsLoadedGameAndNotifies()
@@ -322,7 +322,7 @@ namespace QuattroLingo.Tests.Services
                 () => h.Service.CancelRoomAsync(Harness.Code, "host-1"));
         }
 
-        // ---------- Starting ----------
+
 
         [Fact]
         public async Task Start_ByPlayer_ThrowsForbidden()
@@ -363,7 +363,7 @@ namespace QuattroLingo.Tests.Services
             await Assert.ThrowsAsync<ConflictException>(() => h.Service.StartAsync("c-host"));
         }
 
-        // ---------- A whole game ----------
+
 
         [Fact]
         public async Task FullGame_ScoresRanksAndPersistsResults()
@@ -439,7 +439,7 @@ namespace QuattroLingo.Tests.Services
                 () => h.Service.SubmitAnswerAsync("c-Anna", 0, Harness.Correct(0)));
         }
 
-        // ---------- Answer validation ----------
+
 
         [Fact]
         public async Task SubmitAnswer_Twice_ThrowsConflict()
@@ -499,7 +499,7 @@ namespace QuattroLingo.Tests.Services
             Assert.DoesNotContain(typeof(QuestionInfo).GetProperties(), p => p.Name == "IsCorrect");
         }
 
-        // ---------- Reconnect / leaving ----------
+
 
         [Fact]
         public async Task Reconnect_MidQuestion_ReturnsSnapshotWithoutTheCorrectAnswer()
@@ -543,7 +543,7 @@ namespace QuattroLingo.Tests.Services
             Assert.Contains("PlayerLeft:1", h.Notifier.Events);
         }
 
-        // ---------- Cleanup ----------
+
 
         [Fact]
         public async Task Cleanup_RemovesPlayersDisconnectedLongerThanTheGracePeriod()

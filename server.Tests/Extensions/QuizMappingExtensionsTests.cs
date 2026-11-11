@@ -15,7 +15,7 @@ namespace QuattroLingo.Tests.Extensions
             IsPublic = true
         };
 
-        // ---- ToSummary ----
+
 
         [Fact]
         public void ToSummary_AnyQuiz_CopiesIdTitleDescriptionAndVisibility()
@@ -79,7 +79,7 @@ namespace QuattroLingo.Tests.Extensions
             Assert.Equal("Unknown", MakeQuiz(owner: null).ToSummary().CreatorName);
         }
 
-        // ---- ToAnswerResponse ----
+
 
         [Theory]
         [InlineData(true)]

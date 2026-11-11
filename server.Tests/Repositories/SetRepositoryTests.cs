@@ -43,7 +43,7 @@ namespace QuattroLingo.Tests.Repositories
 
         public async Task DisposeAsync() => await _db.DisposeAsync();
 
-        // ---- GetByUserAsync ----
+
 
         [Fact]
         public async Task GetByUserAsync_SeveralUsers_ReturnsOnlyThatUsersSetsWithCardCounts()
@@ -68,7 +68,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Empty(await _repository.GetByUserAsync("user-3"));
         }
 
-        // ---- GetOwnedWithCardsAsync ----
+
 
         [Fact]
         public async Task GetOwnedWithCardsAsync_OwnSet_ReturnsSetWithCards()
@@ -76,7 +76,7 @@ namespace QuattroLingo.Tests.Repositories
             var set = await _repository.GetOwnedWithCardsAsync("user-1", _mineId);
 
             Assert.NotNull(set);
-            Assert.Equal(new[] { "cat", "dog" }, set.Cards.Select(c => c.Term).Order());
+            Assert.Equal(["cat", "dog"], set.Cards.Select(c => c.Term).Order());
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.GetOwnedWithCardsAsync("user-1", 999));
         }
 
-        // ---- ExistsForUserAsync ----
+
 
         [Fact]
         public async Task ExistsForUserAsync_Owner_ReturnsTrue()
@@ -111,7 +111,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.False(await _repository.ExistsForUserAsync("user-1", 999));
         }
 
-        // ---- GetCardsAsync ----
+
 
         [Fact]
         public async Task GetCardsAsync_SetWithCards_ReturnsOnlyThatSetsCards()
@@ -121,7 +121,7 @@ namespace QuattroLingo.Tests.Repositories
 
             var cards = await _repository.GetCardsAsync(_mineId);
 
-            Assert.Equal(new[] { "cat", "dog" }, cards.Select(c => c.Term).Order());
+            Assert.Equal(["cat", "dog"], cards.Select(c => c.Term).Order());
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Empty(await _repository.GetCardsAsync(_theirsId));
         }
 
-        // ---- AddAsync ----
+
 
         [Fact]
         public async Task AddAsync_NewSet_SavesItAndAssignsId()
@@ -141,7 +141,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.True(await _db.Sets.AnyAsync(s => s.Id == set.Id && s.UserId == "user-3"));
         }
 
-        // ---- AddCardAsync ----
+
 
         [Fact]
         public async Task AddCardAsync_ExistingSet_SavesCardUnderSetAndAssignsId()
@@ -152,7 +152,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(3, await _db.Cards.CountAsync(c => c.SetId == _mineId));
         }
 
-        // ---- DeleteSetAsync ----
+
 
         [Fact]
         public async Task DeleteSetAsync_ExistingSet_RemovesOnlyThatSet()
@@ -174,7 +174,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal(2, await _db.Cards.CountAsync());
         }
 
-        // ---- DeleteCardAsync ----
+
 
         [Fact]
         public async Task DeleteCardAsync_ExistingCard_RemovesOnlyThatCard()

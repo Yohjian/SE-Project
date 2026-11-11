@@ -17,7 +17,7 @@ namespace QuattroLingo.Tests.Repositories
             _repository = new UserRepository(_userManager);
         }
 
-        // ---- FindByEmailAsync ----
+
 
         [Fact]
         public async Task FindByEmailAsync_KnownEmail_ReturnsUserFromUserManager()
@@ -36,7 +36,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Null(await _repository.FindByEmailAsync("nobody@example.com"));
         }
 
-        // ---- CreateAsync ----
+
 
         [Fact]
         public async Task CreateAsync_NewUser_PassesUserAndPasswordAndReturnsIdentityResult()
@@ -62,7 +62,7 @@ namespace QuattroLingo.Tests.Repositories
             Assert.Equal("PasswordTooShort", Assert.Single(result.Errors).Code);
         }
 
-        // ---- CheckPasswordAsync ----
+
 
         [Theory]
         [InlineData(true)]
