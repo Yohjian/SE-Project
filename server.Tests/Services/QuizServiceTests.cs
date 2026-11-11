@@ -79,12 +79,6 @@ namespace QuattroLingo.Tests.Services
 
             public Task SaveChangesAsync() =>
                 Task.CompletedTask;
-
-            public Task<List<Quiz>> GetCopiesBySourceAsync(string userId, int sourceQuizId) =>
-                Task.FromResult(
-                Quizzes
-                .Where(q => q.SourceQuizId == sourceQuizId && q.OwnerId == userId)
-                .ToList());
         }
 
         private readonly FakeQuizRepository _repo = new();

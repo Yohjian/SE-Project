@@ -26,7 +26,7 @@ namespace QuattroLingo.Tests.Controllers
         private static SetSummary MakeSummary(int id = 1, string name = "My Set") =>
             new(id, name, 0, new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
 
-
+        // ---- GetAllSets ----
 
         [Fact]
         public async Task GetAllSets_SignedInUser_ReturnsOkWithThatUsersSets()
@@ -39,16 +39,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(sets, ok.Value);
         }
 
-        [Fact]
-        public async Task GetAllSets_TokenWithoutUserId_ThrowsUnauthorizedAndCallsNoService()
-        {
-            _controller.WithUser(userId: null);
-
-            await Assert.ThrowsAsync<UnauthorizedException>(() => _controller.GetAllSets());
-            await _sets.DidNotReceiveWithAnyArgs().GetAllAsync(default!);
-        }
-
-
+        // ---- GetSet ----
 
         [Fact]
         public async Task GetSet_OwnSet_ReturnsOkWithSetContents()
@@ -69,7 +60,7 @@ namespace QuattroLingo.Tests.Controllers
             await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetSet(4));
         }
 
-
+        // ---- AddSet ----
 
         [Fact]
         public async Task AddSet_SignedInUser_CreatesSetOwnedByThatUser()
@@ -92,7 +83,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(summary, ok.Value);
         }
 
-
+        // ---- DeleteSet ----
 
         [Fact]
         public async Task DeleteSet_OwnSet_PassesUserIdAndSetIdToService()
@@ -108,7 +99,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.DeleteSet(4));
         }
 
-
+        // ---- DeleteCard ----
 
         [Fact]
         public async Task DeleteCard_OwnCard_PassesUserIdSetIdAndCardIdToService()
@@ -124,7 +115,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.IsType<NoContentResult>(await _controller.DeleteCard(4, 9));
         }
 
-
+        // ---- AddCard ----
 
         [Fact]
         public async Task AddCard_OwnSet_PassesTermAndDefinitionToService()
@@ -157,7 +148,7 @@ namespace QuattroLingo.Tests.Controllers
                 () => _controller.AddCard(4, new CreateCard("labas", "hello")));
         }
 
-
+        // ---- GetCards ----
 
         [Fact]
         public async Task GetCards_OwnSet_ReturnsOkWithCards()
@@ -170,7 +161,7 @@ namespace QuattroLingo.Tests.Controllers
             Assert.Same(cards, ok.Value);
         }
 
-
+        // ---- DownloadSet ----
 
         [Theory]
         [InlineData(FileType.Json, "application/json", "My Set.json")]
@@ -195,6 +186,95 @@ namespace QuattroLingo.Tests.Controllers
                 .ThrowsAsync(new UnsupportedFileTypeException("Unsupported file type."));
 
             await Assert.ThrowsAsync<UnsupportedFileTypeException>(() => _controller.DownloadSet(4, (FileType)99));
+        }
+
+        // ---- Missing user id ----
+
+        public static TheoryData<string, Func<SetsController, Task<IActionResult>>> EveryAction => new()
+        {
+            { nameof(SetsController.GetAllSets), c => c.GetAllSets() },
+            { nameof(SetsController.GetSet), c => c.GetSet(4) },
+            { nameof(SetsController.AddSet), c => c.AddSet(new CreateSet("New Set")) },
+            { nameof(SetsController.DeleteSet), c => c.DeleteSet(4) },
+            { nameof(SetsController.DeleteCard), c => c.DeleteCard(4, 9) },
+            { nameof(SetsController.AddCard), c => c.AddCard(4, new CreateCard("labas", "hello")) },
+            { nameof(SetsController.GetCards), c => c.GetCards(4) },
+            { nameof(SetsController.DownloadSet), c => c.DownloadSet(4, FileType.Csv) }
+        };
+
+        [Theory]
+        [MemberData(nameof(EveryAction))]
+        public async Task AnyAction_TokenWithoutUserId_ThrowsUnauthorizedAndCallsNoService(
+            string action, Func<SetsController, Task<IActionResult>> call)
+        {
+            _controller.WithUser(userId: null);
+
+            await Assert.ThrowsAsync<UnauthorizedException>(() => call(_controller));
+            Assert.False(_sets.ReceivedCalls().Any(), $"{action} called the service without a user id.");
+        }
+
+        // ---- Service errors pass through to the middleware ----
+
+        [Fact]
+        public async Task DeleteSet_SomeoneElsesSet_LetsNotFoundBubbleToMiddleware()
+        {
+            _sets.DeleteSetAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
+
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.DeleteSet(4));
+        }
+
+        [Fact]
+        public async Task DeleteCard_CardFromDifferentSet_LetsNotFoundBubbleToMiddleware()
+        {
+            _sets.DeleteCardAsync(UserId, 4, 9).ThrowsAsync(new NotFoundException("Card not found."));
+
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.DeleteCard(4, 9));
+        }
+
+        [Fact]
+        public async Task GetCards_SomeoneElsesSet_LetsNotFoundBubbleToMiddleware()
+        {
+            _sets.GetCardsAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
+
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetCards(4));
+        }
+
+        [Fact]
+        public async Task AddCard_DuplicateTerm_LetsValidationBubbleToMiddleware()
+        {
+            _sets.AddCardAsync(UserId, 4, "labas", "hello").ThrowsAsync(new ValidationException("Term already exists."));
+
+            await Assert.ThrowsAsync<ValidationException>(() => _controller.AddCard(4, new CreateCard("labas", "hello")));
+        }
+
+        // ---- Routing & authorization ----
+
+        [Theory]
+        [InlineData(nameof(SetsController.GetAllSets), "GET", "api/sets")]
+        [InlineData(nameof(SetsController.GetSet), "GET", "api/sets/{setId}")]
+        [InlineData(nameof(SetsController.AddSet), "POST", "api/sets")]
+        [InlineData(nameof(SetsController.DeleteSet), "DELETE", "api/sets/{setId}")]
+        [InlineData(nameof(SetsController.DeleteCard), "DELETE", "api/sets/{setId}/cards/{cardId}")]
+        [InlineData(nameof(SetsController.AddCard), "POST", "api/sets/{setId}/cards")]
+        [InlineData(nameof(SetsController.GetCards), "GET", "api/sets/{setId}/cards")]
+        [InlineData(nameof(SetsController.DownloadSet), "GET", "api/sets/{setId}/download/{fileType}")]
+        public void RouteAttributes_EachAction_MapToExpectedVerbAndRoute(string action, string verb, string route)
+        {
+            Assert.Equal((verb, route), ControllerTestHelpers.RouteOf<SetsController>(action));
+        }
+
+        [Theory]
+        [InlineData(nameof(SetsController.GetAllSets))]
+        [InlineData(nameof(SetsController.GetSet))]
+        [InlineData(nameof(SetsController.AddSet))]
+        [InlineData(nameof(SetsController.DeleteSet))]
+        [InlineData(nameof(SetsController.DeleteCard))]
+        [InlineData(nameof(SetsController.AddCard))]
+        [InlineData(nameof(SetsController.GetCards))]
+        [InlineData(nameof(SetsController.DownloadSet))]
+        public void AuthorizeAttributes_EachAction_RequireLogin(string action)
+        {
+            Assert.True(ControllerTestHelpers.RequiresAuthorization<SetsController>(action));
         }
     }
 }
