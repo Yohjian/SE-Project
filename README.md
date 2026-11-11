@@ -5,31 +5,37 @@ Software Engineering Project at the VU — QuattroLingo (language learning app).
 ## Running the project
 
 **First time / after pulling new backend or frontend changes:**
+
 ```bash
 docker compose up --build
 ```
 
 **Day-to-day (no dependency changes):**
+
 ```bash
 docker compose up
 ```
 
 **Only changed backend code:**
+
 ```bash
 docker compose up --build server
 ```
 
 **Stop everything (keeps your Postgres data):**
+
 ```bash
 docker compose down
 ```
 
 **Stop and wipe the database too:**
+
 ```bash
 docker compose down -v
 ```
 
 App runs at:
+
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:5000`
 
@@ -68,12 +74,12 @@ types/          → shared TS types
 context/        → shared state (auth, etc.)
 ```
 
-
 ## Tests
 
 - Every new feature needs tests.
 - Backend tests live in `server.Tests/`, mirroring `server/`'s folder structure (e.g. `server.Tests/Controllers/` tests `server/Controllers/`)
-- Run backend tests: `dotnet test server.Tests/server.Tests.csproj`
+- Run backend tests: `dotnet test server.Tests`
+- Get test coverage report: `dotnet test server.Tests --collect:"XPlat Code Coverage" --settings server.Tests/coverlet.runsettings`
 
 ## Why two client Dockerfiles
 
