@@ -80,6 +80,12 @@ context/        → shared state (auth, etc.)
 - Backend tests live in `server.Tests/`, mirroring `server/`'s folder structure (e.g. `server.Tests/Controllers/` tests `server/Controllers/`)
 - Run backend tests: `dotnet test server.Tests`
 - Get test coverage report: `dotnet test server.Tests --collect:"XPlat Code Coverage" --settings server.Tests/coverlet.runsettings`
+- For readable test coverage results run:
+
+```bash
+   dotnet tool install -g dotnet-reportgenerator-globaltool
+   reportgenerator -reports:"server.Tests/TestResults/*/coverage.cobertura.xml" -targetdir:server.Tests/coverage-report -reporttypes:Html
+```
 
 ## Why two client Dockerfiles
 
