@@ -35,7 +35,7 @@ namespace QuattroLingo.Services
             _logger = logger;
         }
 
-        
+        // ---------- Joining / leaving ----------
 
         public async Task<RoomSnapshot> JoinAsync(
             string connectionId, string joinCode, string? playerToken, string? hostUserId)
@@ -155,7 +155,7 @@ namespace QuattroLingo.Services
             }
         }
 
-        
+        // ---------- Playing ----------
 
         public async Task StartAsync(string connectionId)
         {
@@ -255,7 +255,7 @@ namespace QuattroLingo.Services
             }
         }
 
-        
+        // ---------- The server-driven loop ----------
 
         private async Task RunGameAsync(LiveGame game)
         {
@@ -453,7 +453,7 @@ namespace QuattroLingo.Services
                 room.Id, RoomStatus.Cancelled, finishedAt: _time.GetUtcNow().UtcDateTime);
         }
 
-        
+        // ---------- Housekeeping ----------
 
         public async Task CleanupAsync(CancellationToken ct = default)
         {
@@ -519,7 +519,7 @@ namespace QuattroLingo.Services
         public Task ReconcileOnStartupAsync() =>
             WithRoomsAsync(r => r.CancelInProgressRoomsAsync());
 
-        
+        // ---------- Helpers ----------
 
         private async Task<LiveGame> GetOrLoadAsync(string joinCode)
         {
