@@ -26,6 +26,12 @@ namespace QuattroLingo.Tests.Services
             public Task<Quiz?> GetByIdAsync(int id) =>
                 Task.FromResult(Quizzes.FirstOrDefault(q => q.Id == id));
 
+            public Task<List<Quiz>> GetCopiesBySourceAsync(string userId, int sourceQuizId) =>
+                Task.FromResult(Quizzes
+                    .Where(q => q.OwnerId == userId && q.SourceQuizId == sourceQuizId)
+                    .OrderBy(q => q.Id)
+                    .ToList());
+
             public Task<bool> HasActiveRoomAsync(int quizId) =>
                 Task.FromResult(false);
             private static void AssignId(object entity, int id) =>
