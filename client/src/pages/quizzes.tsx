@@ -91,6 +91,13 @@ export default function Quizzes() {
             return;
         }
 
+        if (isPractice && (
+            !languages.some(l => l.id === Number(selectedLanguage)) ||
+            !categories.some(c => c.id === Number(selectedCategory))
+        )) {
+            showNotification("Please select a valid language and category.");
+            return;
+        }
         try {
             const res = await quizApi.create({
                 title,
@@ -128,6 +135,13 @@ export default function Quizzes() {
             return;
         }
 
+        if (isPractice && (
+            !languages.some(l => l.id === Number(selectedLanguage)) ||
+            !categories.some(c => c.id === Number(selectedCategory))
+        )) {
+            showNotification("Please select a valid language and category.");
+            return;
+        }
         const selectedSet = sets.find((set) => set.id === selectedSetId);
 
         if (!selectedSet) {
@@ -394,9 +408,11 @@ export default function Quizzes() {
                                             onChange={(e) => setIsPractice(e.target.checked)}
                                         />
                                         {" "}Practice quiz
-                                        {practiceFields}
                                     </span>
                                 </label>
+
+                                {practiceFields}
+
                                 <input
                                     id="quiz-title"
                                     className="input"
@@ -488,8 +504,10 @@ export default function Quizzes() {
                                         disabled={isGenerating}
                                     />
                                     {" "}Practice quiz
-                                    {practiceFields}
                                 </label>
+
+                                {practiceFields}
+
                             </div>
 
                             <div className="modal-actions">

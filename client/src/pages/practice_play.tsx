@@ -4,10 +4,12 @@ import { practiceApi } from "../api/client";
 import type { PracticeQuizResponse, PracticeAnswerResponse, } from "../api/types";
 import "../styles/game.css";
 import PracticeResults from "../pages/practice_results";
+import { useNotification } from "../components/notification";
 
 export default function PracticePlay() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { showNotification } = useNotification();
     const [quiz, setQuiz] = useState<PracticeQuizResponse | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const currentQuestion = quiz?.questions[currentQuestionIndex];
@@ -50,6 +52,7 @@ export default function PracticePlay() {
             }
         } catch (error) {
             console.error("Failed to check practice answer:", error);
+            showNotification("Failed to check answer. Please try again.");
         } finally {
             setIsChecking(false);
         }
