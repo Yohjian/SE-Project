@@ -15,5 +15,7 @@ namespace QuattroLingo.Interfaces.Services
 
         Task<PracticeAnswerResponse> CheckAnswerAsync(
             PracticeAnswerRequest request);
+
+        Task<PracticeFiltersResponse> GetFiltersAsync();
     }
 }

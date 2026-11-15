@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { quizApi, setApi } from "../api/client";
-import type { QuizSummary, SetSummary } from "../api/types";
+import { quizApi, setApi, practiceApi } from "../api/client";
+import type { QuizSummary, SetSummary, PracticeFilterOption, } from "../api/types";
 import { getErrorMessages } from "../api/auth";
 import { generateQuestions } from "../utils/quizGeneration";
 import DeleteQuizModal from "../components/modals/delete_quiz_modal";
@@ -17,6 +17,12 @@ export default function Quizzes() {
     const [isLoading, setIsLoading] = useState(true);
     const [title, setTitle] = useState("");
     const [isPractice, setIsPractice] = useState(false);
+
+    const [languages, setLanguages] = useState<PracticeFilterOption[]>([]);
+    const [categories, setCategories] = useState<PracticeFilterOption[]>([]);
+
+    const [selectedLanguage, setSelectedLanguage] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const [createMode, setCreateMode] = useState<CreateMode | null>(null);
 
@@ -42,12 +48,23 @@ export default function Quizzes() {
         setSelectedSetId(null);
         setTitle("");
         setIsPractice(false);
+        setSelectedLanguage("");
+        setSelectedCategory("");
 
         try {
             const response = await setApi.getAll();
             setSets(response.data);
         } catch {
             showNotification("Failed to load sets.");
+        }
+
+        try {
+            const response = await practiceApi.getFilters();
+
+            setLanguages(response.data.languages);
+            setCategories(response.data.categories);
+        } catch {
+            showNotification("Failed to load languages and categories.");
         }
     };
 
@@ -56,6 +73,8 @@ export default function Quizzes() {
         setCreateMode(null);
         setSelectedSetId(null);
         setIsPractice(false);
+        setSelectedLanguage("");
+        setSelectedCategory("");
     };
 
     const handleBack = () => {
@@ -78,6 +97,8 @@ export default function Quizzes() {
                 description: null,
                 questions: [],
                 kind: isPractice ? 1 : 0,
+                languageId: isPractice ? Number(selectedLanguage) : null,
+                categoryId: isPractice ? Number(selectedCategory) : null,
             });
             setQuizzes((prev) => [
                 ...prev,
@@ -141,6 +162,8 @@ export default function Quizzes() {
                 description: `Generated from ${selectedSet.name}`,
                 questions,
                 kind: isPractice ? 1 : 0,
+                languageId: isPractice ? Number(selectedLanguage) : null,
+                categoryId: isPractice ? Number(selectedCategory) : null,
             });
 
             setQuizzes((prev) => [
@@ -189,6 +212,48 @@ export default function Quizzes() {
             : createMode === "set"
                 ? "Create quiz from a set"
                 : "Create quiz";
+
+    const practiceFields = isPractice && (
+        <>
+            <div className="field">
+                <label htmlFor="practice-language">Language</label>
+                <select
+                    id="practice-language"
+                    className="input"
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    required
+                    disabled={isGenerating}
+                >
+                    <option value="">Select language</option>
+                    {languages.map((language) => (
+                        <option key={language.id} value={language.id}>
+                            {language.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="field">
+                <label htmlFor="practice-category">Category</label>
+                <select
+                    id="practice-category"
+                    className="input"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    required
+                    disabled={isGenerating}
+                >
+                    <option value="">Select category</option>
+                    {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                            {category.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        </>
+    );
 
     return (
         <div className="container quizzes-page">
@@ -329,6 +394,7 @@ export default function Quizzes() {
                                             onChange={(e) => setIsPractice(e.target.checked)}
                                         />
                                         {" "}Practice quiz
+                                        {practiceFields}
                                     </span>
                                 </label>
                                 <input
@@ -422,6 +488,7 @@ export default function Quizzes() {
                                         disabled={isGenerating}
                                     />
                                     {" "}Practice quiz
+                                    {practiceFields}
                                 </label>
                             </div>
 

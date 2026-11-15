@@ -60,6 +60,8 @@ export interface CreateQuizRequest {
   description: string | null;
   questions: QuestionRequest[];
   kind?: number;
+  languageId?: number | null;
+  categoryId?: number | null;
 }
 
 export interface UpdateQuizRequest {
@@ -112,4 +114,14 @@ export interface PracticeAnswerRequest {
 export interface PracticeAnswerResponse {
   isCorrect: boolean;
   correctAnswerOptionId: number;
+}
+
+export interface PracticeFilterOption {
+  id: number;
+  name: string;
+}
+
+export interface PracticeFiltersResponse {
+  languages: PracticeFilterOption[];
+  categories: PracticeFilterOption[];
 }

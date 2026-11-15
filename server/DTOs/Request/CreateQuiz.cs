@@ -5,6 +5,8 @@ namespace QuattroLingo.DTOs.Request
         string Title,
         string? Description,
         List<QuestionRequest> Questions,
-        QuizKind Kind  = QuizKind.Custom
+        QuizKind Kind  = QuizKind.Custom,
+        int? LanguageId = null,
+        int? CategoryId = null
     );
 }

@@ -40,5 +40,13 @@ namespace QuattroLingo.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("filters")]
+        public async Task<IActionResult> GetFilters()
+        {
+            var result = await practice.GetFiltersAsync();
+
+            return Ok(result);
+        }
     }
 }

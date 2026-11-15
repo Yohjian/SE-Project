@@ -133,7 +133,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     if (db.Database.IsRelational())
+    {
         db.Database.Migrate();
+        await PracticeDataSeeder.SeedAsync(db);
+    }
 }
 
 // Live games die with the process: anything left InProgress can never finish.

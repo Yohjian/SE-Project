@@ -57,12 +57,25 @@ namespace QuattroLingo.Services
         {
             ValidateQuiz(request.Title, request.Questions);
 
+            if (request.Kind == QuizKind.Practice &&
+                (!request.LanguageId.HasValue || !request.CategoryId.HasValue))
+            {
+                throw new ValidationException(
+                    "Practice quizzes require a language and category.");
+            }
+
             var quiz = new Quiz
             {
                 OwnerId = userId,
                 Title = request.Title,
                 Description = request.Description,
                 Kind = request.Kind,
+                LanguageId = request.Kind == QuizKind.Practice
+                    ? request.LanguageId
+                    : null,
+                CategoryId = request.Kind == QuizKind.Practice
+                    ? request.CategoryId
+                    : null,
                 Questions = request.Questions.Select(ToQuestion).ToList()
             };
 
@@ -145,7 +158,7 @@ namespace QuattroLingo.Services
 
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
-            
+
             await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             if (request.Questions.Count < 1)
@@ -186,7 +199,7 @@ namespace QuattroLingo.Services
 
             if (quiz.OwnerId != userId)
                 throw new ForbiddenException(QuizForbidden);
-            
+
             await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             await quizzes.DeleteAsync(quiz);

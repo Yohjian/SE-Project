@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { practiceApi } from "../api/client";
-import type { PracticeQuizSummary } from "../api/types";
+import type { PracticeQuizSummary, PracticeFilterOption, } from "../api/types";
 import { useNavigate } from "react-router-dom";
 import "../styles/quizzes.css";
 
@@ -10,8 +10,32 @@ export default function Practice() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [selectedLanguage, setSelectedLanguage] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
+
+    const [languages, setLanguages] = useState<PracticeFilterOption[]>([]);
+    const [categories, setCategories] = useState<PracticeFilterOption[]>([]);
+
     useEffect(() => {
-        practiceApi.getQuizzes().then((response) => {
+        practiceApi.getFilters()
+            .then((response) => {
+                setLanguages(response.data.languages);
+                setCategories(response.data.categories);
+            })
+            .catch((error) => {
+                console.error("Failed to load practice filters:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        setLoading(true);
+        setError(null);
+
+        practiceApi.getQuizzes({
+            language: selectedLanguage ? Number(selectedLanguage) : undefined,
+            category: selectedCategory ? Number(selectedCategory) : undefined,
+
+        }).then((response) => {
             setQuizzes(response.data);
         })
             .catch((error) => {
@@ -21,7 +45,7 @@ export default function Practice() {
             .finally(() => {
                 setLoading(false);
             });
-    }, []);
+    }, [selectedLanguage, selectedCategory]);
 
     return (
         <div className="container quizzes-page practice-page">
@@ -32,6 +56,40 @@ export default function Practice() {
             <p className="text-muted">
                 Choose a quiz to start practicing.
             </p>
+
+            <div className="practice-filters">
+                <label>
+                    Language
+                    <select
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                    >
+                        <option value="">All languages</option>
+
+                        {languages.map((language) => (
+                            <option key={language.id} value={language.id}>
+                                {language.name}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+
+                <label>
+                    Category
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                        <option value="">All categories</option>
+
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            </div>
 
             {loading && (<p className="text-muted">Loading quizzes...</p>)}
 

@@ -16,6 +16,7 @@ import {
     PracticeQuizResponse,
     PracticeAnswerRequest,
     PracticeAnswerResponse,
+    PracticeFiltersResponse,
 } from "./types";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -137,4 +138,6 @@ export const practiceApi = {
       "/practice/answer",
       request,
     ),
+  getFilters: () =>
+    client.get<PracticeFiltersResponse>("/practice/filters"),
 };

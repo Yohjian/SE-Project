@@ -97,5 +97,22 @@ namespace QuattroLingo.Services
                 selectedAnswer.IsCorrect,
                 correctAnswer.Id);
         }
+
+        public async Task<PracticeFiltersResponse> GetFiltersAsync()
+        {
+            var languages = await db.Languages
+                .AsNoTracking()
+                .OrderBy(l => l.Name)
+                .Select(l => new PracticeFilterOptionResponse(l.Id, l.Name))
+                .ToListAsync();
+
+            var categories = await db.Categories
+                .AsNoTracking()
+                .OrderBy(c => c.Name)
+                .Select(c => new PracticeFilterOptionResponse(c.Id, c.Name))
+                .ToListAsync();
+
+            return new PracticeFiltersResponse(languages, categories);
+        }
     }
 }
