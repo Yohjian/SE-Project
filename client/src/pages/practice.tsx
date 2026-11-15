@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { practiceApi } from "../api/client";
 import type { PracticeQuizSummary } from "../api/types";
 import { useNavigate } from "react-router-dom";
+import "../styles/quizzes.css";
 
 export default function Practice() {
     const navigate = useNavigate();
@@ -23,32 +24,67 @@ export default function Practice() {
     }, []);
 
     return (
-        <main>
-            <h1>Practice Mode</h1>
-            <p>Choose a quiz to start practicing.</p>
+        <div className="container quizzes-page practice-page">
+            <div className="quizzes-header">
+                <h1 className="page-title">Practice Mode</h1>
+            </div>
 
-            {loading && <p>Loading quizzes...</p>}
+            <p className="text-muted">
+                Choose a quiz to start practicing.
+            </p>
 
-            {!loading && error && <p>{error}</p>}
+            {loading && (<p className="text-muted">Loading quizzes...</p>)}
+
+            {!loading && error && (<p>{error}</p>)}
 
             {!loading && !error && quizzes.length === 0 && (
-                <p>No practice quizzes available.</p>
+                <div className="quizzes-empty">
+                    <h2>No practice quizzes available</h2>
+                    <p className="text-muted">
+                        Create a practice quiz to get started.
+                    </p>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => navigate("/quizzes")}
+                    >
+                        Go to quizzes
+                    </button>
+                </div>
             )}
 
-            {!loading &&
-                quizzes.map((quiz) => (
-                    <div key={quiz.id}>
-                        <h2>{quiz.title}</h2>
-                        <p>{quiz.description}</p>
-                        <p>Questions: {quiz.questionCount}</p>
+            {!loading && !error && quizzes.length > 0 && (
+                <ul className="quiz-grid">
+                    {quizzes.map((quiz) => (
+                        <li key={quiz.id} className="quiz-card">
+                            <h2 className="quiz-card-title">
+                                {quiz.title}
+                            </h2>
 
-                        <button
-                            onClick={() => navigate(`/practice/${quiz.id}`)}
-                        >
-                            Start Practice
-                        </button>
-                    </div>
-                ))}
-        </main>
+                            {quiz.description && (
+                                <p className="quiz-card-description">
+                                    {quiz.description}
+                                </p>
+                            )}
+
+                            <p className="text-muted">
+                                Questions: {quiz.questionCount}
+                            </p>
+
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() =>
+                                    navigate(`/practice/${quiz.id}`)
+                                }
+                                disabled={quiz.questionCount === 0}
+                            >
+                                Start practice
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     );
 }

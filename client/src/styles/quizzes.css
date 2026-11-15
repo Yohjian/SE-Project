@@ -181,3 +181,14 @@
     flex-wrap: wrap;
   }
 }
+
+/* Practice quiz cards */
+
+.practice-page .quiz-card-title {
+    padding-right: 0;
+}
+
+.practice-page .quiz-card .btn {
+    margin-top: auto;
+    align-self: flex-start;
+}

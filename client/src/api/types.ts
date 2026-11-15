@@ -59,6 +59,7 @@ export interface CreateQuizRequest {
   title: string;
   description: string | null;
   questions: QuestionRequest[];
+  kind?: number;
 }
 
 export interface UpdateQuizRequest {

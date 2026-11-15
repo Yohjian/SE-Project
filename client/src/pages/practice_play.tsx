@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { practiceApi } from "../api/client";
 import type { PracticeQuizResponse, PracticeAnswerResponse, } from "../api/types";
 import "../styles/game.css";
@@ -7,6 +7,7 @@ import PracticeResults from "../pages/practice_results";
 
 export default function PracticePlay() {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [quiz, setQuiz] = useState<PracticeQuizResponse | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const currentQuestion = quiz?.questions[currentQuestionIndex];
@@ -54,8 +55,6 @@ export default function PracticePlay() {
         }
     };
 
-
-
     const handleNextQuestion = () => {
         if (!quiz || !answerResult) {
             return;
@@ -71,10 +70,15 @@ export default function PracticePlay() {
         setAnswerResult(null);
     };
 
-
-
     return (
-        <div className="container play">
+        <div className="container play practice-page-play">
+            <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate("/practice")}
+            >
+                Back to practice
+            </button>
             {quiz && (
                 <>
                     <h1 className="page-title">{quiz.title}</h1>
@@ -92,7 +96,6 @@ export default function PracticePlay() {
                                     {quiz.questions.length}
                                 </span>
                             </div>
-
 
                             <h2 className="play__question">
                                 {currentQuestion.text}
@@ -130,37 +133,36 @@ export default function PracticePlay() {
                                     );
                                 })}
                             </ul>
+                            <div className="practice-actions">
+                                {answerResult === null && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        disabled={selectedAnswerId === null || isChecking}
+                                        onClick={() => void handleCheckAnswer()}
+                                    >
+                                        {isChecking ? "Checking..." : "Check answer"}
+                                    </button>
+                                )}
 
-                            {answerResult === null && (
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    disabled={selectedAnswerId === null || isChecking}
-                                    onClick={() => void handleCheckAnswer()}
-                                >
-                                    {isChecking ? "Checking..." : "Check answer"}
-                                </button>
-                            )}
+                                {answerResult && (
+                                    <p className="play__verdict">
+                                        {answerResult.isCorrect ? "Correct!" : "Wrong!"}
+                                    </p>
+                                )}
 
-                            {answerResult && (
-                                <p className="play__verdict">
-                                    {answerResult.isCorrect ? "Correct!" : "Wrong!"}
-                                </p>
-                            )}
-
-
-
-                            {answerResult && (
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={handleNextQuestion}
-                                >
-                                    {currentQuestionIndex === quiz.questions.length - 1
-                                        ? "See results"
-                                        : "Next question"}
-                                </button>
-                            )}
+                                {answerResult && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={handleNextQuestion}
+                                    >
+                                        {currentQuestionIndex === quiz.questions.length - 1
+                                            ? "See results"
+                                            : "Next question"}
+                                    </button>
+                                )}
+                            </div>
 
                         </>
                     ) : (

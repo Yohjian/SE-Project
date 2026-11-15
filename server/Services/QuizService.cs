@@ -62,6 +62,7 @@ namespace QuattroLingo.Services
                 OwnerId = userId,
                 Title = request.Title,
                 Description = request.Description,
+                Kind = request.Kind,
                 Questions = request.Questions.Select(ToQuestion).ToList()
             };
 

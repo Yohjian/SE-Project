@@ -16,6 +16,8 @@ export default function Quizzes() {
     const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [title, setTitle] = useState("");
+    const [isPractice, setIsPractice] = useState(false);
+
     const [createMode, setCreateMode] = useState<CreateMode | null>(null);
 
     const [sets, setSets] = useState<SetSummary[]>([]);
@@ -25,6 +27,7 @@ export default function Quizzes() {
     const navigate = useNavigate();
 
     const { showNotification } = useNotification();
+
 
     useEffect(() => {
         quizApi
@@ -38,6 +41,7 @@ export default function Quizzes() {
         setCreateMode("choose");
         setSelectedSetId(null);
         setTitle("");
+        setIsPractice(false);
 
         try {
             const response = await setApi.getAll();
@@ -51,6 +55,7 @@ export default function Quizzes() {
         setTitle("");
         setCreateMode(null);
         setSelectedSetId(null);
+        setIsPractice(false);
     };
 
     const handleBack = () => {
@@ -72,6 +77,7 @@ export default function Quizzes() {
                 title,
                 description: null,
                 questions: [],
+                kind: isPractice ? 1 : 0,
             });
             setQuizzes((prev) => [
                 ...prev,
@@ -134,6 +140,7 @@ export default function Quizzes() {
                 title: title.trim() || `${selectedSet.name} Quiz`,
                 description: `Generated from ${selectedSet.name}`,
                 questions,
+                kind: isPractice ? 1 : 0,
             });
 
             setQuizzes((prev) => [
@@ -180,8 +187,8 @@ export default function Quizzes() {
         createMode === "manual"
             ? "Create quiz manually"
             : createMode === "set"
-              ? "Create quiz from a set"
-              : "Create quiz";
+                ? "Create quiz from a set"
+                : "Create quiz";
 
     return (
         <div className="container quizzes-page">
@@ -314,6 +321,16 @@ export default function Quizzes() {
                         <form onSubmit={handleCreate}>
                             <div className="field">
                                 <label htmlFor="quiz-title">Quiz title</label>
+                                <label className="field">
+                                    <span>
+                                        <input
+                                            type="checkbox"
+                                            checked={isPractice}
+                                            onChange={(e) => setIsPractice(e.target.checked)}
+                                        />
+                                        {" "}Practice quiz
+                                    </span>
+                                </label>
                                 <input
                                     id="quiz-title"
                                     className="input"
@@ -394,6 +411,18 @@ export default function Quizzes() {
                                     onChange={(e) => setTitle(e.target.value)}
                                     disabled={isGenerating}
                                 />
+                            </div>
+
+                            <div className="field">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={isPractice}
+                                        onChange={(e) => setIsPractice(e.target.checked)}
+                                        disabled={isGenerating}
+                                    />
+                                    {" "}Practice quiz
+                                </label>
                             </div>
 
                             <div className="modal-actions">
