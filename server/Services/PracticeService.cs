@@ -11,13 +11,17 @@ namespace QuattroLingo.Services
     public class PracticeService(AppDbContext db) : IPracticeService
     {
         public async Task<List<PracticeQuizSummary>> GetQuizzesAsync(
+            string userId,
             int? category,
             int? language,
             QuizDifficulty? difficulty)
         {
             var query = db.Quizzes
                 .AsNoTracking()
-                .Where(q => q.Kind == QuizKind.Practice);
+                .Where(q =>
+                q.Kind == QuizKind.Practice &&
+                (q.OwnerId == userId ||
+                (q.IsPublic && q.Owner!.UserName == "practice-seed")));
 
             if (category.HasValue)
                 query = query.Where(q => q.CategoryId == category.Value);
@@ -41,14 +45,16 @@ namespace QuattroLingo.Services
                 .ToListAsync();
         }
 
-        public async Task<PracticeQuizResponse> GetQuizAsync(int id)
+        public async Task<PracticeQuizResponse> GetQuizAsync(int id, string userId)
         {
             var quiz = await db.Quizzes
                 .AsNoTracking()
                 .Include(q => q.Questions)
                     .ThenInclude(q => q.AnswerOptions)
                 .FirstOrDefaultAsync(q =>
-                    q.Id == id && q.Kind == QuizKind.Practice)
+                    q.Id == id && q.Kind == QuizKind.Practice &&
+                    (q.OwnerId == userId ||
+                    (q.IsPublic && q.Owner!.UserName == "practice-seed")))
                 ?? throw new NotFoundException("Practice quiz not found.");
 
             return new PracticeQuizResponse(
@@ -71,7 +77,7 @@ namespace QuattroLingo.Services
         }
 
         public async Task<PracticeAnswerResponse> CheckAnswerAsync(
-            PracticeAnswerRequest request)
+            PracticeAnswerRequest request, string userId)
         {
             var question = await db.Questions
                 .AsNoTracking()
@@ -80,7 +86,10 @@ namespace QuattroLingo.Services
                     q.Id == request.QuestionId &&
                     q.QuizId == request.QuizId &&
                     q.Quiz != null &&
-                    q.Quiz.Kind == QuizKind.Practice)
+                    q.Quiz.Kind == QuizKind.Practice &&
+                    (q.Quiz.OwnerId == userId ||
+                    (q.Quiz.IsPublic &&
+                    q.Quiz.Owner!.UserName == "practice-seed")))
                 ?? throw new NotFoundException("Practice question not found.");
 
             var selectedAnswer = question.AnswerOptions

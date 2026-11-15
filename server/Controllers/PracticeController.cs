@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Interfaces.Services;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using QuattroLingo.Exceptions;
 
 namespace QuattroLingo.Controllers
 {
@@ -12,6 +15,10 @@ namespace QuattroLingo.Controllers
     public class PracticeController(IPracticeService practice)
         : ControllerBase
     {
+        private string UserId =>
+            User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? throw new UnauthorizedException("User id is missing from the token.");
+
         [HttpGet("quizzes")]
         public async Task<IActionResult> GetQuizzes(
             [FromQuery] int? category,
@@ -19,7 +26,7 @@ namespace QuattroLingo.Controllers
             [FromQuery] QuizDifficulty? difficulty)
         {
             var result = await practice.GetQuizzesAsync(
-                category, language, difficulty);
+                UserId, category, language, difficulty);
 
             return Ok(result);
         }
@@ -27,7 +34,7 @@ namespace QuattroLingo.Controllers
         [HttpGet("quizzes/{id}")]
         public async Task<IActionResult> GetQuiz(int id)
         {
-            var result = await practice.GetQuizAsync(id);
+            var result = await practice.GetQuizAsync(id, UserId);
 
             return Ok(result);
         }
@@ -36,7 +43,7 @@ namespace QuattroLingo.Controllers
         public async Task<IActionResult> CheckAnswer(
             [FromBody] PracticeAnswerRequest request)
         {
-            var result = await practice.CheckAnswerAsync(request);
+            var result = await practice.CheckAnswerAsync(request, UserId);
 
             return Ok(result);
         }
