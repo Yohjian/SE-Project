@@ -1,185 +1,280 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using QuattroLingo.Controllers;
-using QuattroLingo.Data;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.DTOs.Response;
-using QuattroLingo.Entities;
+using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
-using QuattroLingo.Repositories;
-using QuattroLingo.Services;
+using QuattroLingo.Interfaces.Services;
 
-namespace QuattroLingo.Tests
+namespace QuattroLingo.Tests.Controllers
 {
     public class SetsControllerTests
     {
-        private static AppDbContext CreateDb()
+        private const string UserId = "user-1";
+
+        private readonly ISetService _sets = Substitute.For<ISetService>();
+        private readonly SetsController _controller;
+
+        public SetsControllerTests()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            return new AppDbContext(options);
+            _controller = new SetsController(_sets).WithUser(UserId);
         }
 
-        private static SetsController CreateController(AppDbContext db, string userId)
+        private static SetSummary MakeSummary(int id = 1, string name = "My Set") =>
+            new(id, name, 0, new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
+
+
+
+        [Fact]
+        public async Task GetAllSets_SignedInUser_ReturnsOkWithThatUsersSets()
         {
-            var controller = new SetsController(new SetService(new SetRepository(db)));
+            var sets = new List<SetSummary> { MakeSummary(1, "A"), MakeSummary(2, "B") };
+            _sets.GetAllAsync(UserId).Returns(sets);
 
-            var claims = new List<Claim>
-            {
-                new(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, userId),
-            };
-            var identity = new ClaimsIdentity(claims, "TestAuth");
-            var principal = new ClaimsPrincipal(identity);
+            var ok = Assert.IsType<OkObjectResult>(await _controller.GetAllSets());
 
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = principal },
-            };
+            Assert.Same(sets, ok.Value);
+        }
 
-            return controller;
+
+
+        [Fact]
+        public async Task GetSet_OwnSet_ReturnsOkWithSetContents()
+        {
+            var contents = new SetContents(4, "My Set", [new CardResponse(1, "labas", "hello")]);
+            _sets.GetAsync(UserId, 4).Returns(contents);
+
+            var ok = Assert.IsType<OkObjectResult>(await _controller.GetSet(4));
+
+            Assert.Same(contents, ok.Value);
         }
 
         [Fact]
-        public async Task GetAllSets_ReturnsOnlyCurrentUsersSets()
+        public async Task GetSet_ServiceThrowsNotFound_LetsExceptionBubbleToMiddleware()
         {
-            await using var db = CreateDb();
-            db.Sets.AddRange(
-                new VocabularySet { UserId = "user-a", Name = "A's Set", CreatedAt = DateTime.UtcNow, Cards = [] },
-                new VocabularySet { UserId = "user-b", Name = "B's Set", CreatedAt = DateTime.UtcNow, Cards = [] }
-            );
-            await db.SaveChangesAsync();
+            _sets.GetAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
 
-            var controller = CreateController(db, "user-a");
-            var result = await controller.GetAllSets();
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetSet(4));
+        }
 
-            var ok = Assert.IsType<OkObjectResult>(result);
-            var sets = Assert.IsAssignableFrom<IEnumerable<SetSummary>>(ok.Value);
-            Assert.Single(sets);
-            Assert.Equal("A's Set", sets.First().Name);
+
+
+        [Fact]
+        public async Task AddSet_SignedInUser_CreatesSetOwnedByThatUser()
+        {
+            _sets.CreateAsync(UserId, "New Set").Returns(MakeSummary(name: "New Set"));
+
+            await _controller.AddSet(new CreateSet("New Set"));
+
+            await _sets.Received(1).CreateAsync(UserId, "New Set");
         }
 
         [Fact]
-        public async Task GetSet_OtherUsersSet_ThrowsNotFound()
+        public async Task AddSet_SignedInUser_ReturnsOkWithCreatedSummary()
         {
-            await using var db = CreateDb();
-            var otherUsersSet = new VocabularySet
-            {
-                UserId = "user-b",
-                Name = "B's Set",
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-            db.Sets.Add(otherUsersSet);
-            await db.SaveChangesAsync();
+            var summary = MakeSummary(name: "New Set");
+            _sets.CreateAsync(UserId, "New Set").Returns(summary);
 
-            var controller = CreateController(db, "user-a");
+            var ok = Assert.IsType<OkObjectResult>(await _controller.AddSet(new CreateSet("New Set")));
 
-            await Assert.ThrowsAsync<NotFoundException>(() => controller.GetSet(otherUsersSet.Id));
+            Assert.Same(summary, ok.Value);
+        }
+
+
+
+        [Fact]
+        public async Task DeleteSet_OwnSet_PassesUserIdAndSetIdToService()
+        {
+            await _controller.DeleteSet(4);
+
+            await _sets.Received(1).DeleteSetAsync(UserId, 4);
         }
 
         [Fact]
-        public async Task GetSet_OwnSet_ReturnsOk()
+        public async Task DeleteSet_OwnSet_ReturnsNoContent()
         {
-            await using var db = CreateDb();
-            var set = new VocabularySet
-            {
-                UserId = "user-a",
-                Name = "My Set",
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-            db.Sets.Add(set);
-            await db.SaveChangesAsync();
+            Assert.IsType<NoContentResult>(await _controller.DeleteSet(4));
+        }
 
-            var controller = CreateController(db, "user-a");
-            var result = await controller.GetSet(set.Id);
 
-            var ok = Assert.IsType<OkObjectResult>(result);
-            var contents = Assert.IsType<SetContents>(ok.Value);
-            Assert.Equal("My Set", contents.Name);
+
+        [Fact]
+        public async Task DeleteCard_OwnCard_PassesUserIdSetIdAndCardIdToService()
+        {
+            await _controller.DeleteCard(4, 9);
+
+            await _sets.Received(1).DeleteCardAsync(UserId, 4, 9);
         }
 
         [Fact]
-        public async Task AddSet_AssignsCurrentUserAsOwner()
+        public async Task DeleteCard_OwnCard_ReturnsNoContent()
         {
-            await using var db = CreateDb();
-            var controller = CreateController(db, "user-a");
+            Assert.IsType<NoContentResult>(await _controller.DeleteCard(4, 9));
+        }
 
-            var result = await controller.AddSet(new CreateSet("New Set"));
 
-            Assert.IsType<OkObjectResult>(result);
-            var stored = await db.Sets.FirstAsync();
-            Assert.Equal("user-a", stored.UserId);
+
+        [Fact]
+        public async Task AddCard_OwnSet_PassesTermAndDefinitionToService()
+        {
+            _sets.AddCardAsync(UserId, 4, "labas", "hello").Returns(new CardResponse(9, "labas", "hello"));
+
+            await _controller.AddCard(4, new CreateCard("labas", "hello"));
+
+            await _sets.Received(1).AddCardAsync(UserId, 4, "labas", "hello");
         }
 
         [Fact]
-        public async Task AddCard_ToOtherUsersSet_ThrowsNotFound_AndSavesNothing()
+        public async Task AddCard_OwnSet_ReturnsOkWithCreatedCard()
         {
-            await using var db = CreateDb();
-            var otherUsersSet = new VocabularySet
-            {
-                UserId = "user-b",
-                Name = "B's Set",
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-            db.Sets.Add(otherUsersSet);
-            await db.SaveChangesAsync();
+            var card = new CardResponse(9, "labas", "hello");
+            _sets.AddCardAsync(UserId, 4, "labas", "hello").Returns(card);
 
-            var controller = CreateController(db, "user-a");
+            var ok = Assert.IsType<OkObjectResult>(await _controller.AddCard(4, new CreateCard("labas", "hello")));
+
+            Assert.Same(card, ok.Value);
+        }
+
+        [Fact]
+        public async Task AddCard_ServiceThrowsNotFound_LetsExceptionBubbleToMiddleware()
+        {
+            _sets.AddCardAsync(UserId, 4, Arg.Any<string>(), Arg.Any<string>())
+                .ThrowsAsync(new NotFoundException("Set not found."));
 
             await Assert.ThrowsAsync<NotFoundException>(
-                () => controller.AddCard(otherUsersSet.Id, new CreateCard("term", "definition")));
+                () => _controller.AddCard(4, new CreateCard("labas", "hello")));
+        }
 
-            Assert.Empty(db.Cards);
+
+
+        [Fact]
+        public async Task GetCards_OwnSet_ReturnsOkWithCards()
+        {
+            var cards = new List<CardResponse> { new(1, "labas", "hello"), new(2, "ačiū", "thanks") };
+            _sets.GetCardsAsync(UserId, 4).Returns(cards);
+
+            var ok = Assert.IsType<OkObjectResult>(await _controller.GetCards(4));
+
+            Assert.Same(cards, ok.Value);
+        }
+
+
+
+        [Theory]
+        [InlineData(FileType.Json, "application/json", "My Set.json")]
+        [InlineData(FileType.Csv, "text/csv", "My Set.csv")]
+        public async Task DownloadSet_OwnSet_ReturnsFileWithServiceContentTypeAndName(
+            FileType fileType, string contentType, string fileName)
+        {
+            var content = new MemoryStream(Encoding.UTF8.GetBytes("data"));
+            _sets.DownloadSetAsync(UserId, 4, fileType).Returns(new DownloadFile(content, contentType, fileName));
+
+            var file = Assert.IsType<FileStreamResult>(await _controller.DownloadSet(4, fileType));
+
+            Assert.Same(content, file.FileStream);
+            Assert.Equal(contentType, file.ContentType);
+            Assert.Equal(fileName, file.FileDownloadName);
         }
 
         [Fact]
-        public async Task AddCard_ToOwnSet_PersistsCard()
+        public async Task DownloadSet_UnsupportedFileType_LetsExceptionBubbleToMiddleware()
         {
-            await using var db = CreateDb();
-            var set = new VocabularySet
-            {
-                UserId = "user-a",
-                Name = "My Set",
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-            db.Sets.Add(set);
-            await db.SaveChangesAsync();
+            _sets.DownloadSetAsync(UserId, 4, (FileType)99)
+                .ThrowsAsync(new UnsupportedFileTypeException("Unsupported file type."));
 
-            var controller = CreateController(db, "user-a");
-            var result = await controller.AddCard(set.Id, new CreateCard("hello", "a greeting"));
+            await Assert.ThrowsAsync<UnsupportedFileTypeException>(() => _controller.DownloadSet(4, (FileType)99));
+        }
 
-            Assert.IsType<OkObjectResult>(result);
-            var card = await db.Cards.FirstAsync();
-            Assert.Equal("hello", card.Term);
-            Assert.Equal(set.Id, card.SetId);
+
+
+        public static TheoryData<string, Func<SetsController, Task<IActionResult>>> EveryAction => new()
+        {
+            { nameof(SetsController.GetAllSets), c => c.GetAllSets() },
+            { nameof(SetsController.GetSet), c => c.GetSet(4) },
+            { nameof(SetsController.AddSet), c => c.AddSet(new CreateSet("New Set")) },
+            { nameof(SetsController.DeleteSet), c => c.DeleteSet(4) },
+            { nameof(SetsController.DeleteCard), c => c.DeleteCard(4, 9) },
+            { nameof(SetsController.AddCard), c => c.AddCard(4, new CreateCard("labas", "hello")) },
+            { nameof(SetsController.GetCards), c => c.GetCards(4) },
+            { nameof(SetsController.DownloadSet), c => c.DownloadSet(4, FileType.Csv) }
+        };
+
+        [Theory]
+        [MemberData(nameof(EveryAction))]
+        public async Task AnyAction_TokenWithoutUserId_ThrowsUnauthorizedAndCallsNoService(
+            string action, Func<SetsController, Task<IActionResult>> call)
+        {
+            _controller.WithUser(userId: null);
+
+            await Assert.ThrowsAsync<UnauthorizedException>(() => call(_controller));
+            Assert.False(_sets.ReceivedCalls().Any(), $"{action} called the service without a user id.");
+        }
+
+
+
+        [Fact]
+        public async Task DeleteSet_SomeoneElsesSet_LetsNotFoundBubbleToMiddleware()
+        {
+            _sets.DeleteSetAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
+
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.DeleteSet(4));
         }
 
         [Fact]
-        public async Task GetCards_ForOtherUsersSet_ThrowsNotFound()
+        public async Task DeleteCard_CardFromDifferentSet_LetsNotFoundBubbleToMiddleware()
         {
-            await using var db = CreateDb();
-            var otherUsersSet = new VocabularySet
-            {
-                UserId = "user-b",
-                Name = "B's Set",
-                CreatedAt = DateTime.UtcNow,
-                Cards = []
-            };
-            db.Sets.Add(otherUsersSet);
-            await db.SaveChangesAsync();
+            _sets.DeleteCardAsync(UserId, 4, 9).ThrowsAsync(new NotFoundException("Card not found."));
 
-            db.Cards.Add(new VocabularyCard { Term = "secret", Definition = "shh", SetId = otherUsersSet.Id });
-            await db.SaveChangesAsync();
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.DeleteCard(4, 9));
+        }
 
-            var controller = CreateController(db, "user-a");
+        [Fact]
+        public async Task GetCards_SomeoneElsesSet_LetsNotFoundBubbleToMiddleware()
+        {
+            _sets.GetCardsAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
 
-            await Assert.ThrowsAsync<NotFoundException>(() => controller.GetCards(otherUsersSet.Id));
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetCards(4));
+        }
+
+        [Fact]
+        public async Task AddCard_DuplicateTerm_LetsValidationBubbleToMiddleware()
+        {
+            _sets.AddCardAsync(UserId, 4, "labas", "hello").ThrowsAsync(new ValidationException("Term already exists."));
+
+            await Assert.ThrowsAsync<ValidationException>(() => _controller.AddCard(4, new CreateCard("labas", "hello")));
+        }
+
+
+
+        [Theory]
+        [InlineData(nameof(SetsController.GetAllSets), "GET", "api/sets")]
+        [InlineData(nameof(SetsController.GetSet), "GET", "api/sets/{setId}")]
+        [InlineData(nameof(SetsController.AddSet), "POST", "api/sets")]
+        [InlineData(nameof(SetsController.DeleteSet), "DELETE", "api/sets/{setId}")]
+        [InlineData(nameof(SetsController.DeleteCard), "DELETE", "api/sets/{setId}/cards/{cardId}")]
+        [InlineData(nameof(SetsController.AddCard), "POST", "api/sets/{setId}/cards")]
+        [InlineData(nameof(SetsController.GetCards), "GET", "api/sets/{setId}/cards")]
+        [InlineData(nameof(SetsController.DownloadSet), "GET", "api/sets/{setId}/download/{fileType}")]
+        public void RouteAttributes_EachAction_MapToExpectedVerbAndRoute(string action, string verb, string route)
+        {
+            Assert.Equal((verb, route), ControllerTestHelpers.RouteOf<SetsController>(action));
+        }
+
+        [Theory]
+        [InlineData(nameof(SetsController.GetAllSets))]
+        [InlineData(nameof(SetsController.GetSet))]
+        [InlineData(nameof(SetsController.AddSet))]
+        [InlineData(nameof(SetsController.DeleteSet))]
+        [InlineData(nameof(SetsController.DeleteCard))]
+        [InlineData(nameof(SetsController.AddCard))]
+        [InlineData(nameof(SetsController.GetCards))]
+        [InlineData(nameof(SetsController.DownloadSet))]
+        public void AuthorizeAttributes_EachAction_RequireLogin(string action)
+        {
+            Assert.True(ControllerTestHelpers.RequiresAuthorization<SetsController>(action));
         }
     }
 }

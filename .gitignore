@@ -28,6 +28,10 @@ server/appsettings.Local.json
 server.Tests/bin
 server.Tests/obj
 
+## --- AutoGen Test Results ---
+server.Tests/TestResults/**
+server.Tests/coverage-report/**
+
 # --- OS-specific junk ---
 .DS_Store
 Thumbs.db

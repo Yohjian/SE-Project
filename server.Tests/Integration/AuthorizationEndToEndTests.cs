@@ -39,7 +39,7 @@ namespace QuattroLingo.Tests.Integration
         private static void AssertProblemJson(HttpResponseMessage response) =>
             Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
 
-        // ---------- [Authorize] ----------
+
 
         [Fact]
         public async Task ProtectedEndpoint_WithoutToken_Returns401()
@@ -70,7 +70,7 @@ namespace QuattroLingo.Tests.Integration
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        // ---------- Register / login through the real pipeline ----------
+
 
         [Fact]
         public async Task Login_ReturnsTokenAndUserRole()
@@ -134,7 +134,7 @@ namespace QuattroLingo.Tests.Integration
             AssertProblemJson(response);
         }
 
-        // ---------- Sets: ownership through controller -> service -> repository -> DB ----------
+
 
         [Fact]
         public async Task Sets_OwnerCanCreateAndListASet()

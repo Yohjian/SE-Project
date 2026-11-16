@@ -5,10 +5,10 @@ using QuattroLingo.DTOs.Request;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
+using QuattroLingo.Helpers;
 using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Repositories;
 using QuattroLingo.Services;
-using QuattroLingo.Helpers;
 
 namespace QuattroLingo.Tests.Services
 {
@@ -85,7 +85,7 @@ namespace QuattroLingo.Tests.Services
             return (new RoomService(repo, QuizRepoWith()), repo);
         }
 
-        // ---------- CreateRoom ----------
+
 
         [Fact]
         public async Task CreateRoom_OwnQuiz_CreatesPublicWaitingRoom()
@@ -175,7 +175,7 @@ namespace QuattroLingo.Tests.Services
                 new CreateRoom { QuizId = 1, RoomVisibility = (Visibility)99 }, "user-1"));
         }
 
-        // ---------- Lookup ----------
+
 
         [Fact]
         public async Task GetPublicRooms_ExcludesPrivateRooms()
@@ -219,7 +219,7 @@ namespace QuattroLingo.Tests.Services
             await Assert.ThrowsAsync<NotFoundException>(() => service.GetByCodeAsync(code));
         }
 
-        // ---------- Join ----------
+
 
         [Fact]
         public async Task JoinRoom_ValidRequest_AddsTrimmedParticipantAndCountsCorrectly()
@@ -354,7 +354,7 @@ namespace QuattroLingo.Tests.Services
             Assert.NotEqual(anna.PlayerToken, bob.PlayerToken);
         }
 
-        // ---------- Deleting ----------
+
 
         private static (RoomService Service, FakeRoomRepository Repo) RoomWithStatus(RoomStatus status)
         {
@@ -414,89 +414,6 @@ namespace QuattroLingo.Tests.Services
 
             await Assert.ThrowsAsync<NotFoundException>(
                 () => service.DeleteRoomAsync(code, "host-1"));
-        }
-
-        private static AppDbContext NewContext() => new(
-    new DbContextOptionsBuilder<AppDbContext>()
-        .UseInMemoryDatabase(Guid.NewGuid().ToString())
-        .Options);
-
-        [Fact]
-        public async Task SetStatus_UpdatesStatusAndTimestamps()
-        {
-            await using var context = NewContext();
-            context.Rooms.Add(new Room { Id = 1, QuizId = 1, HostId = "h", JoinCode = "111111" });
-            await context.SaveChangesAsync();
-            var start = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
-
-            await new RoomRepository(context).SetStatusAsync(1, RoomStatus.InProgress, startedAt: start);
-
-            var room = await context.Rooms.SingleAsync();
-            Assert.Equal(RoomStatus.InProgress, room.Status);
-            Assert.Equal(start, room.StartedAt);
-            Assert.Null(room.FinishedAt);
-        }
-
-        [Fact]
-        public async Task SaveScores_WritesScoresOnlyForTheRoomsParticipants()
-        {
-            await using var context = NewContext();
-            context.Participants.AddRange(
-                new Participant { Id = 1, RoomId = 1, DisplayName = "Anna" },
-                new Participant { Id = 2, RoomId = 2, DisplayName = "Other room" });
-            await context.SaveChangesAsync();
-
-            await new RoomRepository(context).SaveScoresAsync(1, new Dictionary<int, int> { [1] = 150, [2] = 999 });
-
-            Assert.Equal(150, (await context.Participants.FindAsync(1))!.Score);
-            Assert.Equal(0, (await context.Participants.FindAsync(2))!.Score);
-        }
-
-        [Fact]
-        public async Task RemoveParticipant_DeletesIt()
-        {
-            await using var context = NewContext();
-            context.Participants.Add(new Participant { Id = 1, RoomId = 1, DisplayName = "Anna" });
-            await context.SaveChangesAsync();
-
-            await new RoomRepository(context).RemoveParticipantAsync(1);
-
-            Assert.Empty(context.Participants);
-        }
-
-        [Fact]
-        public async Task CancelWaitingRoomsOlderThan_OnlyCancelsOldWaitingRooms()
-        {
-            await using var context = NewContext();
-            var now = DateTime.UtcNow;
-            context.Rooms.AddRange(
-                new Room { Id = 1, QuizId = 1, HostId = "h", JoinCode = "111111", CreatedAt = now.AddHours(-2) },
-                new Room { Id = 2, QuizId = 1, HostId = "h", JoinCode = "222222", CreatedAt = now },
-                new Room { Id = 3, QuizId = 1, HostId = "h", JoinCode = "333333", CreatedAt = now.AddHours(-2), Status = RoomStatus.InProgress });
-            await context.SaveChangesAsync();
-
-            var count = await new RoomRepository(context).CancelWaitingRoomsOlderThanAsync(now.AddHours(-1));
-
-            Assert.Equal(1, count);
-            Assert.Equal(RoomStatus.Cancelled, (await context.Rooms.FindAsync(1))!.Status);
-            Assert.Equal(RoomStatus.Waiting, (await context.Rooms.FindAsync(2))!.Status);
-            Assert.Equal(RoomStatus.InProgress, (await context.Rooms.FindAsync(3))!.Status);
-        }
-
-        [Fact]
-        public async Task CancelInProgressRooms_CancelsOnlyInProgress()
-        {
-            await using var context = NewContext();
-            context.Rooms.AddRange(
-                new Room { Id = 1, QuizId = 1, HostId = "h", JoinCode = "111111", Status = RoomStatus.InProgress },
-                new Room { Id = 2, QuizId = 1, HostId = "h", JoinCode = "222222", Status = RoomStatus.Waiting });
-            await context.SaveChangesAsync();
-
-            var count = await new RoomRepository(context).CancelInProgressRoomsAsync();
-
-            Assert.Equal(1, count);
-            Assert.Equal(RoomStatus.Cancelled, (await context.Rooms.FindAsync(1))!.Status);
-            Assert.Equal(RoomStatus.Waiting, (await context.Rooms.FindAsync(2))!.Status);
         }
     }
 }
