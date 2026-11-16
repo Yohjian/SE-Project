@@ -11,6 +11,12 @@ import {
     QuizSummary,
     SetSummary,
     UpdateQuizRequest,
+    PracticeQuizSummary,
+    PracticeFilters,
+    PracticeQuizResponse,
+    PracticeAnswerRequest,
+    PracticeAnswerResponse,
+    PracticeFiltersResponse,
 } from "./types";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -118,4 +124,20 @@ export const quizApi = {
         ),
     deleteAnswerOption: (answerOptionId: number) =>
         client.delete(`/quizzes/answers/${answerOptionId}`),
+};
+
+export const practiceApi = {
+  getQuizzes: (filters?: PracticeFilters) =>
+    client.get<PracticeQuizSummary[]>("/practice/quizzes", { params: filters }),
+
+  getQuiz: (id: number) =>
+  client.get<PracticeQuizResponse>(`/practice/quizzes/${id}`),
+  
+  checkAnswer: (request: PracticeAnswerRequest) =>
+    client.post<PracticeAnswerResponse>(
+      "/practice/answer",
+      request,
+    ),
+  getFilters: () =>
+    client.get<PracticeFiltersResponse>("/practice/filters"),
 };

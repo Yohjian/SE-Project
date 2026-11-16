@@ -101,6 +101,7 @@ builder.Services.AddScoped<ISetService, SetService>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<IPracticeService, PracticeService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 
 builder.Services.AddSignalR(options => options.AddFilter<ExceptionHubFilter>());
@@ -132,7 +133,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     if (db.Database.IsRelational())
+    {
         db.Database.Migrate();
+        await PracticeDataSeeder.SeedAsync(db);
+    }
 }
 
 // Live games die with the process: anything left InProgress can never finish.

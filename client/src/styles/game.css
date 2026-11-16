@@ -46,4 +46,32 @@
 .board__name { flex: 1; font-weight: 700; }
 .board__gain { color: var(--color-success); font-weight: 700; }
 
+.practice-page-play .page-title {
+    margin-top: var(--space-6);
+}
+
+.practice-page-play .play__options {
+    margin-bottom: var(--space-6);
+}
+
+.practice-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.practice-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-4);
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
 @media (max-width: 560px) { .play__options { grid-template-columns: 1fr; } }
+

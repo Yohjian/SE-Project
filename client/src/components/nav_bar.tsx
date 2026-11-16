@@ -26,6 +26,7 @@ export default function Layout() {
                 <NavLink to="/sets">My Sets</NavLink>
                 <NavLink to="/quizzes">Quizzes</NavLink>
                 <NavLink to="/rooms">Rooms</NavLink>
+                <NavLink to="/practice">Practice</NavLink>
               </div>
             )}
           </div>

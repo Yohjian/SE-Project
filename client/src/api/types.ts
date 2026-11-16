@@ -59,10 +59,69 @@ export interface CreateQuizRequest {
   title: string;
   description: string | null;
   questions: QuestionRequest[];
+  kind?: number;
+  languageId?: number | null;
+  categoryId?: number | null;
 }
 
 export interface UpdateQuizRequest {
   title: string;
   description: string | null;
   questions: QuestionRequest[];
+}
+
+export interface PracticeQuizSummary {
+  id: number;
+  title: string;
+  description: string | null;
+  categoryId: number | null;
+  languageId: number | null;
+  difficulty: number | null;
+  questionCount: number;
+}
+
+export interface PracticeFilters {
+  category?: number;
+  language?: number;
+  difficulty?: number;
+}
+
+export interface PracticeAnswerOptionResponse {
+  id: number;
+  text: string;
+}
+
+export interface PracticeQuestionResponse {
+  id: number;
+  text: string;
+  orderIndex: number;
+  answerOptions: PracticeAnswerOptionResponse[];
+}
+
+export interface PracticeQuizResponse {
+  id: number;
+  title: string;
+  description: string | null;
+  questions: PracticeQuestionResponse[];
+}
+
+export interface PracticeAnswerRequest {
+  quizId: number;
+  questionId: number;
+  answerOptionId: number;
+}
+
+export interface PracticeAnswerResponse {
+  isCorrect: boolean;
+  correctAnswerOptionId: number;
+}
+
+export interface PracticeFilterOption {
+  id: number;
+  name: string;
+}
+
+export interface PracticeFiltersResponse {
+  languages: PracticeFilterOption[];
+  categories: PracticeFilterOption[];
 }
