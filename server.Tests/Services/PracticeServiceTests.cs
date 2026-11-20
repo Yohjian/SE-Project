@@ -1,3 +1,4 @@
+
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Data;
@@ -10,45 +11,94 @@ namespace QuattroLingo.Tests.Services
 {
     public class PracticeServiceTests : IDisposable
     {
+        private const string TestUserId = "user-1";
+        private const string OtherUserId = "user-2";
+        private const string SeedUserId = "seed-user";
+
         private readonly AppDbContext _context;
         private readonly PracticeService _service;
 
-        private const string TestUserId = "user-1";
-
         public PracticeServiceTests()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-
-            _context = new AppDbContext(options);
+            _context = TestDb.Create();
             _service = new PracticeService(_context);
 
+            _context.Users.AddRange(
+                new ApplicationUser
+                {
+                    Id = TestUserId,
+                    UserName = "test-user",
+                    Email = "test@example.com"
+                },
+                new ApplicationUser
+                {
+                    Id = OtherUserId,
+                    UserName = "other-user",
+                    Email = "other@example.com"
+                },
+                new ApplicationUser
+                {
+                    Id = SeedUserId,
+                    UserName = "practice-seed",
+                    Email = "seed@example.com"
+                }
+            );
+
             _context.Quizzes.AddRange(
-                CreateQuiz(1, QuizKind.Practice, 1, 1, QuizDifficulty.Easy),
-                CreateQuiz(2, QuizKind.Practice, 2, 1, QuizDifficulty.Hard),
-                CreateQuiz(3, QuizKind.Custom, null, null, null)
+                CreateQuiz(
+                    1, TestUserId, QuizKind.Practice,
+                    1, 1, QuizDifficulty.Easy),
+
+                CreateQuiz(
+                    2, TestUserId, QuizKind.Practice,
+                    2, 1, QuizDifficulty.Hard),
+
+                CreateQuiz(
+                    3, TestUserId, QuizKind.Custom,
+                    null, null, null),
+
+                CreateQuiz(
+                    4, OtherUserId, QuizKind.Practice,
+                    1, 1, QuizDifficulty.Easy),
+
+                CreateQuiz(
+                    5, SeedUserId, QuizKind.Practice,
+                    1, 1, QuizDifficulty.Easy,
+                    isPublic: true),
+
+                CreateQuiz(
+                    6, SeedUserId, QuizKind.Practice,
+                    1, 1, QuizDifficulty.Easy),
+
+                CreateQuiz(
+                    7, OtherUserId, QuizKind.Practice,
+                    1, 1, QuizDifficulty.Easy,
+                    isPublic: true)
             );
 
             _context.SaveChanges();
+            _context.ChangeTracker.Clear();
         }
 
         private static Quiz CreateQuiz(
             int id,
+            string ownerId,
             QuizKind kind,
             int? categoryId,
             int? languageId,
-            QuizDifficulty? difficulty)
+            QuizDifficulty? difficulty,
+            bool isPublic = false)
         {
             return new Quiz
             {
                 Id = id,
-                OwnerId = "user-1",
+                OwnerId = ownerId,
                 Title = $"Quiz {id}",
                 Kind = kind,
                 CategoryId = categoryId,
                 LanguageId = languageId,
                 Difficulty = difficulty,
+                IsPublic = isPublic,
                 Questions =
                 [
                     new Question
@@ -79,24 +129,38 @@ namespace QuattroLingo.Tests.Services
         }
 
         [Fact]
-        public async Task GetQuizzes_ReturnsOnlyPracticeQuizzes()
+        public async Task GetQuizzes_ReturnsOwnedAndPublicSeedQuizzes()
         {
             var result = await _service.GetQuizzesAsync(
                 TestUserId, null, null, null);
 
-            Assert.Equal(2, result.Count);
+            Assert.Equal(3, result.Count);
+            Assert.Contains(result, q => q.Id == 1);
+            Assert.Contains(result, q => q.Id == 2);
+            Assert.Contains(result, q => q.Id == 5);
+        }
+
+        [Fact]
+        public async Task GetQuizzes_ExcludesInaccessibleQuizzes()
+        {
+            var result = await _service.GetQuizzesAsync(
+                TestUserId, null, null, null);
+
             Assert.DoesNotContain(result, q => q.Id == 3);
+            Assert.DoesNotContain(result, q => q.Id == 4);
+            Assert.DoesNotContain(result, q => q.Id == 6);
+            Assert.DoesNotContain(result, q => q.Id == 7);
         }
 
         [Fact]
         public async Task GetQuizzes_FiltersByCategory()
         {
             var result = await _service.GetQuizzesAsync(
-                TestUserId, 1, null, null);
+                TestUserId, 2, null, null);
 
             var quiz = Assert.Single(result);
 
-            Assert.Equal(1, quiz.Id);
+            Assert.Equal(2, quiz.Id);
         }
 
         [Fact]
@@ -113,7 +177,8 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task GetQuiz_DoesNotRevealCorrectAnswers()
         {
-            var result = await _service.GetQuizAsync(1, TestUserId);
+            var result = await _service.GetQuizAsync(
+                1, TestUserId);
 
             var question = Assert.Single(result.Questions);
 
@@ -125,11 +190,28 @@ namespace QuattroLingo.Tests.Services
             Assert.DoesNotContain("CorrectAnswerOptionId", json);
         }
 
-        [Fact]
-        public async Task GetQuiz_CustomQuiz_ThrowsNotFound()
+        [Theory]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(6)]
+        [InlineData(7)]
+        [InlineData(999)]
+        public async Task GetQuiz_InaccessibleQuiz_ThrowsNotFound(
+            int quizId)
         {
             await Assert.ThrowsAsync<NotFoundException>(
-                () => _service.GetQuizAsync(3, TestUserId));
+                () => _service.GetQuizAsync(
+                    quizId, TestUserId));
+        }
+
+        [Fact]
+        public async Task GetQuiz_PublicSeedQuiz_ReturnsQuiz()
+        {
+            var result = await _service.GetQuizAsync(
+                5, TestUserId);
+
+            Assert.Equal(5, result.Id);
+            Assert.Single(result.Questions);
         }
 
         [Fact]
@@ -138,7 +220,8 @@ namespace QuattroLingo.Tests.Services
             var request = new PracticeAnswerRequest(
                 1, 10, 101);
 
-            var result = await _service.CheckAnswerAsync(request, TestUserId);
+            var result = await _service.CheckAnswerAsync(
+                request, TestUserId);
 
             Assert.True(result.IsCorrect);
             Assert.Equal(101, result.CorrectAnswerOptionId);
@@ -150,7 +233,8 @@ namespace QuattroLingo.Tests.Services
             var request = new PracticeAnswerRequest(
                 1, 10, 102);
 
-            var result = await _service.CheckAnswerAsync(request, TestUserId);
+            var result = await _service.CheckAnswerAsync(
+                request, TestUserId);
 
             Assert.False(result.IsCorrect);
             Assert.Equal(101, result.CorrectAnswerOptionId);
@@ -163,7 +247,8 @@ namespace QuattroLingo.Tests.Services
                 1, 10, 201);
 
             await Assert.ThrowsAsync<ValidationException>(
-                () => _service.CheckAnswerAsync(request, TestUserId));
+                () => _service.CheckAnswerAsync(
+                    request, TestUserId));
         }
 
         [Fact]
@@ -173,7 +258,32 @@ namespace QuattroLingo.Tests.Services
                 2, 10, 101);
 
             await Assert.ThrowsAsync<NotFoundException>(
-                () => _service.CheckAnswerAsync(request, TestUserId));
+                () => _service.CheckAnswerAsync(
+                    request, TestUserId));
+        }
+
+        [Fact]
+        public async Task CheckAnswer_InaccessibleQuiz_ThrowsNotFound()
+        {
+            var request = new PracticeAnswerRequest(
+                4, 40, 401);
+
+            await Assert.ThrowsAsync<NotFoundException>(
+                () => _service.CheckAnswerAsync(
+                    request, TestUserId));
+        }
+
+        [Fact]
+        public async Task CheckAnswer_PublicSeedQuiz_ReturnsCorrectResult()
+        {
+            var request = new PracticeAnswerRequest(
+                5, 50, 501);
+
+            var result = await _service.CheckAnswerAsync(
+                request, TestUserId);
+
+            Assert.True(result.IsCorrect);
+            Assert.Equal(501, result.CorrectAnswerOptionId);
         }
 
         public void Dispose()
