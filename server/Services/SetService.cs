@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using QuattroLingo.Data;
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
@@ -8,7 +10,7 @@ using QuattroLingo.Interfaces.Services;
 
 namespace QuattroLingo.Services
 {
-    public class SetService(ISetRepository sets) : ISetService
+    public class SetService(ISetRepository sets, AppDbContext db) : ISetService
     {
         private const string SetNotFound = "Set not found.";
 
@@ -31,18 +33,32 @@ namespace QuattroLingo.Services
                 set.Cards.Select(c => new CardResponse(c.Id, c.Term, c.Definition)).ToList());
         }
 
-        public async Task<SetSummary> CreateAsync(string userId, string name)
+        public async Task<SetSummary> CreateAsync(
+            string userId,
+            string name,
+            int folderId)
         {
+            var folderExists = await db.SetFolders.AnyAsync(f =>
+                f.Id == folderId && f.UserId == userId);
+
+            if (!folderExists)
+                throw new NotFoundException("Folder not found.");
+
             var set = await sets.AddAsync(new VocabularySet
             {
                 UserId = userId,
                 Name = name,
                 CreatedAt = DateTime.UtcNow,
-                FolderId = null,
+                FolderId = folderId,
                 Cards = []
             });
 
-            return new SetSummary(set.Id, set.Name, 0, set.CreatedAt, set.FolderId);
+            return new SetSummary(
+                set.Id,
+                set.Name,
+                0,
+                set.CreatedAt,
+                set.FolderId);
         }
 
         public async Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition)
