@@ -1,17 +1,31 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+
+import {
+    useState,
+    useEffect,
+    useRef,
+    useMemo,
+    useCallback,
+} from "react";
 import { createPortal } from "react-dom";
-import Tree from "../components/tree";
-import { cardApi, setApi } from "../api/client";
 import axios from "axios";
 
-import "../styles/sets.css";
+import { cardApi, setApi, setFolderApi } from "../api/client";
+import type {
+    CardResponse,
+    SetFolder,
+    SetSummary,
+} from "../api/types";
 import { useNotification } from "../components/notification";
-import { CardResponse, SetSummary } from "../api/types";
 
-function filenameFromHeader(header: string | undefined, fallback: string) {
+import "../styles/sets.css";
+import "../styles/tree.css";
+
+function filenameFromHeader(
+    header: string | undefined,
+    fallback: string,
+) {
     if (!header) return fallback;
 
-    // ASP.NET sends: attachment; filename=Animals.json; filename*=UTF-8''Animals.json
     const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header);
     if (utf8) return decodeURIComponent(utf8[1]);
 
@@ -22,21 +36,57 @@ function filenameFromHeader(header: string | undefined, fallback: string) {
 function downloadBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = filename;
     a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 0); // let the browser start the download first
+
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function errorMessage(error: unknown, fallback: string) {
+    if (!axios.isAxiosError(error)) return fallback;
+
+    const data = error.response?.data;
+
+    if (typeof data === "string") return data;
+
+    return data?.detail ?? data?.title ?? fallback;
 }
 
 export default function Sets() {
-    const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [sets, setSets] = useState<SetSummary[]>([]);
+    const [folders, setFolders] = useState<SetFolder[]>([]);
+
+    const [selectedFolderId, setSelectedFolderId] =
+        useState<number | null>(null);
+    const [selectedSetId, setSelectedSetId] =
+        useState<number | null>(null);
+
+    const [expandedFolders, setExpandedFolders] =
+        useState<Set<number>>(new Set());
+
+    const [newFolderName, setNewFolderName] = useState("");
+    const [isAddingFolder, setIsAddingFolder] = useState(false);
+    const [isSavingFolder, setIsSavingFolder] = useState(false);
+
+    const [renamingFolder, setRenamingFolder] = useState<SetFolder | null>(null);
+    const [renameValue, setRenameValue] = useState("");
+    const [isRenamingFolder, setIsRenamingFolder] = useState(false);
+
+    const [newSetName, setNewSetName] = useState("");
+    const [isAddingSet, setIsAddingSet] = useState(false);
+    const [isSavingSet, setIsSavingSet] = useState(false);
+    const [newSetFolderId, setNewSetFolderId] = useState<number | null>(null);
+
+    const [viewMode, setViewMode] =
+        useState<"grid" | "list">("grid");
+
     const [search, setSearch] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const [newTerm, setNewTerm] = useState("");
     const [newDefinition, setNewDefinition] = useState("");
     const [isSaving, setIsSaving] = useState(false);
-    const [sets, setSets] = useState<SetSummary[]>([]);
     const [cards, setCards] = useState<CardResponse[]>([]);
     const [showExportMenu, setShowExportMenu] = useState(false);
 
@@ -48,48 +98,325 @@ export default function Sets() {
     const filteredCards = useMemo(
         () =>
             cards.filter(
-                (c) =>
-                    c.term.toLowerCase().includes(search.toLowerCase()) ||
-                    c.definition.toLowerCase().includes(search.toLowerCase()),
+                (card) =>
+                    card.term
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                    card.definition
+                        .toLowerCase()
+                        .includes(search.toLowerCase()),
             ),
         [cards, search],
     );
+
+    const selectedSet = useMemo(
+        () => sets.find((set) => set.id === selectedSetId),
+        [sets, selectedSetId],
+    );
+
+    const setsInFolder = (folderId: number) => {
+        return sets.filter((set) => set.folderId === folderId);
+    };
 
     useEffect(() => {
         if (isAdding) termRef.current?.focus();
     }, [isAdding]);
 
     useEffect(() => {
-        const handler = (e: MouseEvent) => {
+        const handler = (event: MouseEvent) => {
             if (
                 exportRef.current &&
-                !exportRef.current.contains(e.target as Node)
-            )
+                !exportRef.current.contains(event.target as Node)
+            ) {
                 setShowExportMenu(false);
+            }
         };
+
         document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
+
+        return () =>
+            document.removeEventListener("mousedown", handler);
     }, []);
 
     useEffect(() => {
-        setApi
-            .getAll()
-            .then((res) => setSets(res.data))
-            .catch(() => showNotification("Failed to load sets."));
-    }, []);
+        let active = true;
+
+        Promise.all([setApi.getAll(), setFolderApi.getAll()])
+            .then(([setResponse, folderResponse]) => {
+                if (!active) return;
+
+                setSets(setResponse.data);
+                setFolders(folderResponse.data);
+            })
+            .catch(() => {
+                if (active)
+                    showNotification("Failed to load sets or folders.");
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [showNotification]);
 
     useEffect(() => {
-        if (sets.length > 0 && selectedSetId === null)
-            setSelectedSetId(sets[0].id);
-    }, [sets]);
+        if (selectedSetId === null) {
+            setCards([]);
+            return;
+        }
 
-    useEffect(() => {
-        if (selectedSetId === null) return;
+        let active = true;
+        setCards([]);
+
         setApi
             .getCards(selectedSetId)
-            .then((res) => setCards(res.data))
-            .catch(() => showNotification("Failed to load cards."));
-    }, [selectedSetId]);
+            .then((res) => {
+                if (active) setCards(res.data);
+            })
+            .catch(() => {
+                if (active)
+                    showNotification("Failed to load cards.");
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [selectedSetId, showNotification]);
+
+    const selectFolder = (folderId: number | null) => {
+        setSelectedFolderId(folderId);
+        setSelectedSetId(null);
+        setIsAdding(false);
+        setSearch("");
+    };
+
+    const toggleFolder = (folderId: number) => {
+        setExpandedFolders((previous) => {
+            const next = new Set(previous);
+
+            if (next.has(folderId)) {
+                next.delete(folderId);
+            } else {
+                next.add(folderId);
+            }
+
+            return next;
+        });
+    };
+
+    const selectSet = (set: SetSummary) => {
+        setSelectedSetId(set.id);
+        setSelectedFolderId(set.folderId ?? null);
+        setIsAdding(false);
+        setSearch("");
+    };
+
+    const handleCreateFolder = async () => {
+        const name = newFolderName.trim();
+
+        if (!name || isSavingFolder) return;
+
+        setIsSavingFolder(true);
+
+        try {
+            const response = await setFolderApi.create(name);
+
+            setFolders((previous) => [
+                ...previous,
+                response.data,
+            ]);
+
+            setExpandedFolders((previous) => {
+                const next = new Set(previous);
+                next.add(response.data.id);
+                return next;
+            });
+
+            selectFolder(response.data.id);
+            setNewFolderName("");
+            setIsAddingFolder(false);
+
+            showNotification("Folder created.", "success");
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to create folder."),
+            );
+        } finally {
+            setIsSavingFolder(false);
+        }
+    };
+
+    const handleRenameFolder = async () => {
+        if (!renamingFolder || isRenamingFolder) return;
+
+        const name = renameValue.trim();
+
+        if (!name) {
+            showNotification("Folder name cannot be empty.");
+            return;
+        }
+
+        if (name === renamingFolder.name) {
+            setRenamingFolder(null);
+            return;
+        }
+
+        setIsRenamingFolder(true);
+
+        try {
+            const response = await setFolderApi.rename(
+                renamingFolder.id,
+                name,
+            );
+
+            setFolders((previous) =>
+                previous.map((item) =>
+                    item.id === renamingFolder.id ? response.data : item,
+                ),
+            );
+
+            setRenamingFolder(null);
+            showNotification("Folder renamed.", "success");
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to rename folder."),
+            );
+        } finally {
+            setIsRenamingFolder(false);
+        }
+    };
+
+    const handleDeleteFolder = async (folder: SetFolder) => {
+        try {
+            await setFolderApi.delete(folder.id);
+
+            setFolders((previous) =>
+                previous.filter((item) => item.id !== folder.id),
+            );
+
+            const deletedSetIds = new Set(
+                sets
+                    .filter((set) => set.folderId === folder.id)
+                    .map((set) => set.id),
+            );
+
+            setSets((previous) =>
+                previous.filter((set) => !deletedSetIds.has(set.id)),
+            );
+
+            setExpandedFolders((previous) => {
+                const next = new Set(previous);
+                next.delete(folder.id);
+                return next;
+            });
+
+            if (
+                selectedFolderId === folder.id ||
+                (selectedSetId !== null && deletedSetIds.has(selectedSetId))
+            ) {
+                setSelectedFolderId(null);
+                setSelectedSetId(null);
+                setCards([]);
+            }
+
+            showNotification(
+                "Folder and all its sets and cards deleted.",
+                "success",
+            );
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to delete folder."),
+            );
+        }
+    };
+
+    const handleAddSet = async () => {
+        const name = newSetName.trim();
+
+        if (!name || isSavingSet) return;
+
+        if (newSetFolderId === null) {
+            showNotification("Select a folder before creating a set.");
+            return;
+        }
+
+        setIsSavingSet(true);
+
+        try {
+            const response = await setApi.create(name, newSetFolderId);
+            const created = response.data;
+
+            setSets((previous) => [...previous, created]);
+
+            setSelectedFolderId(newSetFolderId);
+            setSelectedSetId(created.id);
+
+            setExpandedFolders((previous) => {
+                const next = new Set(previous);
+                next.add(newSetFolderId);
+                return next;
+            });
+
+            setIsAddingSet(false);
+            setNewSetName("");
+            setNewSetFolderId(null);
+
+            showNotification("Set created.", "success");
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to create set."),
+            );
+        } finally {
+            setIsSavingSet(false);
+        }
+    };
+
+    const handleDeleteSet = async (setId: number) => {
+        if (!confirm("Delete this set and all its cards?")) return;
+
+        try {
+            await setApi.delete(setId);
+
+            setSets((previous) =>
+                previous.filter((set) => set.id !== setId),
+            );
+
+            if (selectedSetId === setId) {
+                setSelectedSetId(null);
+                setCards([]);
+            }
+
+            showNotification("Set deleted.", "success");
+        } catch {
+            showNotification("Failed to delete set.");
+        }
+    };
+
+    const handleMoveSet = async (
+        setId: number,
+        folderId: number | null,
+    ) => {
+        try {
+            await setApi.moveToFolder(setId, folderId);
+
+            setSets((previous) =>
+                previous.map((set) =>
+                    set.id === setId
+                        ? { ...set, folderId }
+                        : set,
+                ),
+            );
+
+            if (selectedSetId === setId) {
+                setSelectedFolderId(folderId);
+            }
+
+            showNotification("Set moved.", "success");
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to move set."),
+            );
+        }
+    };
 
     const handleCancel = useCallback(() => {
         setIsAdding(false);
@@ -98,80 +425,79 @@ export default function Sets() {
     }, []);
 
     const handleSave = useCallback(async () => {
-        if (!newTerm.trim()) return showNotification("A term is needed!");
+        if (!newTerm.trim())
+            return showNotification("A term is needed!");
+
         if (!newDefinition.trim())
             return showNotification("A definition is needed!");
-        if (selectedSetId === null) return showNotification("No set selected.");
+
+        if (selectedSetId === null)
+            return showNotification("No set selected.");
 
         setIsSaving(true);
+
         try {
-            const res = await cardApi.add(
+            const response = await cardApi.add(
                 selectedSetId,
                 newTerm,
                 newDefinition,
             );
-            setCards((prev) => [...prev, res.data]);
+
+            setCards((previous) => [
+                ...previous,
+                response.data,
+            ]);
+
+            setSets((previous) =>
+                previous.map((set) =>
+                    set.id === selectedSetId
+                        ? { ...set, cardCount: set.cardCount + 1 }
+                        : set,
+                ),
+            );
+
             showNotification("Card added.", "success");
             handleCancel();
-        } catch (err: unknown) {
-            const message = axios.isAxiosError(err)
-                ? typeof err.response?.data === "string"
-                    ? err.response.data
-                    : (err.response?.data?.detail ??
-                      err.response?.data?.title ??
-                      "Failed to add card.")
-                : "Failed to add card.";
-            showNotification(message);
+        } catch (error) {
+            showNotification(
+                errorMessage(error, "Failed to add card."),
+            );
         } finally {
             setIsSaving(false);
         }
-    }, [newTerm, newDefinition, selectedSetId, handleCancel, showNotification]);
-
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") handleSave();
-            if (e.key === "Escape") handleCancel();
-        },
-        [handleSave, handleCancel],
-    );
-
-    const handleAddSet = useCallback(
-        async (name: string) => {
-            try {
-                const res = await setApi.create(name);
-                setSets((prev) => [...prev, res.data]);
-                setSelectedSetId(res.data.id);
-            } catch {
-                showNotification("Failed to create set.");
-            }
-        },
-        [showNotification],
-    );
-
-    const handleDeleteSet = useCallback(
-        async (setId: number) => {
-            if (!confirm("Delete this set and all its cards?")) return;
-            try {
-                await setApi.delete(setId);
-                setSets((prev) => prev.filter((s) => s.id !== setId));
-                if (selectedSetId === setId) {
-                    setCards([]);
-                    setSelectedSetId(null);
-                }
-                showNotification("Set deleted.", "success");
-            } catch {
-                showNotification("Failed to delete set.");
-            }
-        },
-        [selectedSetId, showNotification],
-    );
+    }, [
+        newTerm,
+        newDefinition,
+        selectedSetId,
+        handleCancel,
+        showNotification,
+    ]);
 
     const handleDeleteCard = useCallback(
         async (cardId: number) => {
             if (selectedSetId === null) return;
+
             try {
                 await cardApi.delete(selectedSetId, cardId);
-                setCards((prev) => prev.filter((c) => c.id !== cardId));
+
+                setCards((previous) =>
+                    previous.filter((card) => card.id !== cardId),
+                );
+
+                setSets((previous) =>
+                    previous.map((set) =>
+                        set.id === selectedSetId
+                            ? {
+                                  ...set,
+                                  cardCount: Math.max(
+                                      0,
+                                      set.cardCount - 1,
+                                  ),
+                              }
+                            : set,
+                    ),
+                );
+
                 showNotification("Card deleted.", "success");
             } catch {
                 showNotification("Failed to delete card.");
@@ -182,14 +508,20 @@ export default function Sets() {
 
     const handleExport = useCallback(
         async (format: "json" | "csv") => {
-            if (!selectedSetId) return;
+            if (selectedSetId === null) return;
+
             try {
-                const res = await setApi.download(selectedSetId, format);
+                const response = await setApi.download(
+                    selectedSetId,
+                    format,
+                );
+
                 const filename = filenameFromHeader(
-                    res.headers["content-disposition"],
+                    response.headers["content-disposition"],
                     `set.${format}`,
                 );
-                downloadBlob(res.data, filename);
+
+                downloadBlob(response.data, filename);
             } catch {
                 showNotification("Failed to download set.");
             } finally {
@@ -201,23 +533,364 @@ export default function Sets() {
 
     const overlay = isAdding
         ? createPortal(
-              <div className="sets-overlay" onClick={handleCancel} />,
+              <div
+                  className="sets-overlay"
+                  onClick={handleCancel}
+              />,
               document.body,
           )
         : null;
 
+    const renderSet = (set: SetSummary) => (
+        <li
+            key={set.id}
+            className={`sidebar-item ${
+                selectedSetId === set.id ? "active" : ""
+            }`}
+        >
+            <button
+                type="button"
+                className="sidebar-item-name"
+                onClick={() => selectSet(set)}
+                aria-current={
+                    selectedSetId === set.id ? "true" : undefined
+                }
+            >
+                {set.name}
+            </button>
+
+            <button
+                type="button"
+                className="sidebar-item-delete"
+                onClick={() => handleDeleteSet(set.id)}
+                title={`Delete ${set.name}`}
+                aria-label={`Delete ${set.name}`}
+            >
+                ×
+            </button>
+        </li>
+    );
+
     return (
         <>
             {overlay}
+            {isAddingSet &&
+    createPortal(
+        <div
+            className="folder-modal-overlay"
+            onMouseDown={(event) => {
+                if (
+                    event.target === event.currentTarget &&
+                    !isSavingSet
+                ) {
+                    setIsAddingSet(false);
+                }
+            }}
+        >
+            <div
+                className="folder-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-set-title"
+            >
+                <h2 id="create-set-title">Create new set</h2>
+
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        void handleAddSet();
+                    }}
+                >
+                    <label htmlFor="new-set-name">
+                        Set name
+                    </label>
+
+                    <input
+                        id="new-set-name"
+                        autoFocus
+                        className="input"
+                        type="text"
+                        placeholder="Enter set name..."
+                        value={newSetName}
+                        onChange={(event) =>
+                            setNewSetName(event.target.value)
+                        }
+                        maxLength={100}
+                        disabled={isSavingSet}
+                    />
+
+                    <label htmlFor="new-set-folder">
+                        Folder
+                    </label>
+
+                    <select
+                        id="new-set-folder"
+                        className="input"
+                        value={newSetFolderId ?? ""}
+                        onChange={(event) =>
+                            setNewSetFolderId(
+                                event.target.value
+                                    ? Number(event.target.value)
+                                    : null
+                            )
+                        }
+                        disabled={isSavingSet}
+                    >
+                        <option value="" disabled>
+                            Select a folder
+                        </option>
+
+                        {folders.map((folder) => (
+                            <option
+                                key={folder.id}
+                                value={folder.id}
+                            >
+                                {folder.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <div className="folder-modal-actions">
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setIsAddingSet(false)}
+                            disabled={isSavingSet}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={
+                                isSavingSet ||
+                                !newSetName.trim() ||
+                                newSetFolderId === null
+                            }
+                        >
+                            {isSavingSet
+                                ? "Creating..."
+                                : "Create set"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>,
+        document.body,
+    )}
+            {renamingFolder &&
+    createPortal(
+        <div
+            className="folder-modal-overlay"
+            onMouseDown={(event) => {
+                if (
+                    event.target === event.currentTarget &&
+                    !isRenamingFolder
+                ) {
+                    setRenamingFolder(null);
+                }
+            }}
+        >
+            <div
+                className="folder-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rename-folder-title"
+            >
+                <h2 id="rename-folder-title">Rename folder</h2>
+
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        void handleRenameFolder();
+                    }}
+                >
+                    <input
+                        autoFocus
+                        className="input"
+                        type="text"
+                        value={renameValue}
+                        onChange={(event) =>
+                            setRenameValue(event.target.value)
+                        }
+                        placeholder="Folder name"
+                        maxLength={100}
+                        disabled={isRenamingFolder}
+                        onKeyDown={(event) => {
+                            if (
+                                event.key === "Escape" &&
+                                !isRenamingFolder
+                            ) {
+                                setRenamingFolder(null);
+                            }
+                        }}
+                    />
+
+                    <div className="folder-modal-actions">
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setRenamingFolder(null)}
+                            disabled={isRenamingFolder}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={
+                                isRenamingFolder ||
+                                !renameValue.trim()
+                            }
+                        >
+                            {isRenamingFolder ? "Saving..." : "Save"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>,
+        document.body,
+    )}
+
             <div className="sets-page">
-                <Tree
-                    title="Sets"
-                    entries={sets.map((s) => ({ id: s.id, name: s.name }))}
-                    selectedId={selectedSetId}
-                    onSelect={setSelectedSetId}
-                    onAdd={handleAddSet}
-                    onDelete={handleDeleteSet}
-                />
+                <aside className="sidebar sets-folder-sidebar">
+                    <div className="sidebar-header sets-sidebar-header">
+                        <h3 className="sidebar-title">Sets</h3>
+                    </div>
+
+                    <div className="sets-sidebar-actions">
+                        <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                                setIsAddingFolder((value) => !value);
+                                setIsAddingSet(false);
+                            }}
+                        >
+                            + Add folder
+                        </button>
+
+                        <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                                setNewSetFolderId(
+                                    selectedFolderId ?? folders[0]?.id ?? null
+                                );
+                                setNewSetName("");
+                                setIsAddingSet(true);
+                                setIsAddingFolder(false);
+                            }}
+                        >
+                            + Add set
+                        </button>
+                    </div>
+
+                    {isAddingFolder && (
+                        <div className="sidebar-new-set">
+                            <input
+                                className="input"
+                                type="text"
+                                placeholder="Folder name..."
+                                aria-label="New folder name"
+                                value={newFolderName}
+                                onChange={(event) =>
+                                    setNewFolderName(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter")
+                                        void handleCreateFolder();
+
+                                    if (event.key === "Escape")
+                                        setIsAddingFolder(false);
+                                }}
+                            />
+
+                            <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                onClick={handleCreateFolder}
+                                disabled={isSavingFolder}
+                            >
+                                Add
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="sets-folder-scroll">
+                        {folders.map((folder) => {
+                            const expanded = expandedFolders.has(folder.id);
+
+                            return (
+                                <div
+                                    key={folder.id}
+                                    className="sets-folder-group"
+                                >
+                                    <div className="sets-folder-row">
+                                        <button
+                                            type="button"
+                                            className={`sets-folder-heading ${
+                                                selectedFolderId === folder.id
+                                                    ? "sets-folder-heading--active"
+                                                    : ""
+                                            }`}
+                                            onClick={() => {
+                                                selectFolder(folder.id);
+                                                toggleFolder(folder.id);
+                                            }}
+                                        >
+                                            <span className="sets-folder-label" title={folder.name}>
+                                                <span className="sets-folder-arrow">
+                                                    {expanded ? "▾" : "▸"}
+                                                </span>
+
+                                                <span className="sets-folder-name">
+                                                    {folder.name}
+                                                </span>
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="sets-folder-action"
+                                            title={`Rename ${folder.name}`}
+                                            aria-label={`Rename ${folder.name}`}
+                                            onClick={() => {
+                                                setRenamingFolder(folder);
+                                                setRenameValue(folder.name);
+                                            }}
+                                        >
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="sets-folder-action"
+                                            title={`Delete ${folder.name}`}
+                                            aria-label={`Delete ${folder.name}`}
+                                            onClick={() =>
+                                                handleDeleteFolder(folder)
+                                            }
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    {expanded && (
+                                        <ul className="sidebar-list sets-folder-sets">
+                                            {setsInFolder(folder.id).map(
+                                                renderSet,
+                                            )}
+                                        </ul>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </aside>
+
                 <div className="sets-content">
                     <div className="sets-toolbar">
                         <input
@@ -226,45 +899,90 @@ export default function Sets() {
                             placeholder="Search cards..."
                             aria-label="Search cards"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(event) =>
+                                setSearch(event.target.value)
+                            }
+                            disabled={selectedSetId === null}
                         />
+
+                        {selectedSet && (
+                            <select
+                                className="input sets-folder-select"
+                                aria-label="Move set to folder"
+                                value={selectedSet.folderId ?? ""}
+                                onChange={(event) =>
+                                    handleMoveSet(
+                                        selectedSet.id,
+                                        event.target.value
+                                            ? Number(event.target.value)
+                                            : null,
+                                    )
+                                }
+                            >
+                                <option value="" disabled>
+                                    Select a folder
+                                </option>
+
+                                {folders.map((folder) => (
+                                    <option
+                                        key={folder.id}
+                                        value={folder.id}
+                                    >
+                                        {folder.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+
                         <button
                             type="button"
                             className="btn btn-secondary btn-sm"
                             onClick={() =>
-                                setViewMode((m) =>
-                                    m === "grid" ? "list" : "grid",
+                                setViewMode((mode) =>
+                                    mode === "grid" ? "list" : "grid",
                                 )
                             }
                         >
-                            {viewMode === "grid" ? "List view" : "Grid view"}
+                            {viewMode === "grid"
+                                ? "List view"
+                                : "Grid view"}
                         </button>
-                        <div className="sets-export" ref={exportRef}>
+
+                        <div
+                            className="sets-export"
+                            ref={exportRef}
+                        >
                             <button
                                 type="button"
                                 className="btn btn-secondary btn-sm"
                                 onClick={() =>
-                                    setShowExportMenu((prev) => !prev)
+                                    setShowExportMenu((value) => !value)
                                 }
-                                disabled={!selectedSetId}
+                                disabled={selectedSetId === null}
                                 aria-haspopup="menu"
                                 aria-expanded={showExportMenu}
                             >
                                 Download ▾
                             </button>
+
                             {showExportMenu && (
                                 <div className="sets-export__menu">
                                     <button
                                         type="button"
                                         className="sets-export__item"
-                                        onClick={() => handleExport("json")}
+                                        onClick={() =>
+                                            handleExport("json")
+                                        }
                                     >
                                         JSON
                                     </button>
+
                                     <button
                                         type="button"
                                         className="sets-export__item"
-                                        onClick={() => handleExport("csv")}
+                                        onClick={() =>
+                                            handleExport("csv")
+                                        }
                                     >
                                         CSV
                                     </button>
@@ -275,7 +993,7 @@ export default function Sets() {
 
                     {selectedSetId === null ? (
                         <p className="sets-empty text-muted">
-                            Select or create a set in the sidebar.
+                            Select a set from a folder or create a new set.
                         </p>
                     ) : (
                         <div
@@ -288,7 +1006,11 @@ export default function Sets() {
                             {filteredCards.map((card) => (
                                 <div
                                     key={card.id}
-                                    className={`set-card ${viewMode === "list" ? "set-card--list" : ""}`}
+                                    className={`set-card ${
+                                        viewMode === "list"
+                                            ? "set-card--list"
+                                            : ""
+                                    }`}
                                 >
                                     <button
                                         type="button"
@@ -301,9 +1023,11 @@ export default function Sets() {
                                     >
                                         ×
                                     </button>
+
                                     <strong className="set-card__term">
                                         {card.term}
                                     </strong>
+
                                     <span className="set-card__definition">
                                         {card.definition}
                                     </span>
@@ -318,21 +1042,37 @@ export default function Sets() {
                                         type="text"
                                         placeholder="Term"
                                         value={newTerm}
-                                        onChange={(e) =>
-                                            setNewTerm(e.target.value)
+                                        onChange={(event) =>
+                                            setNewTerm(event.target.value)
                                         }
-                                        onKeyDown={handleKeyDown}
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter")
+                                                void handleSave();
+
+                                            if (event.key === "Escape")
+                                                handleCancel();
+                                        }}
                                     />
+
                                     <input
                                         className="input"
                                         type="text"
                                         placeholder="Definition"
                                         value={newDefinition}
-                                        onChange={(e) =>
-                                            setNewDefinition(e.target.value)
+                                        onChange={(event) =>
+                                            setNewDefinition(
+                                                event.target.value,
+                                            )
                                         }
-                                        onKeyDown={handleKeyDown}
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter")
+                                                void handleSave();
+
+                                            if (event.key === "Escape")
+                                                handleCancel();
+                                        }}
                                     />
+
                                     <div className="set-card-form__actions">
                                         <button
                                             type="button"
@@ -342,6 +1082,7 @@ export default function Sets() {
                                         >
                                             Cancel
                                         </button>
+
                                         <button
                                             type="button"
                                             className="btn btn-primary btn-sm"

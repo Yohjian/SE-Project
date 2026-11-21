@@ -3,6 +3,12 @@ export interface SetSummary {
   name: string;
   cardCount: number;
   createdAt: string;
+  folderId: number | null;
+}
+
+export interface SetFolder {
+    id: number;
+    name: string;
 }
 
 export interface CardResponse {
