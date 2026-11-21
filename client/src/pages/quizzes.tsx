@@ -114,6 +114,7 @@ export default function Quizzes() {
                     title: res.data.title,
                     description: res.data.description,
                     isPublic: res.data.isPublic,
+                    creatorName: "",
                 },
             ]);
 
@@ -187,6 +188,7 @@ export default function Quizzes() {
                     title: result.data.title,
                     description: result.data.description,
                     isPublic: result.data.isPublic,
+                    creatorName: "",
                 },
             ]);
 
