@@ -5,6 +5,7 @@ namespace QuattroLingo.DTOs.Response
         int Id,
         string Name,
         int CardCount,
-        DateTime CreatedAt
+        DateTime CreatedAt,
+        int? FolderId = null
     );
 }

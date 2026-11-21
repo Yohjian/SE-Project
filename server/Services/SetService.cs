@@ -16,7 +16,7 @@ namespace QuattroLingo.Services
         {
             var items = await sets.GetByUserAsync(userId);
             return items
-                .Select(i => new SetSummary(i.Id, i.Name, i.CardCount, i.CreatedAt))
+                .Select(i => new SetSummary(i.Id, i.Name, i.CardCount, i.CreatedAt, i.FolderId))
                 .ToList();
         }
 
@@ -38,10 +38,11 @@ namespace QuattroLingo.Services
                 UserId = userId,
                 Name = name,
                 CreatedAt = DateTime.UtcNow,
+                FolderId = null,
                 Cards = []
             });
 
-            return new SetSummary(set.Id, set.Name, 0, set.CreatedAt);
+            return new SetSummary(set.Id, set.Name, 0, set.CreatedAt, set.FolderId);
         }
 
         public async Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition)
