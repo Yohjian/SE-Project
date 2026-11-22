@@ -341,6 +341,9 @@ namespace QuattroLingo.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CardId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("OrderIndex")
                         .HasColumnType("integer");
 
@@ -358,6 +361,8 @@ namespace QuattroLingo.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CardId");
 
                     b.HasIndex("QuizId");
 
@@ -478,6 +483,10 @@ namespace QuattroLingo.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Meta")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
                     b.Property<int>("SetId")
                         .HasColumnType("integer");
 
@@ -502,6 +511,10 @@ namespace QuattroLingo.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Meta")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -591,11 +604,17 @@ namespace QuattroLingo.Migrations
 
             modelBuilder.Entity("QuattroLingo.Entities.Question", b =>
                 {
+                    b.HasOne("QuattroLingo.Entities.VocabularyCard", "Card")
+                        .WithMany()
+                        .HasForeignKey("CardId");
+
                     b.HasOne("QuattroLingo.Entities.Quiz", "Quiz")
                         .WithMany("Questions")
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Card");
 
                     b.Navigation("Quiz");
                 });

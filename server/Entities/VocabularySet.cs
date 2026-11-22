@@ -1,3 +1,5 @@
+using QuattroLingo.Models;
+
 namespace QuattroLingo.Entities
 {
     public class VocabularySet
@@ -7,5 +9,6 @@ namespace QuattroLingo.Entities
         public string UserId { set; get; } = string.Empty;
         public DateTime CreatedAt { set; get; }
         public ICollection<VocabularyCard> Cards { get; set; } = [];
+        public Metadata Meta { set; get; } = new();
     }
 }

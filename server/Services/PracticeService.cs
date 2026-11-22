@@ -102,6 +102,22 @@ namespace QuattroLingo.Services
                 ?? throw new ValidationException(
                     "Question must have exactly one correct answer.");
 
+            if (selectedAnswer.IsCorrect && question.CardId.HasValue)
+            {
+                var card = await db.Cards.FindAsync(question.CardId.Value);
+                if (card != null)
+                {
+                    if (selectedAnswer.IsCorrect)
+                        card.Meta.Set("times_correct", card.Meta.GetOrDefault<int>("times_correct", 0) + 1);
+                    else
+                        card.Meta.Set("times_wrong", card.Meta.GetOrDefault<int>("times_wrong", 0) + 1);
+
+                    card.Meta.Set("times_played", card.Meta.GetOrDefault<int>("times_played", 0) + 1);
+                    card.Meta.Set("last_played", DateTime.UtcNow);
+                    await db.SaveChangesAsync();
+                }
+            }
+
             return new PracticeAnswerResponse(
                 selectedAnswer.IsCorrect,
                 correctAnswer.Id);

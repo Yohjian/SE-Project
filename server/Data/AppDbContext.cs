@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Entities;
+using QuattroLingo.Models;
 
 namespace QuattroLingo.Data
 {
@@ -48,6 +50,28 @@ namespace QuattroLingo.Data
                 .WithOne(c => c.Set)
                 .HasForeignKey(c => c.SetId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            var jsonOptions = new JsonSerializerOptions();
+
+            builder.Entity<VocabularyCard>()
+                .Property(c => c.Meta)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    m => JsonSerializer.Serialize(m.ToSerializable(), jsonOptions),
+                    s => Metadata.FromDictionary(
+                        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(s, jsonOptions) ?? new()
+                    )
+                );
+
+            builder.Entity<VocabularySet>()
+                .Property(s => s.Meta)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    m => JsonSerializer.Serialize(m.ToSerializable(), jsonOptions),
+                    s => Metadata.FromDictionary(
+                        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(s, jsonOptions) ?? new()
+                    )
+                );
 
             builder.Entity<Room>()
                 .HasMany(r => r.Participants)

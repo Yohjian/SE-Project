@@ -6,6 +6,7 @@ using QuattroLingo.DTOs.Response;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Interfaces.Services;
+using QuattroLingo.DTOs.Request;
 
 namespace QuattroLingo.Controllers
 {
@@ -46,17 +47,31 @@ namespace QuattroLingo.Controllers
 
         [HttpPost("{setId}/cards")]
         public async Task<IActionResult> AddCard(int setId, [FromBody] DTOs.Request.CreateCard request) =>
-            Ok(await setService.AddCardAsync(UserId, setId, request.Term, request.Definition));
+            Ok(await setService.AddCardAsync(UserId, setId, request.Term, request.Definition, request.Metadata));
 
         [HttpGet("{setId}/cards")]
-        public async Task<IActionResult> GetCards(int setId) =>
-            Ok(await setService.GetCardsAsync(UserId, setId));
+        public async Task<IActionResult> GetCards(int setId, [FromQuery] string? sortBy, [FromQuery] bool sortAsc = true) =>
+            Ok(await setService.GetCardsAsync(UserId, setId, sortBy, sortAsc));
 
         [HttpGet("{setId}/download/{fileType}")]
         public async Task<IActionResult> DownloadSet(int setId, FileType fileType)
         {
             DownloadFile download = await setService.DownloadSetAsync(UserId, setId, fileType);
             return File(download.Content, download.ContentType, download.FileName);
+        }
+
+        [HttpPatch("{setId}/metadata")]
+        public async Task<IActionResult> SetSetMetadata(int setId, [FromBody] MetadataEntryRequest request)
+        {
+            await setService.SetSetMetadataAsync(UserId, setId, request.Key, request.Value);
+            return NoContent();
+        }
+
+        [HttpPatch("{setId}/cards/{cardId}/metadata")]
+        public async Task<IActionResult> SetCardMetadata(int setId, int cardId, [FromBody] MetadataEntryRequest request)
+        {
+            await setService.SetCardMetadataAsync(UserId, setId, cardId, request.Key, request.Value);
+            return NoContent();
         }
     }
 }

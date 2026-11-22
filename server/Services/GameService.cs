@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using QuattroLingo.Data;
 using QuattroLingo.DTOs.Response.Game;
 using QuattroLingo.Enums;
 using QuattroLingo.Exceptions;
@@ -250,8 +251,28 @@ namespace QuattroLingo.Services
                     ? Score.FromAnswerTime(now - game.QuestionStartedAt, question.TimeLimitSeconds, question.Points).Points
                     : 0;
 
-                game.Answers[playerId] = new LiveAnswer(option.Id, now, points);
-                TrySignalAllAnswered(game);
+                if (question.CardId.HasValue)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        using var scope = _scopes.CreateScope();
+                        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        var card = await db.Cards.FindAsync(question.CardId.Value);
+                        if (card != null)
+                        {
+                            var isCorrect = option.Id == question.CorrectOptionId;
+                            if (isCorrect)
+                                card.Meta.Set("times_correct", card.Meta.GetOrDefault<int>("times_correct", 0) + 1);
+                            else
+                                card.Meta.Set("times_wrong", card.Meta.GetOrDefault<int>("times_wrong", 0) + 1);
+                            card.Meta.Set("times_played", card.Meta.GetOrDefault<int>("times_played", 0) + 1);
+                            card.Meta.Set("last_played", DateTime.UtcNow);
+                            await db.SaveChangesAsync();
+                        }
+                    });
+                }
+
+
             }
         }
 
@@ -558,7 +579,8 @@ namespace QuattroLingo.Services
                         Math.Max(1, q.TimeLimitSeconds),
                         q.Points,
                         q.AnswerOptions.OrderBy(a => a.Id).Select(a => new LiveOption(a.Id, a.Text)).ToList(),
-                        q.AnswerOptions.First(a => a.IsCorrect).Id))
+                        q.AnswerOptions.First(a => a.IsCorrect).Id,
+                        q.CardId))
                     .ToList();
 
                 var game = new LiveGame

@@ -10,11 +10,8 @@ import { CardResponse, SetSummary } from "../api/types";
 
 function filenameFromHeader(header: string | undefined, fallback: string) {
     if (!header) return fallback;
-
-    // ASP.NET sends: attachment; filename=Animals.json; filename*=UTF-8''Animals.json
     const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header);
     if (utf8) return decodeURIComponent(utf8[1]);
-
     const plain = /filename="?([^";]+)"?/i.exec(header);
     return plain ? plain[1] : fallback;
 }
@@ -25,7 +22,20 @@ function downloadBlob(blob: Blob, filename: string) {
     a.href = url;
     a.download = filename;
     a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 0); // let the browser start the download first
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function parseMetaValue(raw: string): unknown {
+    if (raw === "true") return true;
+    if (raw === "false") return false;
+    const n = Number(raw);
+    if (raw.trim() !== "" && !isNaN(n)) return n;
+    return raw;
+}
+
+interface MetaField {
+    key: string;
+    value: string;
 }
 
 export default function Sets() {
@@ -35,13 +45,23 @@ export default function Sets() {
     const [isAdding, setIsAdding] = useState(false);
     const [newTerm, setNewTerm] = useState("");
     const [newDefinition, setNewDefinition] = useState("");
+    const [newMetadata, setNewMetadata] = useState<MetaField[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [sets, setSets] = useState<SetSummary[]>([]);
     const [cards, setCards] = useState<CardResponse[]>([]);
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [showSortMenu, setShowSortMenu] = useState(false);
+    const [sortBy, setSortBy] = useState("");
+    const [sortAsc, setSortAsc] = useState(true);
+    const [editingMetaCardId, setEditingMetaCardId] = useState<number | null>(
+        null,
+    );
+    const [metaKey, setMetaKey] = useState("");
+    const [metaValue, setMetaValue] = useState("");
 
     const termRef = useRef<HTMLInputElement>(null);
     const exportRef = useRef<HTMLDivElement>(null);
+    const sortRef = useRef<HTMLDivElement>(null);
 
     const { showNotification } = useNotification();
 
@@ -55,6 +75,27 @@ export default function Sets() {
         [cards, search],
     );
 
+    const sortedCards = useMemo(() => {
+        if (!sortBy) return filteredCards;
+        const withKey = filteredCards.filter(
+            (c) => c.metadata != null && sortBy in c.metadata,
+        );
+        return [...withKey].sort((a, b) => {
+            const av = a.metadata[sortBy];
+            const bv = b.metadata[sortBy];
+            if (typeof av === "number" && typeof bv === "number")
+                return sortAsc ? av - bv : bv - av;
+            return sortAsc
+                ? String(av).localeCompare(String(bv))
+                : String(bv).localeCompare(String(av));
+        });
+    }, [filteredCards, sortBy, sortAsc]);
+
+    const metadataKeys = useMemo(
+        () => [...new Set(cards.flatMap((c) => Object.keys(c.metadata ?? {})))],
+        [cards],
+    );
+
     useEffect(() => {
         if (isAdding) termRef.current?.focus();
     }, [isAdding]);
@@ -66,6 +107,8 @@ export default function Sets() {
                 !exportRef.current.contains(e.target as Node)
             )
                 setShowExportMenu(false);
+            if (sortRef.current && !sortRef.current.contains(e.target as Node))
+                setShowSortMenu(false);
         };
         document.addEventListener("mousedown", handler);
         return () => document.removeEventListener("mousedown", handler);
@@ -95,6 +138,7 @@ export default function Sets() {
         setIsAdding(false);
         setNewTerm("");
         setNewDefinition("");
+        setNewMetadata([]);
     }, []);
 
     const handleSave = useCallback(async () => {
@@ -103,12 +147,19 @@ export default function Sets() {
             return showNotification("A definition is needed!");
         if (selectedSetId === null) return showNotification("No set selected.");
 
+        const metadata = Object.fromEntries(
+            newMetadata
+                .filter((f) => f.key.trim())
+                .map((f) => [f.key.trim(), parseMetaValue(f.value)]),
+        );
+
         setIsSaving(true);
         try {
             const res = await cardApi.add(
                 selectedSetId,
                 newTerm,
                 newDefinition,
+                Object.keys(metadata).length > 0 ? metadata : undefined,
             );
             setCards((prev) => [...prev, res.data]);
             showNotification("Card added.", "success");
@@ -125,7 +176,14 @@ export default function Sets() {
         } finally {
             setIsSaving(false);
         }
-    }, [newTerm, newDefinition, selectedSetId, handleCancel, showNotification]);
+    }, [
+        newTerm,
+        newDefinition,
+        newMetadata,
+        selectedSetId,
+        handleCancel,
+        showNotification,
+    ]);
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -178,6 +236,41 @@ export default function Sets() {
             }
         },
         [selectedSetId, showNotification],
+    );
+
+    const handleSaveCardMeta = useCallback(
+        async (cardId: number) => {
+            if (!selectedSetId || !metaKey.trim()) return;
+            const value = parseMetaValue(metaValue);
+            try {
+                await cardApi.setMetadata(
+                    selectedSetId,
+                    cardId,
+                    metaKey.trim(),
+                    value,
+                );
+                setCards((prev) =>
+                    prev.map((c) =>
+                        c.id === cardId
+                            ? {
+                                  ...c,
+                                  metadata: {
+                                      ...c.metadata,
+                                      [metaKey.trim()]: value,
+                                  },
+                              }
+                            : c,
+                    ),
+                );
+                setMetaKey("");
+                setMetaValue("");
+                setEditingMetaCardId(null);
+                showNotification("Metadata saved.", "success");
+            } catch {
+                showNotification("Failed to save metadata.");
+            }
+        },
+        [selectedSetId, metaKey, metaValue, showNotification],
     );
 
     const handleExport = useCallback(
@@ -239,6 +332,61 @@ export default function Sets() {
                         >
                             {viewMode === "grid" ? "List view" : "Grid view"}
                         </button>
+
+                        {metadataKeys.length > 0 && (
+                            <>
+                                <div className="sets-export" ref={sortRef}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={() =>
+                                            setShowSortMenu((prev) => !prev)
+                                        }
+                                        aria-haspopup="menu"
+                                        aria-expanded={showSortMenu}
+                                    >
+                                        {sortBy ? sortBy : "Sort by…"} ▾
+                                    </button>
+                                    {showSortMenu && (
+                                        <div className="sets-export__menu">
+                                            <button
+                                                type="button"
+                                                className="sets-export__item"
+                                                onClick={() => {
+                                                    setSortBy("");
+                                                    setShowSortMenu(false);
+                                                }}
+                                            >
+                                                No sort
+                                            </button>
+                                            {metadataKeys.map((k) => (
+                                                <button
+                                                    key={k}
+                                                    type="button"
+                                                    className="sets-export__item"
+                                                    onClick={() => {
+                                                        setSortBy(k);
+                                                        setShowSortMenu(false);
+                                                    }}
+                                                >
+                                                    {k}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                {sortBy && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={() => setSortAsc((a) => !a)}
+                                    >
+                                        {sortAsc ? "↑ Asc" : "↓ Desc"}
+                                    </button>
+                                )}
+                            </>
+                        )}
+
                         <div className="sets-export" ref={exportRef}>
                             <button
                                 type="button"
@@ -285,10 +433,14 @@ export default function Sets() {
                                     : "set-cards--list"
                             }`}
                         >
-                            {filteredCards.map((card) => (
+                            {sortedCards.map((card) => (
                                 <div
                                     key={card.id}
-                                    className={`set-card ${viewMode === "list" ? "set-card--list" : ""}`}
+                                    className={`set-card ${
+                                        viewMode === "list"
+                                            ? "set-card--list"
+                                            : ""
+                                    }`}
                                 >
                                     <button
                                         type="button"
@@ -307,6 +459,90 @@ export default function Sets() {
                                     <span className="set-card__definition">
                                         {card.definition}
                                     </span>
+
+                                    {Object.keys(card.metadata ?? {}).length >
+                                        0 && (
+                                        <div className="set-card__meta">
+                                            {Object.entries(card.metadata).map(
+                                                ([k, v]) => (
+                                                    <span
+                                                        key={k}
+                                                        className="set-card__meta-entry"
+                                                    >
+                                                        {k}: {String(v)}
+                                                    </span>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {editingMetaCardId === card.id ? (
+                                        <div className="set-card__meta-form">
+                                            <input
+                                                className="input"
+                                                placeholder="Key"
+                                                value={metaKey}
+                                                onChange={(e) =>
+                                                    setMetaKey(e.target.value)
+                                                }
+                                                autoFocus
+                                            />
+                                            <input
+                                                className="input"
+                                                placeholder="Value"
+                                                value={metaValue}
+                                                onChange={(e) =>
+                                                    setMetaValue(e.target.value)
+                                                }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter")
+                                                        handleSaveCardMeta(
+                                                            card.id,
+                                                        );
+                                                    if (e.key === "Escape")
+                                                        setEditingMetaCardId(
+                                                            null,
+                                                        );
+                                                }}
+                                            />
+                                            <div className="set-card__meta-form-actions">
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() =>
+                                                        setEditingMetaCardId(
+                                                            null,
+                                                        )
+                                                    }
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary btn-sm"
+                                                    onClick={() =>
+                                                        handleSaveCardMeta(
+                                                            card.id,
+                                                        )
+                                                    }
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="set-card__meta-add"
+                                            onClick={() => {
+                                                setEditingMetaCardId(card.id);
+                                                setMetaKey("");
+                                                setMetaValue("");
+                                            }}
+                                        >
+                                            + metadata
+                                        </button>
+                                    )}
                                 </div>
                             ))}
 
@@ -333,6 +569,79 @@ export default function Sets() {
                                         }
                                         onKeyDown={handleKeyDown}
                                     />
+
+                                    {newMetadata.map((field, i) => (
+                                        <div
+                                            key={i}
+                                            className="set-card-form__meta-row"
+                                        >
+                                            <input
+                                                className="input"
+                                                placeholder="Key"
+                                                value={field.key}
+                                                onChange={(e) =>
+                                                    setNewMetadata((prev) =>
+                                                        prev.map((f, j) =>
+                                                            j === i
+                                                                ? {
+                                                                      ...f,
+                                                                      key: e
+                                                                          .target
+                                                                          .value,
+                                                                  }
+                                                                : f,
+                                                        ),
+                                                    )
+                                                }
+                                            />
+                                            <input
+                                                className="input"
+                                                placeholder="Value"
+                                                value={field.value}
+                                                onChange={(e) =>
+                                                    setNewMetadata((prev) =>
+                                                        prev.map((f, j) =>
+                                                            j === i
+                                                                ? {
+                                                                      ...f,
+                                                                      value: e
+                                                                          .target
+                                                                          .value,
+                                                                  }
+                                                                : f,
+                                                        ),
+                                                    )
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                className="set-card-form__meta-remove"
+                                                onClick={() =>
+                                                    setNewMetadata((prev) =>
+                                                        prev.filter(
+                                                            (_, j) => j !== i,
+                                                        ),
+                                                    )
+                                                }
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                    <button
+                                        type="button"
+                                        className="set-card-form__meta-add"
+                                        onClick={() =>
+                                            setNewMetadata((prev) => [
+                                                ...prev,
+                                                { key: "", value: "" },
+                                            ])
+                                        }
+                                    >
+                                        + Add metadata field
+                                    </button>
+
                                     <div className="set-card-form__actions">
                                         <button
                                             type="button"

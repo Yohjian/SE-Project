@@ -384,6 +384,7 @@ namespace QuattroLingo.Services
                 TimeLimitSeconds = request.TimeLimitSeconds,
                 Points = request.Points,
                 OrderIndex = request.OrderIndex,
+                CardId = request.CardId,
                 AnswerOptions = request.AnswerOptions.Select(a => new AnswerOption
                 {
                     Text = a.Text,

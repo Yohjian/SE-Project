@@ -18,7 +18,7 @@ namespace QuattroLingo.Services
 
     internal sealed record LiveQuestion(
         int Id, string Text, int TimeLimitSeconds, int Points,
-        IReadOnlyList<LiveOption> Options, int CorrectOptionId);
+        IReadOnlyList<LiveOption> Options, int CorrectOptionId, int? CardId = null);
 
     internal sealed record LiveAnswer(int OptionId, DateTimeOffset At, int Points);
 
