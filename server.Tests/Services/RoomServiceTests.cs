@@ -73,7 +73,21 @@ namespace QuattroLingo.Tests.Services
         }
 
         private static Quiz OwnedQuiz(string ownerId = "user-1") =>
-            new() { Id = 1, OwnerId = ownerId, Title = "English Quiz" };
+            new()
+            {
+                Id = 1,
+                OwnerId = ownerId,
+                Title = "English Quiz",
+                 Questions = new List<Question>
+                {
+                    new()
+                    {
+                        Id = 1,
+                        QuizId = 1,
+                        Text = "What is hello in Lithuanian?"
+                    }
+                }
+            };
 
         private static Room WaitingRoom(string code = "123456") =>
             new() { Id = 1, QuizId = 1, HostId = "host", JoinCode = code, Status = RoomStatus.Waiting };

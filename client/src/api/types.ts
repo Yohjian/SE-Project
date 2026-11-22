@@ -32,6 +32,7 @@ export interface QuizSummary {
   description: string | null;
   isPublic: boolean;
   creatorName: string;
+  questionCount: number;
 }
 
 export interface QuizEditorResponse {

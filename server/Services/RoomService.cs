@@ -47,6 +47,11 @@ namespace QuattroLingo.Services
                 throw new ForbiddenException("You can only create rooms for your own quizzes.");
             }
 
+            if (quiz.Questions.Count == 0)
+            {
+                throw new ValidationException("Cannot create a room for a quiz without questions.");
+            }
+
             for (var attempt = 0; attempt < MaxCodeAttempts; attempt++)
             {
                 var room = new RoomEntity

@@ -151,8 +151,13 @@ export default function Rooms() {
                                 >
                                     <option value="">Select a quiz</option>
                                     {quizzes.map((quiz) => (
-                                        <option key={quiz.id} value={quiz.id}>
+                                        <option 
+                                            key={quiz.id} 
+                                            value={quiz.id}
+                                            disabled={quiz.questionCount === 0}
+                                        >
                                             {quiz.title}
+                                            {quiz.questionCount === 0 ? " (No questions)" : ""}
                                         </option>
                                     ))}
                                 </select>
