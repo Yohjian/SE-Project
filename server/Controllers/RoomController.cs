@@ -61,6 +61,14 @@ namespace QuattroLingo.Controllers
             return NoContent();
         }
 
+        [Authorize]
+        [HttpPost("{code}/restart")]
+        public async Task<IActionResult> RestartRoom(string code)
+        {
+            await gameService.RestartRoomAsync(code, UserId);
+            return NoContent();
+        }
+
         [HttpPost("join")]
         public async Task<IActionResult> JoinRoom(JoinRoom dto)
         {

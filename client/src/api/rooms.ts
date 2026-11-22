@@ -52,6 +52,9 @@ export const roomApi = {
 
   cancel: (code: string) =>
     client.post<void>(`/rooms/${encodeURIComponent(code)}/cancel`),
+  
+  restart: (code: string) =>
+    client.post<void>(`/rooms/${encodeURIComponent(code)}/restart`),
 
   delete: (code: string) =>
     client.delete<void>(`/rooms/${encodeURIComponent(code)}`),

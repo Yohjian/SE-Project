@@ -17,5 +17,6 @@ namespace QuattroLingo.Interfaces.Repositories
         Task<int> CancelInProgressRoomsAsync();
         Task DeleteRoomAsync(int roomId);
         Task UpdateRoomAsync(Room room);
+        Task ResetRoomAsync(int roomId);
     }
 }

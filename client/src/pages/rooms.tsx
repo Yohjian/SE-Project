@@ -123,6 +123,32 @@ export default function Rooms() {
         }
     };
 
+    const handleRestartRoom = async (room: Room) => {
+        if (!window.confirm("Restart this room? Previous players and results will be cleared.")) {
+            return;
+        }
+
+        setError(null);
+
+        try {
+            await roomApi.restart(room.joinCode);
+
+            setRooms((current) =>
+                current.map((r) =>
+                    r.id === room.id
+                        ? {
+                            ...r,
+                            status: RoomStatus.Waiting,
+                            participantCount: 0,
+                        }
+                        : r
+                )
+            );
+        } catch (err: unknown) {
+            setError(getErrorMessages(err, "Failed to restart the room.")[0]);
+        }
+    };
+
     const handleDeleteRoom = async (room: Room) => {
         if (!window.confirm("Delete this room permanently?")) return;
         try {
@@ -335,6 +361,15 @@ export default function Rooms() {
                                 {(room.status === RoomStatus.Finished ||
                                     room.status === RoomStatus.Cancelled) && (
                                         <div className="room-row__actions">
+
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => void handleRestartRoom(room)}
+                                            >
+                                                Restart
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 className="btn btn-secondary btn-sm"
