@@ -175,6 +175,34 @@ namespace QuattroLingo.Services
             await _roomRepository.DeleteRoomAsync(room.Id);
         }
 
+        public async Task<RoomResponse> UpdateVisibilityAsync(string code, Visibility visibility, string userId)
+        {
+            var normalized = NormalizeCode(code) ?? throw new NotFoundException(RoomNotFound);
+
+            var room = await _roomRepository.GetByJoinCodeAsync(normalized)
+                ?? throw new NotFoundException(RoomNotFound);
+
+            if (room.HostId != userId)
+            {
+                throw new ForbiddenException("Only the host can update the room visibility.");
+            }
+
+            if (!Enum.IsDefined(visibility))
+            {
+                throw new ValidationException("Invalid room visibility.");
+            }
+
+            if (room.Status != RoomStatus.Waiting)
+            {
+                throw new ConflictException(
+                    "Room visibility can only be changed while waiting.");
+            }
+
+            room.RoomVisibility = visibility;
+            await _roomRepository.UpdateRoomAsync(room);
+
+            return room.ToResponse();
+        }
         private static string GenerateJoinCode() =>
             RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Interfaces.Services;
+using QuattroLingo.Enums;
 
 namespace QuattroLingo.Controllers
 {
@@ -74,6 +75,18 @@ namespace QuattroLingo.Controllers
         {
             await roomService.DeleteRoomAsync(code, UserId);
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpPatch("{code}/visibility")]
+        public async Task<IActionResult> UpdateVisibility(string code, [FromBody] UpdateRoomVisibility dto)
+        {
+            var result = await roomService.UpdateVisibilityAsync(
+                code,
+                dto.RoomVisibility,
+                UserId);
+
+            return Ok(result);
         }
     }
 }

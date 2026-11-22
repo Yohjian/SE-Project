@@ -142,5 +142,10 @@ namespace QuattroLingo.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateRoomAsync(Room room)
+        {
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
