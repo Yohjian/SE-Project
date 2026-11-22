@@ -466,6 +466,31 @@ namespace QuattroLingo.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("QuattroLingo.Entities.SetFolder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("SetFolders");
+                });
+
             modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
                     b.Property<int>("Id")
@@ -503,6 +528,9 @@ namespace QuattroLingo.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("FolderId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -512,6 +540,8 @@ namespace QuattroLingo.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FolderId");
 
                     b.ToTable("Sets");
                 });
@@ -641,6 +671,15 @@ namespace QuattroLingo.Migrations
                     b.Navigation("Quiz");
                 });
 
+            modelBuilder.Entity("QuattroLingo.Entities.SetFolder", b =>
+                {
+                    b.HasOne("QuattroLingo.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("QuattroLingo.Entities.VocabularyCard", b =>
                 {
                     b.HasOne("QuattroLingo.Entities.VocabularySet", "Set")
@@ -650,6 +689,16 @@ namespace QuattroLingo.Migrations
                         .IsRequired();
 
                     b.Navigation("Set");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>
+                {
+                    b.HasOne("QuattroLingo.Entities.SetFolder", "Folder")
+                        .WithMany("Sets")
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Folder");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.Category", b =>
@@ -675,6 +724,11 @@ namespace QuattroLingo.Migrations
             modelBuilder.Entity("QuattroLingo.Entities.Room", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("QuattroLingo.Entities.SetFolder", b =>
+                {
+                    b.Navigation("Sets");
                 });
 
             modelBuilder.Entity("QuattroLingo.Entities.VocabularySet", b =>
