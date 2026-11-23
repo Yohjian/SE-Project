@@ -111,14 +111,10 @@ builder.Services.AddOptions<ForwardedHeadersOptions>()
         // Entries are single addresses ("172.18.0.3") or subnets ("172.18.0.0/16").
         foreach (var entry in limits.Value.TrustedProxies)
         {
-            var parts = entry.Split('/');
-            var address = IPAddress.Parse(parts[0]);
-            if (parts.Length == 2)
-#pragma warning disable CS0618 // KnownNetworks is obsolete in .NET 10 but works on every version
-                o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(address, int.Parse(parts[1])));
-#pragma warning restore CS0618
+            if (entry.Contains('/'))
+                o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(entry));
             else
-                o.KnownProxies.Add(address);
+                o.KnownProxies.Add(IPAddress.Parse(entry));
         }
     });
 
