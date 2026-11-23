@@ -44,7 +44,7 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task GetSet_OwnSet_ReturnsOkWithSetContents()
         {
-            var contents = new SetContents(4, "My Set", [new CardResponse(1, "labas", "hello")]);
+            var contents = new SetContents(4, "My Set", [new CardResponse(1, "labas", "hello", [])]);
             _sets.GetAsync(UserId, 4).Returns(contents);
 
             var ok = Assert.IsType<OkObjectResult>(await _controller.GetSet(4));
@@ -120,7 +120,7 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task AddCard_OwnSet_PassesTermAndDefinitionToService()
         {
-            _sets.AddCardAsync(UserId, 4, "labas", "hello").Returns(new CardResponse(9, "labas", "hello"));
+            _sets.AddCardAsync(UserId, 4, "labas", "hello", null).Returns(new CardResponse(9, "labas", "hello", []));
 
             await _controller.AddCard(4, new CreateCard("labas", "hello"));
 
@@ -130,8 +130,8 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task AddCard_OwnSet_ReturnsOkWithCreatedCard()
         {
-            var card = new CardResponse(9, "labas", "hello");
-            _sets.AddCardAsync(UserId, 4, "labas", "hello").Returns(card);
+            var card = new CardResponse(9, "labas", "hello", []);
+            _sets.AddCardAsync(UserId, 4, "labas", "hello", null).Returns(card);
 
             var ok = Assert.IsType<OkObjectResult>(await _controller.AddCard(4, new CreateCard("labas", "hello")));
 
@@ -153,10 +153,10 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task GetCards_OwnSet_ReturnsOkWithCards()
         {
-            var cards = new List<CardResponse> { new(1, "labas", "hello"), new(2, "ačiū", "thanks") };
-            _sets.GetCardsAsync(UserId, 4).Returns(cards);
+            var cards = new List<CardResponse> { new(1, "labas", "hello", []), new(2, "ačiū", "thanks", []) };
+            _sets.GetCardsAsync(UserId, 4, null, true).Returns(cards);
 
-            var ok = Assert.IsType<OkObjectResult>(await _controller.GetCards(4));
+            var ok = Assert.IsType<OkObjectResult>(await _controller.GetCards(4, null, true));
 
             Assert.Same(cards, ok.Value);
         }
@@ -198,7 +198,7 @@ namespace QuattroLingo.Tests.Controllers
             { nameof(SetsController.DeleteSet), c => c.DeleteSet(4) },
             { nameof(SetsController.DeleteCard), c => c.DeleteCard(4, 9) },
             { nameof(SetsController.AddCard), c => c.AddCard(4, new CreateCard("labas", "hello")) },
-            { nameof(SetsController.GetCards), c => c.GetCards(4) },
+            { nameof(SetsController.GetCards), c => c.GetCards(4, null, true) },
             { nameof(SetsController.DownloadSet), c => c.DownloadSet(4, FileType.Csv) }
         };
 
@@ -236,7 +236,7 @@ namespace QuattroLingo.Tests.Controllers
         {
             _sets.GetCardsAsync(UserId, 4).ThrowsAsync(new NotFoundException("Set not found."));
 
-            await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetCards(4));
+            await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetCards(4, null, true));
         }
 
         [Fact]
