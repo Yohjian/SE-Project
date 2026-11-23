@@ -272,6 +272,8 @@ namespace QuattroLingo.Services
                     });
                 }
 
+                game.Answers[playerId] = new LiveAnswer(option.Id, now, points);
+                TrySignalAllAnswered(game);
 
             }
         }
