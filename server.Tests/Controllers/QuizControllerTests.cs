@@ -45,7 +45,7 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task GetMine_SignedInUser_ReturnsOkWithThatUsersQuizzes()
         {
-            var mine = new List<QuizSummary> { new(7, "Lithuanian basics", null, false, "Ona") };
+            var mine = new List<QuizSummary> { new(7, "Lithuanian basics", null, false, "Ona", 1) };
             _quizzes.GetMyQuizzesAsync(UserId).Returns(mine);
 
             var ok = Assert.IsType<OkObjectResult>(await _controller.GetMine());
@@ -58,7 +58,7 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task GetPublic_AnyUser_ReturnsOkWithPublicQuizzes()
         {
-            var publicQuizzes = new List<QuizSummary> { new(8, "Numbers", null, true, "Jonas") };
+            var publicQuizzes = new List<QuizSummary> { new(8, "Numbers", null, true, "Jonas", 1) };
             _quizzes.GetPublicQuizzesAsync().Returns(publicQuizzes);
 
             var ok = Assert.IsType<OkObjectResult>(await _controller.GetPublic());

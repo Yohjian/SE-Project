@@ -18,5 +18,6 @@ namespace QuattroLingo.Interfaces.Services
 
         /// <summary>Host closes a Waiting room before the game starts.</summary>
         Task CancelRoomAsync(string joinCode, string hostUserId);
+        Task RestartRoomAsync(string joinCode, string hostUserId);
     }
 }

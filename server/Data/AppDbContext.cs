@@ -10,6 +10,7 @@ namespace QuattroLingo.Data
     {
         public DbSet<VocabularySet> Sets { get; set; }
         public DbSet<VocabularyCard> Cards { get; set; }
+        public DbSet<SetFolder> SetFolders { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Participant> Participants { get; set; }
 
@@ -48,6 +49,32 @@ namespace QuattroLingo.Data
                 .WithOne(c => c.Set)
                 .HasForeignKey(c => c.SetId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<SetFolder>()
+                .HasMany(f => f.Sets)
+                .WithOne(s => s.Folder)
+                .HasForeignKey(s => s.FolderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<SetFolder>(e =>
+            {
+                e.Property(f => f.Name)
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                e.HasIndex(f => new { f.UserId, f.Name })
+                    .IsUnique();
+
+                e.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(f => f.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasMany(f => f.Sets)
+                    .WithOne(s => s.Folder)
+                    .HasForeignKey(s => s.FolderId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
 
             builder.Entity<Room>()
                 .HasMany(r => r.Participants)

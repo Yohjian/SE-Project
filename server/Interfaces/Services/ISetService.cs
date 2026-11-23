@@ -9,7 +9,7 @@ namespace QuattroLingo.Interfaces.Services
 
         Task<SetContents> GetAsync(string userId, int setId);
 
-        Task<SetSummary> CreateAsync(string userId, string name);
+        Task<SetSummary> CreateAsync(string userId, string name, int folderId);
 
         Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition);
 

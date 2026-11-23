@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Interfaces.Services;
+using QuattroLingo.Enums;
 
 namespace QuattroLingo.Controllers
 {
@@ -62,6 +63,14 @@ namespace QuattroLingo.Controllers
             return NoContent();
         }
 
+        [Authorize]
+        [HttpPost("{code}/restart")]
+        public async Task<IActionResult> RestartRoom(string code)
+        {
+            await gameService.RestartRoomAsync(code, UserId);
+            return NoContent();
+        }
+        
         [EnableRateLimiting("room-lookup")]
         [HttpPost("join")]
         public async Task<IActionResult> JoinRoom(JoinRoom dto)
@@ -77,6 +86,18 @@ namespace QuattroLingo.Controllers
         {
             await roomService.DeleteRoomAsync(code, UserId);
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpPatch("{code}/visibility")]
+        public async Task<IActionResult> UpdateVisibility(string code, [FromBody] UpdateRoomVisibility dto)
+        {
+            var result = await roomService.UpdateVisibilityAsync(
+                code,
+                dto.RoomVisibility,
+                UserId);
+
+            return Ok(result);
         }
     }
 }

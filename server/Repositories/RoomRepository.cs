@@ -4,6 +4,7 @@ using QuattroLingo.Entities;
 using QuattroLingo.Enums;
 using QuattroLingo.Interfaces.Repositories;
 using Npgsql;
+using QuattroLingo.Exceptions;
 
 namespace QuattroLingo.Repositories
 {
@@ -142,5 +143,30 @@ namespace QuattroLingo.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateRoomAsync(Room room)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ResetRoomAsync(int roomId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Participants)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room is null)
+            {
+                throw new NotFoundException("Room not found.");
+            }
+
+            _context.Participants.RemoveRange(room.Participants);
+
+            room.Status = RoomStatus.Waiting;
+            room.StartedAt = null;
+            room.FinishedAt = null;
+            room.CreatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
