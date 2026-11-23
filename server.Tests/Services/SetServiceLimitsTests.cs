@@ -15,7 +15,11 @@ namespace QuattroLingo.Tests.Services
 
         public SetServiceLimitsTests()
         {
-            _service = new SetService(_repo);
+            var db = TestDb.Create();
+            db.SetFolders.Add(new SetFolder { Id = 1, UserId = "user-1", Name = "Folder" });
+            db.SaveChanges();
+
+            _service = new SetService(_repo, db);
             _repo.ExistsForUserAsync("user-1", 1).Returns(true);
         }
 
@@ -30,7 +34,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task CreateSet_NameTooLong_ThrowsValidation() =>
             await Assert.ThrowsAsync<ValidationException>(
-                () => _service.CreateAsync("user-1", Long(Limits.SetNameMax + 1)));
+                () => _service.CreateAsync("user-1", Long(Limits.SetNameMax + 1), 1));
 
         [Fact]
         public async Task CreateSet_UserAtSetLimit_ThrowsValidationAndSavesNothing()
@@ -40,7 +44,7 @@ namespace QuattroLingo.Tests.Services
                     .Select(i => new SetListItem(i + 1, $"s{i}", 0, DateTime.UtcNow))
                     .ToList());
 
-            await Assert.ThrowsAsync<ValidationException>(() => _service.CreateAsync("user-1", "New"));
+            await Assert.ThrowsAsync<ValidationException>(() => _service.CreateAsync("user-1", "New", 1));
 
             await _repo.DidNotReceive().AddAsync(Arg.Any<VocabularySet>());
         }
