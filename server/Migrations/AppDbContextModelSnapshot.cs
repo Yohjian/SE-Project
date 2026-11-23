@@ -537,11 +537,12 @@ namespace QuattroLingo.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("FolderId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Meta")
                         .IsRequired()
                         .HasColumnType("jsonb");
-                    b.Property<int?>("FolderId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -635,7 +636,8 @@ namespace QuattroLingo.Migrations
                 {
                     b.HasOne("QuattroLingo.Entities.VocabularyCard", "Card")
                         .WithMany()
-                        .HasForeignKey("CardId");
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("QuattroLingo.Entities.Quiz", "Quiz")
                         .WithMany("Questions")

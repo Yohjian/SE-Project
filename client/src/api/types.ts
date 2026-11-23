@@ -1,9 +1,9 @@
 export interface SetSummary {
-  id: number;
-  name: string;
-  cardCount: number;
-  createdAt: string;
-  folderId: number | null;
+    id: number;
+    name: string;
+    cardCount: number;
+    createdAt: string;
+    folderId: number | null;
 }
 
 export interface SetFolder {
@@ -15,6 +15,7 @@ export interface CardResponse {
     id: number;
     term: string;
     definition: string;
+    metadata: Record<string, unknown>;
 }
 
 export interface AnswerOptionResponse {
@@ -33,12 +34,12 @@ export interface QuestionResponse {
 }
 
 export interface QuizSummary {
-  id: number;
-  title: string;
-  description: string | null;
-  isPublic: boolean;
-  creatorName?: string;
-  questionCount: number;
+    id: number;
+    title: string;
+    description: string | null;
+    isPublic: boolean;
+    creatorName?: string;
+    questionCount: number;
 }
 
 export interface QuizEditorResponse {
@@ -60,6 +61,7 @@ export interface QuestionRequest {
     points: number;
     orderIndex: number;
     answerOptions: AnswerOptionRequest[];
+    cardId?: number;
 }
 
 export interface CreateQuizRequest {
@@ -131,11 +133,4 @@ export interface PracticeFilterOption {
 export interface PracticeFiltersResponse {
     languages: PracticeFilterOption[];
     categories: PracticeFilterOption[];
-}
-
-export interface CardResponse {
-    id: number;
-    term: string;
-    definition: string;
-    metadata: Record<string, unknown>;
 }

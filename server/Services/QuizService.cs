@@ -250,6 +250,7 @@ namespace QuattroLingo.Services
             question.TimeLimitSeconds = request.TimeLimitSeconds;
             question.Points = request.Points;
             question.OrderIndex = request.OrderIndex;
+            question.CardId = request.CardId ?? question.CardId;
             question.AnswerOptions = request.AnswerOptions.Select(a => new AnswerOption
             {
                 Text = a.Text,
@@ -426,14 +427,14 @@ namespace QuattroLingo.Services
         {
             return new QuizEditorResponse(quiz.Id, quiz.Title, quiz.Description, quiz.Questions.OrderBy(q => q.OrderIndex)
                 .Select(q => new QuestionResponse(q.Id, q.Text, q.TimeLimitSeconds, q.Points, q.OrderIndex,
-                    q.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList()))
+                    q.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList(), q.CardId))
                 .ToList(), quiz.IsPublic);
         }
 
         private static QuestionResponse ToQuestionResponse(Question question)
         {
             return new QuestionResponse(question.Id, question.Text, question.TimeLimitSeconds, question.Points, question.OrderIndex,
-                question.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList());
+                question.AnswerOptions.Select(a => a.ToAnswerResponse()).ToList(), question.CardId);
         }
 
         public async Task<List<QuizSummary>> GetPublicQuizzesAsync()

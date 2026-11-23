@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using QuattroLingo.Data;
 using QuattroLingo.DTOs.Request;
@@ -114,7 +115,9 @@ namespace QuattroLingo.Services
 
                     card.Meta.Set("times_played", card.Meta.GetOrDefault<int>("times_played", 0) + 1);
                     card.Meta.Set("last_played", DateTime.UtcNow);
-                    await db.SaveChangesAsync();
+                    var json = JsonSerializer.Serialize(card.Meta.ToSerializable());
+                    await db.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE \"Cards\" SET \"Meta\" = {json}::jsonb WHERE \"Id\" = {card.Id}");
                 }
             }
 

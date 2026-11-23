@@ -37,7 +37,9 @@ export default function QuizEditor() {
     const [allPoints, setAllPoints] = useState<number | "">(100);
 
     const [isPublic, setIsPublic] = useState(false);
-    const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(null);
+    const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
+        null,
+    );
     const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
 
     const { showNotification } = useNotification();
@@ -59,6 +61,7 @@ export default function QuizEditor() {
                         timeLimitSeconds: question.timeLimitSeconds,
                         points: question.points,
                         orderIndex: question.orderIndex,
+                        cardId: question.cardId ?? undefined,
                         answerOptions: question.answerOptions.map((answer) => ({
                             text: answer.text,
                             isCorrect: answer.isCorrect,
