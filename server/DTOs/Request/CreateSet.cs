@@ -4,6 +4,8 @@ namespace QuattroLingo.DTOs.Request
 {
     public record CreateSet
     (
-        [Required] string Name
+        [Required] string Name,
+        [Required] int? FolderId
+
     );
 }

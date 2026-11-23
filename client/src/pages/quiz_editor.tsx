@@ -7,6 +7,13 @@ import { useNotification } from "../components/notification";
 import QuizQuestionEditor from "../components/quiz_question_editor";
 import QuizVisibilityModal from "../components/modals/quiz_visibility_modal";
 
+import {
+    parseWholeNumber,
+    POINTS_MAX,
+    POINTS_MIN,
+    TIME_LIMIT_MAX,
+    TIME_LIMIT_MIN,
+} from "../utils/limits";
 import "../styles/quiz_editor.css";
 
 type EditorQuestion = QuestionRequest & {
@@ -94,8 +101,10 @@ export default function QuizEditor() {
     };
 
     const handleApplyAllTime = () => {
-        if (allTime === "" || !Number.isInteger(allTime) || allTime < 5) {
-            showNotification("Time limit must be at least 5 seconds.");
+        if (allTime === "" || allTime < TIME_LIMIT_MIN) {
+            showNotification(
+                `Time limit must be between ${TIME_LIMIT_MIN} and ${TIME_LIMIT_MAX} seconds.`,
+            );
             return;
         }
 
@@ -108,8 +117,10 @@ export default function QuizEditor() {
     };
 
     const handleApplyAllPoints = () => {
-        if (allPoints === "" || !Number.isInteger(allPoints) || allPoints < 1) {
-            showNotification("Points must be a positive whole number.");
+        if (allPoints === "" || allPoints < POINTS_MIN) {
+            showNotification(
+                `Points must be between ${POINTS_MIN} and ${POINTS_MAX}.`,
+            );
             return;
         }
 
@@ -287,11 +298,12 @@ export default function QuizEditor() {
             questions.some(
                 (question) =>
                     !Number.isInteger(question.timeLimitSeconds) ||
-                    question.timeLimitSeconds < 5,
+                    question.timeLimitSeconds < TIME_LIMIT_MIN ||
+                    question.timeLimitSeconds > TIME_LIMIT_MAX,
             )
         ) {
             showNotification(
-                "Every question must have a time limit of at least 5 seconds.",
+                `Every question needs a time limit between ${TIME_LIMIT_MIN} and ${TIME_LIMIT_MAX} seconds.`,
             );
             return;
         }
@@ -299,10 +311,14 @@ export default function QuizEditor() {
         if (
             questions.some(
                 (question) =>
-                    !Number.isInteger(question.points) || question.points < 1,
+                    !Number.isInteger(question.points) ||
+                    question.points < POINTS_MIN ||
+                    question.points > POINTS_MAX,
             )
         ) {
-            showNotification("Every question must have at least 1 point.");
+            showNotification(
+                `Every question needs between ${POINTS_MIN} and ${POINTS_MAX} points.`,
+            );
             return;
         }
 
@@ -313,6 +329,8 @@ export default function QuizEditor() {
                 title,
                 description: description || null,
                 questions: questions.map(
+                    // clientId is only a React key, the server must not get it
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ({ clientId, ...question }) => question,
                 ),
             });
@@ -453,14 +471,15 @@ export default function QuizEditor() {
                                     <input
                                         id={allTimeId}
                                         className="input"
-                                        type="number"
-                                        min="5"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={allTime}
                                         onChange={(e) =>
                                             setAllTime(
-                                                e.target.value === ""
-                                                    ? ""
-                                                    : Number(e.target.value),
+                                                parseWholeNumber(
+                                                    e.target.value,
+                                                    TIME_LIMIT_MAX,
+                                                ),
                                             )
                                         }
                                     />
@@ -480,14 +499,15 @@ export default function QuizEditor() {
                                     <input
                                         id={allPointsId}
                                         className="input"
-                                        type="number"
-                                        min="1"
+                                        type="text"
+                                        inputMode="numeric"
                                         value={allPoints}
                                         onChange={(e) =>
                                             setAllPoints(
-                                                e.target.value === ""
-                                                    ? ""
-                                                    : Number(e.target.value),
+                                                parseWholeNumber(
+                                                    e.target.value,
+                                                    POINTS_MAX,
+                                                ),
                                             )
                                         }
                                     />

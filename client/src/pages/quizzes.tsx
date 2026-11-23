@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { quizApi, setApi, practiceApi } from "../api/client";
-import type { QuizSummary, SetSummary, PracticeFilterOption, } from "../api/types";
+import { quizApi, setApi, setFolderApi, practiceApi } from "../api/client";
+import type { QuizSummary, SetSummary, SetFolder, PracticeFilterOption, } from "../api/types";
 import { getErrorMessages } from "../api/auth";
 import { generateQuestions } from "../utils/quizGeneration";
 import DeleteQuizModal from "../components/modals/delete_quiz_modal";
@@ -27,6 +27,7 @@ export default function Quizzes() {
     const [createMode, setCreateMode] = useState<CreateMode | null>(null);
 
     const [sets, setSets] = useState<SetSummary[]>([]);
+    const [folders, setFolders] = useState<SetFolder[]>([]);
     const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [quizToDelete, setQuizToDelete] = useState<QuizSummary | null>(null);
@@ -52,11 +53,16 @@ export default function Quizzes() {
         setSelectedCategory("");
 
         try {
-            const response = await setApi.getAll();
-            setSets(response.data);
-        } catch {
-            showNotification("Failed to load sets.");
-        }
+            const [setsResponse, foldersResponse] = await Promise.all([
+            setApi.getAll(),
+            setFolderApi.getAll(),
+        ]);
+
+        setSets(setsResponse.data);
+        setFolders(foldersResponse.data);
+    } catch {
+        showNotification("Failed to load sets or folders.");
+    }
 
         try {
             const response = await practiceApi.getFilters();
@@ -114,6 +120,8 @@ export default function Quizzes() {
                     title: res.data.title,
                     description: res.data.description,
                     isPublic: res.data.isPublic,
+                    creatorName: "",
+                    questionCount: res.data.questions.length,
                 },
             ]);
 
@@ -187,6 +195,8 @@ export default function Quizzes() {
                     title: result.data.title,
                     description: result.data.description,
                     isPublic: result.data.isPublic,
+                    creatorName: "",
+                    questionCount: result.data.questions.length,
                 },
             ]);
 
@@ -459,12 +469,18 @@ export default function Quizzes() {
                                     }
                                     disabled={isGenerating}
                                 >
-                                    <option value="">Select a set</option>
-                                    {sets.map((set) => (
-                                        <option key={set.id} value={set.id}>
-                                            {set.name} ({set.cardCount} cards)
-                                        </option>
-                                    ))}
+                                   <option value="">Select a set</option>
+                                    {sets.map((set) => {
+                                        const folder = folders.find(
+                                            (folder) => folder.id === set.folderId
+                                        );
+
+                                        return (
+                                            <option key={set.id} value={set.id}>
+                                                {set.name} — {folder?.name ?? "No folder"} ({set.cardCount} cards)
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                                 {sets.length === 0 ? (
                                     <span className="field-hint">

@@ -12,6 +12,7 @@ namespace QuattroLingo.Tests.Integration
 
         static QuattroLingoFactory()
         {
+            Environment.SetEnvironmentVariable("RateLimiting__Enabled", "false");
             Environment.SetEnvironmentVariable("Jwt__Key", "end-to-end-test-signing-key-at-least-32-bytes!");
             Environment.SetEnvironmentVariable("Jwt__Issuer", "quattrolingo-tests");
             Environment.SetEnvironmentVariable("Jwt__Audience", "quattrolingo-tests");

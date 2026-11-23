@@ -29,7 +29,7 @@ namespace QuattroLingo.Controllers
 
         [HttpPost]
         public async Task<IActionResult> AddSet([FromBody] DTOs.Request.CreateSet request) =>
-            Ok(await setService.CreateAsync(UserId, request.Name));
+            Ok(await setService.CreateAsync(UserId, request.Name, request.FolderId!.Value));
 
         [HttpDelete("{setId}")]
         public async Task<IActionResult> DeleteSet(int setId)

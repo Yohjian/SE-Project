@@ -11,7 +11,7 @@ namespace QuattroLingo.Repositories
             db.Sets
                 .AsNoTracking()
                 .Where(s => s.UserId == userId)
-                .Select(s => new SetListItem(s.Id, s.Name, s.Cards.Count, s.CreatedAt))
+                .Select(s => new SetListItem(s.Id, s.Name, s.Cards.Count, s.CreatedAt, s.FolderId))
                 .ToListAsync();
 
         public Task<VocabularySet?> GetOwnedWithCardsAsync(string userId, int setId) =>

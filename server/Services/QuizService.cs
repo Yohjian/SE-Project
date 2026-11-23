@@ -5,6 +5,7 @@ using QuattroLingo.Exceptions;
 using QuattroLingo.Extensions;
 using QuattroLingo.Interfaces.Repositories;
 using QuattroLingo.Interfaces.Services;
+using QuattroLingo.Helpers;
 
 namespace QuattroLingo.Services
 {
@@ -21,8 +22,8 @@ namespace QuattroLingo.Services
         private const string CannotChangeCorrectAnswer = "A question must have exactly one correct answer.";
         private const string QuestionTextRequired = "Question text is required.";
         private const string AnswerTextRequired = "Answer text is required.";
-        private const string MinimumQuestionTime = "Question time limit must be at least 5 seconds.";
-        private const string MinimumQuestionPoints = "Question must have at least 1 point.";
+        private static readonly string QuestionTimeRange = $"Question time limit must be between {Limits.TimeLimitMinSeconds} and {Limits.TimeLimitMaxSeconds} seconds.";
+        private static readonly string QuestionPointsRange = $"Question points must be between {Limits.PointsMin} and {Limits.PointsMax}.";
         private const string QuizInUse = "This quiz is used by an active room. Edit it after the game has finished.";
 
         public async Task<List<QuizSummary>> GetMyQuizzesAsync(string userId)
@@ -55,7 +56,10 @@ namespace QuattroLingo.Services
 
         public async Task<QuizEditorResponse> CreateAsync(string userId, CreateQuizRequest request)
         {
-            ValidateQuiz(request.Title, request.Questions);
+            ValidateQuiz(request.Title, request.Description, request.Questions);
+
+            if (await quizzes.CountByOwnerAsync(userId) >= Limits.QuizzesPerUser)
+                throw new ValidationException($"You can have at most {Limits.QuizzesPerUser} quizzes.");
 
             if (request.Kind == QuizKind.Practice &&
                 (!request.LanguageId.HasValue || !request.CategoryId.HasValue))
@@ -92,6 +96,8 @@ namespace QuattroLingo.Services
             if (!original.IsPublic)
                 throw new NotFoundException(QuizNotFound);
 
+            if (await quizzes.CountByOwnerAsync(userId) >= Limits.QuizzesPerUser)
+                throw new ValidationException($"You can have at most {Limits.QuizzesPerUser} quizzes.");
 
             int sourceQuizId = original.SourceQuizId ?? original.Id;
 
@@ -164,7 +170,7 @@ namespace QuattroLingo.Services
             if (request.Questions.Count < 1)
                 throw new ValidationException("A quiz must have at least 1 question.");
 
-            ValidateQuiz(request.Title, request.Questions);
+            ValidateQuiz(request.Title, request.Description, request.Questions);
 
             quiz.Title = request.Title;
             quiz.Description = request.Description;
@@ -216,6 +222,9 @@ namespace QuattroLingo.Services
             await EnsureQuizIsNotInUseAsync(quiz.Id);
 
             ValidateQuestion(request);
+
+            if (await quizzes.CountQuestionsAsync(quizId) >= Limits.QuestionsPerQuiz)
+                throw new ValidationException($"A quiz can have at most {Limits.QuestionsPerQuiz} questions.");
 
             var question = ToQuestion(request);
             question.QuizId = quizId;
@@ -278,6 +287,10 @@ namespace QuattroLingo.Services
             if (string.IsNullOrWhiteSpace(request.Text))
                 throw new ValidationException(AnswerTextRequired);
 
+            Limits.EnsureMaxLength(request.Text, Limits.AnswerTextMax, "Answer text");
+            if (question.AnswerOptions.Count >= Limits.AnswerOptionsMax)
+                throw new ValidationException($"A question can have at most {Limits.AnswerOptionsMax} answer options.");
+
             if (request.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
                 throw new ValidationException(CannotChangeCorrectAnswer);
 
@@ -307,6 +320,8 @@ namespace QuattroLingo.Services
 
             if (string.IsNullOrWhiteSpace(request.Text))
                 throw new ValidationException(AnswerTextRequired);
+
+            Limits.EnsureMaxLength(request.Text, Limits.AnswerTextMax, "Answer text");
 
             if (request.IsCorrect && !answerOption.IsCorrect && question.AnswerOptions.Any(a => a.IsCorrect))
                 throw new ValidationException(CannotChangeCorrectAnswer);
@@ -341,10 +356,16 @@ namespace QuattroLingo.Services
             await quizzes.DeleteAnswerOptionAsync(answerOption);
         }
 
-        private static void ValidateQuiz(string title, List<QuestionRequest> questions)
+        private static void ValidateQuiz(string title, string? description, List<QuestionRequest> questions)
         {
             if (string.IsNullOrWhiteSpace(title))
                 throw new ValidationException(TitleRequired);
+
+            Limits.EnsureMaxLength(title, Limits.QuizTitleMax, "Quiz title");
+            Limits.EnsureMaxLength(description, Limits.QuizDescriptionMax, "Quiz description");
+
+            if (questions.Count > Limits.QuestionsPerQuiz)
+                throw new ValidationException($"A quiz can have at most {Limits.QuestionsPerQuiz} questions.");
 
             foreach (var question in questions)
                 ValidateQuestion(question);
@@ -360,17 +381,25 @@ namespace QuattroLingo.Services
             if (string.IsNullOrWhiteSpace(question.Text))
                 throw new ValidationException(QuestionTextRequired);
 
+            Limits.EnsureMaxLength(question.Text, Limits.QuestionTextMax, "Question text");
+
             if (question.AnswerOptions.Count < 2)
                 throw new ValidationException(MinimumAnswers);
 
-            if (question.TimeLimitSeconds < 5)
-                throw new ValidationException(MinimumQuestionTime);
+            if (question.AnswerOptions.Count > Limits.AnswerOptionsMax)
+                throw new ValidationException($"A question can have at most {Limits.AnswerOptionsMax} answer options.");
 
-            if (question.Points < 1)
-                throw new ValidationException(MinimumQuestionPoints);
+            if (question.TimeLimitSeconds < Limits.TimeLimitMinSeconds || question.TimeLimitSeconds > Limits.TimeLimitMaxSeconds)
+                throw new ValidationException(QuestionTimeRange);
+
+            if (question.Points < Limits.PointsMin || question.Points > Limits.PointsMax)
+                throw new ValidationException(QuestionPointsRange);
 
             if (question.AnswerOptions.Any(a => string.IsNullOrWhiteSpace(a.Text)))
                 throw new ValidationException(AnswerTextRequired);
+
+            foreach (var a in question.AnswerOptions)
+                Limits.EnsureMaxLength(a.Text, Limits.AnswerTextMax, "Answer text");
 
             if (question.AnswerOptions.Count(a => a.IsCorrect) != 1)
                 throw new ValidationException(OneCorrectAnswer);

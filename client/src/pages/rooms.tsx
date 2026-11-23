@@ -28,6 +28,7 @@ export default function Rooms() {
     const [selectedQuizId, setSelectedQuizId] = useState("");
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
+    const [updatingVisibility, setUpdatingVisibility] = useState<number | null>(null);
 
     useEffect(() => {
         roomApi
@@ -93,6 +94,61 @@ export default function Rooms() {
         }
     };
 
+    const handleVisibilityChange = async (
+        room: Room,
+        newVisibility: number
+    ) => {
+        if (room.visibility === newVisibility) return;
+
+        setUpdatingVisibility(room.id);
+        setError(null);
+
+        try {
+            const { data } = await roomApi.updateVisibility(
+                room.joinCode,
+                newVisibility
+            );
+
+            setRooms((current) =>
+                current.map((r) =>
+                    r.id === room.id ? data : r
+                )
+            );
+        } catch (err: unknown) {
+            setError(
+                getErrorMessages(err, "Failed to update room visibility.")[0]
+            );
+        } finally {
+            setUpdatingVisibility(null);
+        }
+    };
+
+    const handleRestartRoom = async (room: Room) => {
+        if (!window.confirm("Restart this room? Previous players and results will be cleared.")) {
+            return;
+        }
+
+        setError(null);
+
+        try {
+            await roomApi.restart(room.joinCode);
+
+            setRooms((current) =>
+                current.map((r) =>
+                    r.id === room.id
+                        ? {
+                            ...r,
+                            status: RoomStatus.Waiting,
+                            participantCount: 0,
+                        }
+                        : r
+                )
+            );
+        } catch (err: unknown) {
+            setError(getErrorMessages(err, "Failed to restart the room.")[0]);
+        }
+    };
+
     const handleDeleteRoom = async (room: Room) => {
         if (!window.confirm("Delete this room permanently?")) return;
         try {
@@ -151,8 +207,13 @@ export default function Rooms() {
                                 >
                                     <option value="">Select a quiz</option>
                                     {quizzes.map((quiz) => (
-                                        <option key={quiz.id} value={quiz.id}>
+                                        <option
+                                            key={quiz.id}
+                                            value={quiz.id}
+                                            disabled={quiz.questionCount === 0}
+                                        >
                                             {quiz.title}
+                                            {quiz.questionCount === 0 ? " (No questions)" : ""}
                                         </option>
                                     ))}
                                 </select>
@@ -234,11 +295,6 @@ export default function Rooms() {
                                         {room.quizTitle}
                                     </h3>
                                     <p className="text-muted">
-                                        {room.visibility ===
-                                        RoomVisibility.Public
-                                            ? "Public"
-                                            : "Private"}
-                                        {" · "}
                                         {STATUS_LABELS[room.status] ??
                                             "Unknown"}
                                         {" · "}
@@ -247,43 +303,84 @@ export default function Rooms() {
                                             ? "player"
                                             : "players"}
                                     </p>
+                                    {room.status === RoomStatus.Waiting ? (
+                                        <div className="field">
+                                            <label htmlFor={`visibility-${room.id}`}>
+                                                Visibility
+                                            </label>
+                                            <select
+                                                id={`visibility-${room.id}`}
+                                                className="input"
+                                                value={room.visibility}
+                                                disabled={updatingVisibility !== null}
+                                                onChange={(e) =>
+                                                    void handleVisibilityChange(
+                                                        room,
+                                                        Number(e.target.value)
+                                                    )
+                                                }
+                                            >
+                                                <option value={RoomVisibility.Public}>
+                                                    Public
+                                                </option>
+                                                <option value={RoomVisibility.Private}>
+                                                    Private
+                                                </option>
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted">
+                                            {room.visibility === RoomVisibility.Public
+                                                ? "Public"
+                                                : "Private"}
+                                        </p>
+                                    )}
                                 </div>
                                 {(room.status === RoomStatus.Waiting ||
                                     room.status === RoomStatus.InProgress) && (
-                                    <div className="room-row__actions">
-                                        <Link
-                                            to={`/rooms/${room.joinCode}/lobby`}
-                                            className="btn btn-primary btn-sm"
-                                        >
-                                            Open
-                                        </Link>
-                                        {room.status === RoomStatus.Waiting && (
+                                        <div className="room-row__actions">
+                                            <Link
+                                                to={`/rooms/${room.joinCode}/lobby`}
+                                                className="btn btn-primary btn-sm"
+                                            >
+                                                Open
+                                            </Link>
+                                            {room.status === RoomStatus.Waiting && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() =>
+                                                        void handleCloseRoom(room)
+                                                    }
+                                                >
+                                                    Close room
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                {(room.status === RoomStatus.Finished ||
+                                    room.status === RoomStatus.Cancelled) && (
+                                        <div className="room-row__actions">
+
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => void handleRestartRoom(room)}
+                                            >
+                                                Restart
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 className="btn btn-secondary btn-sm"
                                                 onClick={() =>
-                                                    void handleCloseRoom(room)
+                                                    void handleDeleteRoom(room)
                                                 }
                                             >
-                                                Close room
+                                                Delete
                                             </button>
-                                        )}
-                                    </div>
-                                )}
-                                {(room.status === RoomStatus.Finished ||
-                                    room.status === RoomStatus.Cancelled) && (
-                                    <div className="room-row__actions">
-                                        <button
-                                            type="button"
-                                            className="btn btn-secondary btn-sm"
-                                            onClick={() =>
-                                                void handleDeleteRoom(room)
-                                            }
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                )}
+                                        </div>
+                                    )}
                                 <div
                                     className="room-code"
                                     aria-label="Room code"

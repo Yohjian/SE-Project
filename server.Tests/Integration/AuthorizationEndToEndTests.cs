@@ -13,6 +13,14 @@ namespace QuattroLingo.Tests.Integration
 
         private record LoginResult(string Token, string Email, string Role);
         private record SetResult(int Id, string Name, int CardCount);
+        private record FolderResult(int Id, string Name);
+
+        private static async Task<int> CreateFolderAsync(HttpClient client)
+        {
+            var response = await client.PostAsJsonAsync("/api/set-folders", new { name = "Folder" });
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<FolderResult>())!.Id;
+        }
 
         private static string NewEmail() => $"{Guid.NewGuid():N}@test.com";
 
@@ -141,7 +149,9 @@ namespace QuattroLingo.Tests.Integration
         {
             var client = await LoggedInClientAsync();
 
-            var create = await client.PostAsJsonAsync("/api/sets", new { name = "Animals" });
+            var folderId = await CreateFolderAsync(client);
+
+            var create = await client.PostAsJsonAsync("/api/sets", new { name = "Animals", folderId });
             Assert.Equal(HttpStatusCode.OK, create.StatusCode);
 
             var sets = await client.GetFromJsonAsync<List<SetResult>>("/api/sets");
@@ -153,7 +163,8 @@ namespace QuattroLingo.Tests.Integration
         public async Task Sets_AnotherUsersSet_Returns404ProblemDetails()
         {
             var owner = await LoggedInClientAsync();
-            var create = await owner.PostAsJsonAsync("/api/sets", new { name = "Private" });
+            var folderId = await CreateFolderAsync(owner);
+            var create = await owner.PostAsJsonAsync("/api/sets", new { name = "Private", folderId });
             var created = await create.Content.ReadFromJsonAsync<SetResult>();
 
             var intruder = await LoggedInClientAsync();
@@ -161,6 +172,27 @@ namespace QuattroLingo.Tests.Integration
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             AssertProblemJson(response);
+        }
+
+        [Fact]
+        public async Task Quizzes_NumberTooBigForInt_Returns400WithReadableMessage()
+        {
+            var client = await LoggedInClientAsync();
+            var json = """
+                {"title":"t","description":null,"questions":[{"text":"Q?","timeLimitSeconds":30,
+                "points":99999999999,"orderIndex":0,
+                "answerOptions":[{"text":"a","isCorrect":true},{"text":"b","isCorrect":false}]}]}
+                """;
+
+            var response = await client.PostAsync("/api/quizzes",
+                new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            AssertProblemJson(response);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("points", body);
+            Assert.DoesNotContain("could not be converted", body);
+            Assert.DoesNotContain("request field is required", body);
         }
     }
 }

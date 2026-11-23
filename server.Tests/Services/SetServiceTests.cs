@@ -74,13 +74,18 @@ namespace QuattroLingo.Tests.Services
 
         public SetServiceTests()
         {
-            _service = new SetService(_repo);
+            var db = TestDb.Create();
+            db.SetFolders.Add(new SetFolder { Id = 1, UserId = "user-1", Name = "Folder" });
+            db.SetFolders.Add(new SetFolder { Id = 2, UserId = "user-2", Name = "Folder" });
+            db.SaveChanges();
+
+            _service = new SetService(_repo, db);
         }
 
         [Fact]
         public async Task Create_SavesSetForUser_AndReturnsSummaryWithZeroCards()
         {
-            var summary = await _service.CreateAsync("user-1", "Animals");
+            var summary = await _service.CreateAsync("user-1", "Animals", 1);
 
             Assert.Equal("Animals", summary.Name);
             Assert.Equal(0, summary.CardCount);
@@ -91,8 +96,8 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task GetAll_ReturnsOnlyTheUsersOwnSets_WithCardCounts()
         {
-            var mine = await _service.CreateAsync("user-1", "Mine");
-            await _service.CreateAsync("user-2", "Theirs");
+            var mine = await _service.CreateAsync("user-1", "Mine", 1);
+            await _service.CreateAsync("user-2", "Theirs", 2);
             await _service.AddCardAsync("user-1", mine.Id, "cat", "kat");
             await _service.AddCardAsync("user-1", mine.Id, "dog", "šuo");
 
@@ -106,7 +111,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task Get_OwnSet_ReturnsItsCards()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
             await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
 
             var contents = await _service.GetAsync("user-1", set.Id);
@@ -119,7 +124,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task Get_SetOwnedBySomeoneElse_ThrowsNotFound()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync("user-2", set.Id));
         }
@@ -133,7 +138,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task AddCard_ToOwnSet_SavesCardAndReturnsIt()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             var card = await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
 
@@ -145,7 +150,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task AddCard_ToSomeoneElsesSet_ThrowsNotFound_AndSavesNothing()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.AddCardAsync("user-2", set.Id, "cat", "kat"));
@@ -156,7 +161,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task GetCards_SomeoneElsesSet_ThrowsNotFound()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<NotFoundException>(() => _service.GetCardsAsync("user-2", set.Id));
         }
@@ -172,7 +177,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DownloadJson_OwnSet_ReturnsNameAndAllCards()
         {
-            var set = await _service.CreateAsync("user-1", "Animals");
+            var set = await _service.CreateAsync("user-1", "Animals", 1);
             await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
             await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
 
@@ -195,7 +200,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DownloadCsv_OwnSet_WritesHeaderAndOneRowPerCard()
         {
-            var set = await _service.CreateAsync("user-1", "Animals");
+            var set = await _service.CreateAsync("user-1", "Animals", 1);
             await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
             await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
 
@@ -212,7 +217,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DownloadCsv_EscapesQuotesCommasAndNewlines()
         {
-            var set = await _service.CreateAsync("user-1", "Tricky");
+            var set = await _service.CreateAsync("user-1", "Tricky", 1);
             await _service.AddCardAsync("user-1", set.Id, "say \"hi\", ok", "line one\nline two");
 
             var (stream, _, _) = await _service.DownloadSetAsync("user-1", set.Id, FileType.Csv);
@@ -225,7 +230,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task Download_SetOwnedBySomeoneElse_ThrowsNotFound()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<NotFoundException>(
                 () => _service.DownloadSetAsync("user-2", set.Id, FileType.Json));
@@ -241,7 +246,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task Download_UnknownFileType_ThrowsUnsupportedFileType()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<UnsupportedFileTypeException>(
                 () => _service.DownloadSetAsync("user-1", set.Id, (FileType)99));
@@ -253,7 +258,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DeleteSet_OwnSet_RemovesSetAndItsCards()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
             await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
 
             await _service.DeleteSetAsync("user-1", set.Id);
@@ -265,7 +270,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DeleteSet_SomeoneElsesSet_ThrowsNotFound_AndKeepsIt()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
 
             await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteSetAsync("user-2", set.Id));
 
@@ -275,7 +280,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DeleteCard_OwnCard_RemovesOnlyThatCard()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
             var cat = await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
             await _service.AddCardAsync("user-1", set.Id, "dog", "šuo");
 
@@ -288,7 +293,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DeleteCard_InSomeoneElsesSet_ThrowsNotFound()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
             var card = await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
 
             await Assert.ThrowsAsync<NotFoundException>(
@@ -300,8 +305,8 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task DeleteCard_FromADifferentSet_ThrowsNotFound()
         {
-            var mine = await _service.CreateAsync("user-1", "Mine");
-            var other = await _service.CreateAsync("user-1", "Other");
+            var mine = await _service.CreateAsync("user-1", "Mine", 1);
+            var other = await _service.CreateAsync("user-1", "Other", 1);
             var card = await _service.AddCardAsync("user-1", other.Id, "cat", "kat");
 
             // Card exists, but not in the set given in the URL
@@ -316,7 +321,7 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task AddCard_DuplicateTerm_IgnoringCase_ThrowsValidation()
         {
-            var set = await _service.CreateAsync("user-1", "Mine");
+            var set = await _service.CreateAsync("user-1", "Mine", 1);
             await _service.AddCardAsync("user-1", set.Id, "cat", "kat");
 
             await Assert.ThrowsAsync<ValidationException>(
@@ -328,8 +333,8 @@ namespace QuattroLingo.Tests.Services
         [Fact]
         public async Task AddCard_SameTermInDifferentSets_IsAllowed()
         {
-            var a = await _service.CreateAsync("user-1", "A");
-            var b = await _service.CreateAsync("user-1", "B");
+            var a = await _service.CreateAsync("user-1", "A", 1);
+            var b = await _service.CreateAsync("user-1", "B", 1);
 
             await _service.AddCardAsync("user-1", a.Id, "cat", "kat");
             await _service.AddCardAsync("user-1", b.Id, "cat", "kat");

@@ -1,3 +1,4 @@
+
 .sets-page {
     display: flex;
     height: 100%;
@@ -24,6 +25,7 @@
 }
 
 /* Toolbar */
+
 .sets-toolbar {
     position: relative;
     z-index: 10;
@@ -34,6 +36,7 @@
     background: var(--color-surface);
     border-bottom: 2px solid var(--color-border);
 }
+
 .sets-toolbar__search {
     flex: 1;
     min-width: 0;
@@ -42,6 +45,7 @@
 .sets-export {
     position: relative;
 }
+
 .sets-export__menu {
     position: absolute;
     top: calc(100% + var(--space-1));
@@ -52,6 +56,7 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius-md);
 }
+
 .sets-export__item {
     display: block;
     width: 100%;
@@ -63,29 +68,34 @@
     text-align: left;
     cursor: pointer;
 }
+
 .sets-export__item:hover {
     background: var(--color-bg);
 }
 
 /* Card containers */
+
 .set-cards {
     flex: 1;
     overflow-y: auto;
     padding: var(--space-4);
 }
+
 .set-cards--grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: var(--space-4);
     align-content: start;
 }
+
 .set-cards--list {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
 }
 
-/* Card */
+/* Cards */
+
 .set-card {
     position: relative;
     display: flex;
@@ -96,10 +106,12 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius-md);
 }
+
 .set-card__term {
     font-weight: 700;
     overflow-wrap: anywhere;
 }
+
 .set-card__definition {
     color: var(--color-text-muted);
     overflow-wrap: anywhere;
@@ -110,16 +122,19 @@
     align-items: center;
     gap: var(--space-4);
 }
+
 .set-card--list .set-card__term,
 .set-card--list .set-card__definition {
     flex: 1;
 }
+
 .set-card--list .set-card__term {
     padding-right: var(--space-4);
     border-right: 2px solid var(--color-border);
 }
 
 /* Per-card delete */
+
 .set-card__delete {
     position: absolute;
     top: var(--space-2);
@@ -136,29 +151,35 @@
     opacity: 0;
     transition: opacity 0.15s;
 }
+
 .set-card:hover .set-card__delete,
 .set-card__delete:focus-visible {
     opacity: 1;
 }
+
 .set-card__delete:hover {
     background: var(--color-danger);
     color: var(--color-surface);
 }
+
 .set-card--list .set-card__delete {
     position: static;
     flex-shrink: 0;
 }
+
 .set-card__delete:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
+
 @media (hover: none) {
     .set-card__delete {
         opacity: 1;
     }
 }
 
-/* "+ Add card" tile */
+/* Add card tile */
+
 .set-card--add {
     align-items: center;
     justify-content: center;
@@ -169,18 +190,21 @@
     cursor: pointer;
     user-select: none;
 }
+
 .set-card--add:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
     background: var(--color-primary-soft);
 }
 
-/* Add-card form (sits above the overlay) */
+/* Add card form */
+
 .set-card-form {
     z-index: 101;
     gap: var(--space-3);
     border-color: var(--color-primary);
 }
+
 .set-card-form__actions {
     display: flex;
     justify-content: flex-end;
@@ -348,4 +372,312 @@
     outline: none;
     border-color: #6366f1;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Set folders */
+
+.sets-folder-sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 300px;
+    flex: 0 0 300px;
+}
+
+.sets-folder-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+.sets-folder-group {
+    margin-top: var(--space-2);
+}
+
+.sets-folder-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.sets-folder-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-3);
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sets-folder-heading:hover {
+    background: var(--color-bg);
+}
+
+.sets-folder-heading--active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.sets-folder-count {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.sets-folder-sets {
+    margin: 0;
+    padding-left: var(--space-3);
+}
+
+.sets-folder-action {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.sets-folder-action:hover {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+.sets-folder-action:focus-visible,
+.sets-folder-heading:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.sets-sidebar-footer {
+    padding: var(--space-3);
+    border-top: 2px solid var(--color-border);
+}
+
+.sets-new-set-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.sets-folder-select {
+    width: 150px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+    .sets-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .sets-folder-select {
+        width: 120px;
+    }
+}
+
+/* Folder rename modal */
+
+.folder-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.folder-modal {
+    width: 100%;
+    max-width: 420px;
+    padding: 28px;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #202438;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.folder-modal h2 {
+    margin: 0 0 20px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.folder-modal .input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.folder-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* Sets sidebar action buttons */
+
+.sets-sidebar-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px 12px;
+}
+
+.sets-sidebar-actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    padding: 9px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-align: center;
+    justify-content: center;
+}
+
+.sets-sidebar-header {
+    display: flex;
+    align-items: center;
+}
+
+/* Prevent long folder names from breaking the sidebar */
+
+.sets-folder-group {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sets-folder-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    gap: 4px;
+}
+
+.sets-folder-row .sets-folder-heading {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    overflow: hidden;
+    gap: 6px;
+}
+
+.sets-folder-label {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    gap: 6px;
+}
+
+.sets-folder-arrow {
+    flex-shrink: 0;
+}
+
+.sets-folder-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sets-folder-count {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.sets-folder-row .sets-folder-action {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Keep folder names on one line and shorten long names */
+
+.sets-folder-group,
+.sets-folder-row {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.sets-folder-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sets-folder-row > .sets-folder-heading {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+    gap: 6px;
+}
+
+.sets-folder-label {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    gap: 6px;
+}
+
+.sets-folder-arrow {
+    flex: 0 0 auto;
+}
+
+.sets-folder-name {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sets-folder-row .sets-folder-count {
+    flex: 0 0 auto;
+}
+
+.sets-folder-row > .sets-folder-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 28px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
 }

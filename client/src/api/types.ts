@@ -1,8 +1,14 @@
 export interface SetSummary {
+  id: number;
+  name: string;
+  cardCount: number;
+  createdAt: string;
+  folderId: number | null;
+}
+
+export interface SetFolder {
     id: number;
     name: string;
-    cardCount: number;
-    createdAt: string;
 }
 
 export interface CardResponse {
@@ -27,11 +33,12 @@ export interface QuestionResponse {
 }
 
 export interface QuizSummary {
-    id: number;
-    title: string;
-    description: string | null;
-    isPublic: boolean;
-    creatorName: string;
+  id: number;
+  title: string;
+  description: string | null;
+  isPublic: boolean;
+  creatorName?: string;
+  questionCount: number;
 }
 
 export interface QuizEditorResponse {

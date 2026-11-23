@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using QuattroLingo.Data;
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Entities;
 using QuattroLingo.Enums;
@@ -10,7 +12,7 @@ using QuattroLingo.Models;
 
 namespace QuattroLingo.Services
 {
-    public class SetService(ISetRepository sets) : ISetService
+    public class SetService(ISetRepository sets, AppDbContext db) : ISetService
     {
         private const string SetNotFound = "Set not found.";
 
@@ -18,7 +20,7 @@ namespace QuattroLingo.Services
         {
             var items = await sets.GetByUserAsync(userId);
             return items
-                .Select(i => new SetSummary(i.Id, i.Name, i.CardCount, i.CreatedAt))
+                .Select(i => new SetSummary(i.Id, i.Name, i.CardCount, i.CreatedAt, i.FolderId))
                 .ToList();
         }
 
@@ -33,17 +35,37 @@ namespace QuattroLingo.Services
                 set.Cards.Select(c => new CardResponse(c.Id, c.Term, c.Definition, c.Meta.ToSerializable())).ToList());
         }
 
-        public async Task<SetSummary> CreateAsync(string userId, string name)
+        public async Task<SetSummary> CreateAsync(
+            string userId,
+            string name,
+            int folderId)
         {
+
+            Limits.EnsureMaxLength(name, Limits.SetNameMax, "Set name");
+
+            if ((await sets.GetByUserAsync(userId)).Count >= Limits.SetsPerUser)
+                throw new ValidationException($"You can have at most {Limits.SetsPerUser} sets.");
+            var folderExists = await db.SetFolders.AnyAsync(f =>
+                f.Id == folderId && f.UserId == userId);
+
+            if (!folderExists)
+                throw new NotFoundException("Folder not found.");
+
             var set = await sets.AddAsync(new VocabularySet
             {
                 UserId = userId,
                 Name = name,
                 CreatedAt = DateTime.UtcNow,
+                FolderId = folderId,
                 Cards = []
             });
 
-            return new SetSummary(set.Id, set.Name, 0, set.CreatedAt);
+            return new SetSummary(
+                set.Id,
+                set.Name,
+                0,
+                set.CreatedAt,
+                set.FolderId);
         }
 
         public async Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition, Dictionary<string, JsonElement>? metadata = null)
@@ -51,6 +73,13 @@ namespace QuattroLingo.Services
             await EnsureOwnedAsync(userId, setId);
 
             var existing = await sets.GetCardsAsync(setId);
+
+            Limits.EnsureMaxLength(term, Limits.CardTextMax, "Term");
+            Limits.EnsureMaxLength(definition, Limits.CardTextMax, "Definition");
+
+            if (existing.Count >= Limits.CardsPerSet)
+                throw new ValidationException($"A set can have at most {Limits.CardsPerSet} cards.");
+
             if (existing.Any(c => string.Equals(c.Term, term, StringComparison.OrdinalIgnoreCase)))
                 throw new ValidationException($"A card with the term \"{term}\" already exists in this set.");
 

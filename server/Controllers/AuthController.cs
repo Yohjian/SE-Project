@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QuattroLingo.Interfaces.Services;
 using QuattroLingo.Services;
 
@@ -11,6 +12,7 @@ namespace QuattroLingo.Controllers
     [Route("api/[controller]")]
     public class AuthController(IAuthService authService) : ControllerBase
     {
+        [EnableRateLimiting("auth")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] DTOs.Request.Register request)
         {
@@ -18,6 +20,7 @@ namespace QuattroLingo.Controllers
             return Ok(new { message = "User registered successfully." });
         }
 
+        [EnableRateLimiting("auth")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] DTOs.Request.Login request)
         {

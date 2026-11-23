@@ -17,6 +17,7 @@ import {
     PracticeAnswerRequest,
     PracticeAnswerResponse,
     PracticeFiltersResponse,
+    SetFolder
 } from "./types";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -63,6 +64,7 @@ export const authApi = {
         client.post<AuthResponse>("/auth/login", { email, password }),
 };
 
+
 export const setApi = {
     getAll: () => client.get<SetSummary[]>("/sets"),
     getCards: (setId: number, sortBy?: string, sortAsc?: boolean) =>
@@ -70,6 +72,12 @@ export const setApi = {
             params: { sortBy, sortAsc },
         }),
     create: (name: string) => client.post<SetSummary>("/sets", { name }),
+
+    getCards: (setId: number) =>
+        client.get<CardResponse[]>(`/sets/${setId}/cards`),
+
+    create: (name: string, folderId: number) =>
+        client.post<SetSummary>("/sets", { name, folderId }),
     download: (setId: number, format: "json" | "csv") =>
         client.get<Blob>(`/sets/${setId}/download/${format}`, {
             responseType: "blob",
@@ -77,7 +85,28 @@ export const setApi = {
     delete: (setId: number) => client.delete(`/sets/${setId}`),
     setMetadata: (setId: number, key: string, value: unknown) =>
         client.patch(`/sets/${setId}/metadata`, { key, value }),
+
+    delete: (setId: number) =>
+        client.delete(`/sets/${setId}`),
+
+    moveToFolder: (setId: number, folderId: number | null) =>
+        client.put(`/sets/${setId}/folder`, { folderId }),
 };
+
+export const setFolderApi = {
+    getAll: () =>
+        client.get<SetFolder[]>("/set-folders"),
+
+    create: (name: string) =>
+        client.post<SetFolder>("/set-folders", { name }),
+
+    rename: (folderId: number, name: string) =>
+        client.put<SetFolder>(`/set-folders/${folderId}`, { name }),
+
+    delete: (folderId: number) =>
+        client.delete(`/set-folders/${folderId}`),
+};
+
 
 export const cardApi = {
     add: (

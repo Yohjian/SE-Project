@@ -1,5 +1,6 @@
-
 import type { CardResponse, QuestionRequest } from "../api/types";
+
+export const MAX_GENERATED_QUESTIONS = 50;
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -20,7 +21,10 @@ export function generateQuestions(
     (card) => card.term.trim() && card.definition.trim()
   );
 
-  return validCards.map((card, index) => {
+  // Sample the questions; distractors still come from all valid cards.
+  const selected = shuffleArray(validCards).slice(0, MAX_GENERATED_QUESTIONS);
+
+  return selected.map((card, index) => {
     const correctAnswer = card.definition.trim();
 
     const incorrectAnswers = [

@@ -65,20 +65,20 @@ namespace QuattroLingo.Tests.Controllers
         [Fact]
         public async Task AddSet_SignedInUser_CreatesSetOwnedByThatUser()
         {
-            _sets.CreateAsync(UserId, "New Set").Returns(MakeSummary(name: "New Set"));
+            _sets.CreateAsync(UserId, "New Set", 1).Returns(MakeSummary(name: "New Set"));
 
-            await _controller.AddSet(new CreateSet("New Set"));
+            await _controller.AddSet(new CreateSet("New Set", 1));
 
-            await _sets.Received(1).CreateAsync(UserId, "New Set");
+            await _sets.Received(1).CreateAsync(UserId, "New Set", 1);
         }
 
         [Fact]
         public async Task AddSet_SignedInUser_ReturnsOkWithCreatedSummary()
         {
             var summary = MakeSummary(name: "New Set");
-            _sets.CreateAsync(UserId, "New Set").Returns(summary);
+            _sets.CreateAsync(UserId, "New Set", 1).Returns(summary);
 
-            var ok = Assert.IsType<OkObjectResult>(await _controller.AddSet(new CreateSet("New Set")));
+            var ok = Assert.IsType<OkObjectResult>(await _controller.AddSet(new CreateSet("New Set", 1)));
 
             Assert.Same(summary, ok.Value);
         }
@@ -194,7 +194,7 @@ namespace QuattroLingo.Tests.Controllers
         {
             { nameof(SetsController.GetAllSets), c => c.GetAllSets() },
             { nameof(SetsController.GetSet), c => c.GetSet(4) },
-            { nameof(SetsController.AddSet), c => c.AddSet(new CreateSet("New Set")) },
+            { nameof(SetsController.AddSet), c => c.AddSet(new CreateSet("New Set", 1)) },
             { nameof(SetsController.DeleteSet), c => c.DeleteSet(4) },
             { nameof(SetsController.DeleteCard), c => c.DeleteCard(4, 9) },
             { nameof(SetsController.AddCard), c => c.AddCard(4, new CreateCard("labas", "hello")) },
