@@ -20,5 +20,11 @@ namespace QuattroLingo.Interfaces.Repositories
         Task DeleteCardAsync(int cardId);
 
         Task DeleteSetAsync(int setId);
+
+        Task<VocabularyCard?> GetCardAsync(int setId, int cardId);
+
+        Task UpdateSetAsync(VocabularySet set);
+
+        Task UpdateCardAsync(VocabularyCard card);
     }
 }

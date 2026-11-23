@@ -1,3 +1,4 @@
+using System.Text.Json;
 using QuattroLingo.DTOs.Response;
 using QuattroLingo.Enums;
 
@@ -11,14 +12,18 @@ namespace QuattroLingo.Interfaces.Services
 
         Task<SetSummary> CreateAsync(string userId, string name, int folderId);
 
-        Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition);
+        Task<CardResponse> AddCardAsync(string userId, int setId, string term, string definition, Dictionary<string, JsonElement>? metadata = null);
 
-        Task<List<CardResponse>> GetCardsAsync(string userId, int setId);
+        Task<List<CardResponse>> GetCardsAsync(string userId, int setId, string? sortBy = null, bool sortAsc = true);
 
         Task<DownloadFile> DownloadSetAsync(string userId, int setId, FileType ft);
 
         Task DeleteCardAsync(string userId, int setId, int cardId);
 
         Task DeleteSetAsync(string userId, int setId);
+
+        Task SetSetMetadataAsync(string userId, int setId, string key, JsonElement value);
+
+        Task SetCardMetadataAsync(string userId, int setId, int cardId, string key, JsonElement value);
     }
 }

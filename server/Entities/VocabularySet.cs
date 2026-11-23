@@ -1,3 +1,5 @@
+using QuattroLingo.Models;
+
 namespace QuattroLingo.Entities
 {
     public class VocabularySet
@@ -11,5 +13,6 @@ namespace QuattroLingo.Entities
         public SetFolder? Folder { get; set; }
 
         public ICollection<VocabularyCard> Cards { get; set; } = [];
+        public Metadata Meta { set; get; } = new();
     }
 }

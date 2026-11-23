@@ -13,6 +13,9 @@ namespace QuattroLingo.Entities
         public int Points { get; set; }
         public int OrderIndex { get; set; }
 
+        public int? CardId { get; set; }
+        public VocabularyCard? Card { get; set; }
+
         public ICollection<AnswerOption> AnswerOptions { get; set; }
             = new List<AnswerOption>();
     }

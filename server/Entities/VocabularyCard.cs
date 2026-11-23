@@ -1,3 +1,4 @@
+using QuattroLingo.Models;
 
 namespace QuattroLingo.Entities
 {
@@ -8,5 +9,6 @@ namespace QuattroLingo.Entities
         public string Definition { set; get; } = string.Empty;
         public int SetId { set; get; }
         public VocabularySet Set { get; set; } = null!;
+        public Metadata Meta { get; set; } = new();
     }
 }

@@ -5,6 +5,7 @@ namespace QuattroLingo.DTOs.Request
         int TimeLimitSeconds,
         int Points,
         int OrderIndex,
-        List<AnswerOptionRequest> AnswerOptions
+        List<AnswerOptionRequest> AnswerOptions,
+        int? CardId = null
     );
 }

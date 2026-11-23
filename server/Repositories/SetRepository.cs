@@ -62,5 +62,20 @@ namespace QuattroLingo.Repositories
                 await db.SaveChangesAsync();
             }
         }
+
+        public async Task<VocabularyCard?> GetCardAsync(int setId, int cardId) =>
+            await db.Cards.FirstOrDefaultAsync(c => c.SetId == setId && c.Id == cardId);
+
+        public async Task UpdateSetAsync(VocabularySet set)
+        {
+            db.Sets.Update(set);
+            await db.SaveChangesAsync();
+        }
+
+        public async Task UpdateCardAsync(VocabularyCard card)
+        {
+            db.Cards.Update(card);
+            await db.SaveChangesAsync();
+        }
     }
 }

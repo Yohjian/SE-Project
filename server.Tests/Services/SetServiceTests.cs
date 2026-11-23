@@ -67,6 +67,16 @@ namespace QuattroLingo.Tests.Services
                 Cards.RemoveAll(c => c.Id == cardId);
                 return Task.CompletedTask;
             }
+
+            public Task<VocabularyCard?> GetCardAsync(int setId, int cardId) =>
+                Task.FromResult(Cards.FirstOrDefault(c => c.SetId == setId && c.Id == cardId));
+
+            public Task UpdateSetAsync(VocabularySet set) =>
+                Task.CompletedTask;
+
+            public Task UpdateCardAsync(VocabularyCard card) =>
+                Task.CompletedTask;
+
         }
 
         private readonly FakeSetRepository _repo = new();
