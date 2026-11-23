@@ -122,5 +122,11 @@ public async Task<List<Quiz>> GetPublicAsync()
 public Task<bool> HasActiveRoomAsync(int quizId) =>
     _context.Rooms.AnyAsync(r => r.QuizId == quizId
         && (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress));
+
+        public Task<int> CountByOwnerAsync(string ownerId) =>
+            _context.Quizzes.CountAsync(q => q.OwnerId == ownerId);
+
+        public Task<int> CountQuestionsAsync(int quizId) =>
+            _context.Questions.CountAsync(q => q.QuizId == quizId);
     }
 }

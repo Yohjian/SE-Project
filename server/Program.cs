@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,9 +15,16 @@ using Scalar.AspNetCore;
 using QuattroLingo.BackgroundServices;
 using QuattroLingo.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using QuattroLingo.Helpers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 
 DotNetEnv.Env.Load("../.env");
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = Limits.MaxRequestBodyBytes);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -90,7 +98,131 @@ builder.Services.AddCors(options =>
               .WithExposedHeaders("Content-Disposition"));
 });
 
-builder.Services.AddControllers();
+builder.Services.Configure<RateLimitOptions>(
+    builder.Configuration.GetSection(RateLimitOptions.SectionName));
+
+// Behind nginx/Caddy the socket address is the proxy's, so trust X-Forwarded-For
+// only from the configured proxies (plus loopback, which is trusted by default).
+builder.Services.AddOptions<ForwardedHeadersOptions>()
+    .Configure<IOptions<RateLimitOptions>>((o, limits) =>
+    {
+        o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        o.ForwardLimit = 1;
+        // Entries are single addresses ("172.18.0.3") or subnets ("172.18.0.0/16").
+        foreach (var entry in limits.Value.TrustedProxies)
+        {
+            var parts = entry.Split('/');
+            var address = IPAddress.Parse(parts[0]);
+            if (parts.Length == 2)
+#pragma warning disable CS0618 // KnownNetworks is obsolete in .NET 10 but works on every version
+                o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(address, int.Parse(parts[1])));
+#pragma warning restore CS0618
+            else
+                o.KnownProxies.Add(address);
+        }
+    });
+
+static string ClientIp(HttpContext ctx) =>
+    ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+// Limits are read per request so configuration (and tests) can change them.
+static RateLimitOptions RateLimitsFor(HttpContext ctx) =>
+    ctx.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+
+static RateLimitPartition<string> PerIp(HttpContext ctx, Func<RateLimitOptions, int> perMinute)
+{
+    var limits = RateLimitsFor(ctx);
+    return limits.Enabled
+        ? RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx), _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = perMinute(limits),
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        })
+        : RateLimitPartition.GetNoLimiter("disabled");
+}
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            status = 429,
+            title = "Too Many Requests",
+            detail = "Too many requests. Please wait a moment and try again."
+        }, options: null, contentType: "application/problem+json", cancellationToken: token);
+    };
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+    {
+        var limits = RateLimitsFor(ctx);
+        if (!limits.Enabled)
+            return RateLimitPartition.GetNoLimiter("disabled");
+
+        var key = ctx.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value is { } sub
+            ? $"user:{sub}"
+            : $"ip:{ClientIp(ctx)}";
+
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = limits.GlobalPerMinute,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("auth", ctx => PerIp(ctx, l => l.AuthPerMinute));
+    options.AddPolicy("room-lookup", ctx => PerIp(ctx, l => l.RoomLookupPerMinute));
+    options.AddPolicy("hub-connect", ctx => PerIp(ctx, l => l.HubConnectPerMinute));
+});
+
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(o =>
+    {
+        // Keeps the usual validation problem shape, but replaces the raw
+        // System.Text.Json messages (e.g. a number too big for an int) with a readable one.
+        o.InvalidModelStateResponseFactory = context =>
+        {
+            const string conversionError = "could not be converted";
+            var hasConversionError = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Any(e => e.ErrorMessage.Contains(conversionError));
+
+            var errors = new Dictionary<string, string[]>();
+            foreach (var (key, entry) in context.ModelState)
+            {
+                if (entry.Errors.Count == 0)
+                    continue;
+
+                // "The request field is required." is only noise next to a JSON conversion error.
+                if (hasConversionError && key == "request")
+                    continue;
+
+                errors[key] = entry.Errors
+                    .Select(e => e.ErrorMessage.Contains(conversionError)
+                        ? $"'{key.TrimStart('$', '.')}' has an invalid value. Use a whole number within the allowed range."
+                        : e.ErrorMessage)
+                    .ToArray();
+            }
+
+            var problem = new ValidationProblemDetails(errors)
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Detail = errors.Values.SelectMany(m => m).FirstOrDefault()
+            };
+
+            return new BadRequestObjectResult(problem)
+            {
+                ContentTypes = { "application/problem+json" }
+            };
+        };
+    });
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -114,6 +246,8 @@ builder.Services.AddHostedService<RoomCleanupService>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -124,9 +258,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("DevPolicy");
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<GameHub>("/hubs/game");
+app.MapHub<GameHub>("/hubs/game").RequireRateLimiting("hub-connect");
 
 // Auto-apply migrations on startup
 using (var scope = app.Services.CreateScope())

@@ -162,5 +162,26 @@ namespace QuattroLingo.Tests.Integration
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             AssertProblemJson(response);
         }
+
+        [Fact]
+        public async Task Quizzes_NumberTooBigForInt_Returns400WithReadableMessage()
+        {
+            var client = await LoggedInClientAsync();
+            var json = """
+                {"title":"t","description":null,"questions":[{"text":"Q?","timeLimitSeconds":30,
+                "points":99999999999,"orderIndex":0,
+                "answerOptions":[{"text":"a","isCorrect":true},{"text":"b","isCorrect":false}]}]}
+                """;
+
+            var response = await client.PostAsync("/api/quizzes",
+                new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            AssertProblemJson(response);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("points", body);
+            Assert.DoesNotContain("could not be converted", body);
+            Assert.DoesNotContain("request field is required", body);
+        }
     }
 }

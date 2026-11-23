@@ -1,4 +1,9 @@
 import { useId, useState } from "react";
+import {
+    parseWholeNumber,
+    POINTS_MAX,
+    TIME_LIMIT_MAX,
+} from "../utils/limits";
 import type { QuestionRequest } from "../api/types";
 
 interface QuizQuestionEditorProps {
@@ -173,20 +178,23 @@ export default function QuizQuestionEditor({
                             <input
                                 id={timeId}
                                 className="input"
-                                type="number"
-                                min="5"
+                                type="text"
+                                inputMode="numeric"
                                 value={
                                     question.timeLimitSeconds === 0
                                         ? ""
                                         : question.timeLimitSeconds
                                 }
                                 onChange={(e) => {
-                                    const value = e.target.value;
+                                    const value = parseWholeNumber(
+                                        e.target.value,
+                                        TIME_LIMIT_MAX,
+                                    );
 
                                     onQuestionChange(
                                         questionIndex,
                                         "timeLimitSeconds",
-                                        value === "" ? 0 : Number(value),
+                                        value === "" ? 0 : value,
                                     );
                                 }}
                             />
@@ -197,20 +205,23 @@ export default function QuizQuestionEditor({
                             <input
                                 id={pointsId}
                                 className="input"
-                                type="number"
-                                min="1"
+                                type="text"
+                                inputMode="numeric"
                                 value={
                                     question.points === 0 ? "" : question.points
                                 }
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                    const value = parseWholeNumber(
+                                        e.target.value,
+                                        POINTS_MAX,
+                                    );
+
                                     onQuestionChange(
                                         questionIndex,
                                         "points",
-                                        e.target.value === ""
-                                            ? 0
-                                            : Number(e.target.value),
-                                    )
-                                }
+                                        value === "" ? 0 : value,
+                                    );
+                                }}
                             />
                         </div>
                     </div>

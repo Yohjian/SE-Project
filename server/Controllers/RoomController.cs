@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QuattroLingo.DTOs.Request;
 using QuattroLingo.Exceptions;
 using QuattroLingo.Interfaces.Services;
@@ -45,6 +46,7 @@ namespace QuattroLingo.Controllers
             return Ok(result);
         }
 
+        [EnableRateLimiting("room-lookup")]
         [HttpGet("{code}")]
         public async Task<IActionResult> GetByCode(string code)
         {
@@ -60,6 +62,7 @@ namespace QuattroLingo.Controllers
             return NoContent();
         }
 
+        [EnableRateLimiting("room-lookup")]
         [HttpPost("join")]
         public async Task<IActionResult> JoinRoom(JoinRoom dto)
         {
