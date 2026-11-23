@@ -156,10 +156,11 @@ export default function Dashboard() {
                                                 </p>
                                             )}
                                             
+                                            {quiz.creatorName && (
                                             <p className="text-muted">
                                                 Created by {quiz.creatorName}
                                             </p>
-
+                                            )}
                                         </div>
 
                                             <Link

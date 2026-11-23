@@ -37,7 +37,7 @@ export interface QuizSummary {
   title: string;
   description: string | null;
   isPublic: boolean;
-  creatorName: string;
+  creatorName?: string;
   questionCount: number;
 }
 

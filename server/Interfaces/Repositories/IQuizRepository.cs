@@ -20,5 +20,7 @@ namespace QuattroLingo.Interfaces.Repositories
         Task<List<Quiz>> GetPublicAsync();
         /// <summary>True while a Waiting or InProgress room uses this quiz.</summary>
         Task<bool> HasActiveRoomAsync(int izId);
+        Task<int> CountByOwnerAsync(string ownerId);
+        Task<int> CountQuestionsAsync(int quizId);
     }
 }

@@ -38,6 +38,11 @@ namespace QuattroLingo.Services
             string name,
             int folderId)
         {
+
+            Limits.EnsureMaxLength(name, Limits.SetNameMax, "Set name");
+
+            if ((await sets.GetByUserAsync(userId)).Count >= Limits.SetsPerUser)
+                throw new ValidationException($"You can have at most {Limits.SetsPerUser} sets.");
             var folderExists = await db.SetFolders.AnyAsync(f =>
                 f.Id == folderId && f.UserId == userId);
 
@@ -66,6 +71,13 @@ namespace QuattroLingo.Services
             await EnsureOwnedAsync(userId, setId);
 
             var existing = await sets.GetCardsAsync(setId);
+
+            Limits.EnsureMaxLength(term, Limits.CardTextMax, "Term");
+            Limits.EnsureMaxLength(definition, Limits.CardTextMax, "Definition");
+
+            if (existing.Count >= Limits.CardsPerSet)
+                throw new ValidationException($"A set can have at most {Limits.CardsPerSet} cards.");
+
             if (existing.Any(c => string.Equals(c.Term, term, StringComparison.OrdinalIgnoreCase)))
                 throw new ValidationException($"A card with the term \"{term}\" already exists in this set.");
 
