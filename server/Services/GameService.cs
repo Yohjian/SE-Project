@@ -266,7 +266,7 @@ namespace QuattroLingo.Services
                             else
                                 card.Meta.Set("times_wrong", card.Meta.GetOrDefault<int>("times_wrong", 0) + 1);
                             card.Meta.Set("times_played", card.Meta.GetOrDefault<int>("times_played", 0) + 1);
-                            card.Meta.Set("last_played", DateTime.UtcNow);
+                            card.Meta.Set("last_played", DateTime.UtcNow.ToString("yyyy-MM-dd"));
                             await db.SaveChangesAsync();
                         }
                     });
@@ -501,7 +501,7 @@ namespace QuattroLingo.Services
                                 connection.Key,
                                 game.JoinCode);
                         }
-                        
+
                         RemoveGame(game);
                     }
                 }

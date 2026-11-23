@@ -31,6 +31,7 @@ export interface QuestionResponse {
     points: number;
     orderIndex: number;
     answerOptions: AnswerOptionResponse[];
+    cardId?: number;
 }
 
 export interface QuizSummary {

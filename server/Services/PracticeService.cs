@@ -114,7 +114,7 @@ namespace QuattroLingo.Services
                         card.Meta.Set("times_wrong", card.Meta.GetOrDefault<int>("times_wrong", 0) + 1);
 
                     card.Meta.Set("times_played", card.Meta.GetOrDefault<int>("times_played", 0) + 1);
-                    card.Meta.Set("last_played", DateTime.UtcNow);
+                    card.Meta.Set("last_played", DateTime.UtcNow.ToString("yyyy-MM-dd"));
                     var json = JsonSerializer.Serialize(card.Meta.ToSerializable());
                     await db.Database.ExecuteSqlInterpolatedAsync(
                         $"UPDATE \"Cards\" SET \"Meta\" = {json}::jsonb WHERE \"Id\" = {card.Id}");
