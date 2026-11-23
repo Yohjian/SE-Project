@@ -1,29 +1,15 @@
-
-import {
-    useState,
-    useEffect,
-    useRef,
-    useMemo,
-    useCallback,
-} from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
 
 import { cardApi, setApi, setFolderApi } from "../api/client";
-import type {
-    CardResponse,
-    SetFolder,
-    SetSummary,
-} from "../api/types";
+import type { CardResponse, SetFolder, SetSummary } from "../api/types";
 import { useNotification } from "../components/notification";
 
 import "../styles/sets.css";
 import "../styles/tree.css";
 
-function filenameFromHeader(
-    header: string | undefined,
-    fallback: string,
-) {
+function filenameFromHeader(header: string | undefined, fallback: string) {
     if (!header) return fallback;
 
     const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header);
@@ -35,7 +21,6 @@ function filenameFromHeader(
 function downloadBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-
     a.href = url;
     a.download = filename;
     a.click();
@@ -53,8 +38,6 @@ function parseMetaValue(raw: string): unknown {
 interface MetaField {
     key: string;
     value: string;
-
-    setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function errorMessage(error: unknown, fallback: string) {
@@ -71,19 +54,22 @@ export default function Sets() {
     const [sets, setSets] = useState<SetSummary[]>([]);
     const [folders, setFolders] = useState<SetFolder[]>([]);
 
-    const [selectedFolderId, setSelectedFolderId] =
-        useState<number | null>(null);
-    const [selectedSetId, setSelectedSetId] =
-        useState<number | null>(null);
+    const [selectedFolderId, setSelectedFolderId] = useState<number | null>(
+        null,
+    );
+    const [selectedSetId, setSelectedSetId] = useState<number | null>(null);
 
-    const [expandedFolders, setExpandedFolders] =
-        useState<Set<number>>(new Set());
+    const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
+        new Set(),
+    );
 
     const [newFolderName, setNewFolderName] = useState("");
     const [isAddingFolder, setIsAddingFolder] = useState(false);
     const [isSavingFolder, setIsSavingFolder] = useState(false);
 
-    const [renamingFolder, setRenamingFolder] = useState<SetFolder | null>(null);
+    const [renamingFolder, setRenamingFolder] = useState<SetFolder | null>(
+        null,
+    );
     const [renameValue, setRenameValue] = useState("");
     const [isRenamingFolder, setIsRenamingFolder] = useState(false);
 
@@ -92,8 +78,7 @@ export default function Sets() {
     const [isSavingSet, setIsSavingSet] = useState(false);
     const [newSetFolderId, setNewSetFolderId] = useState<number | null>(null);
 
-    const [viewMode, setViewMode] =
-        useState<"grid" | "list">("grid");
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     const [search, setSearch] = useState("");
     const [isAdding, setIsAdding] = useState(false);
@@ -122,9 +107,7 @@ export default function Sets() {
         () =>
             cards.filter(
                 (card) =>
-                    card.term
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
+                    card.term.toLowerCase().includes(search.toLowerCase()) ||
                     card.definition
                         .toLowerCase()
                         .includes(search.toLowerCase()),
@@ -166,22 +149,23 @@ export default function Sets() {
         if (isAdding) termRef.current?.focus();
     }, [isAdding]);
 
+    // FIX 1: use consistent parameter name 'event', and both checks are at the same level
     useEffect(() => {
         const handler = (event: MouseEvent) => {
             if (
                 exportRef.current &&
                 !exportRef.current.contains(event.target as Node)
-            ) {
+            )
                 setShowExportMenu(false);
-            if (sortRef.current && !sortRef.current.contains(e.target as Node))
+            if (
+                sortRef.current &&
+                !sortRef.current.contains(event.target as Node)
+            )
                 setShowSortMenu(false);
-            }
         };
 
         document.addEventListener("mousedown", handler);
-
-        return () =>
-            document.removeEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
     }, []);
 
     useEffect(() => {
@@ -195,8 +179,7 @@ export default function Sets() {
                 setFolders(folderResponse.data);
             })
             .catch(() => {
-                if (active)
-                    showNotification("Failed to load sets or folders.");
+                if (active) showNotification("Failed to load sets or folders.");
             });
 
         return () => {
@@ -219,8 +202,7 @@ export default function Sets() {
                 if (active) setCards(res.data);
             })
             .catch(() => {
-                if (active)
-                    showNotification("Failed to load cards.");
+                if (active) showNotification("Failed to load cards.");
             });
 
         return () => {
@@ -266,10 +248,7 @@ export default function Sets() {
         try {
             const response = await setFolderApi.create(name);
 
-            setFolders((previous) => [
-                ...previous,
-                response.data,
-            ]);
+            setFolders((previous) => [...previous, response.data]);
 
             setExpandedFolders((previous) => {
                 const next = new Set(previous);
@@ -283,9 +262,7 @@ export default function Sets() {
 
             showNotification("Folder created.", "success");
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to create folder."),
-            );
+            showNotification(errorMessage(error, "Failed to create folder."));
         } finally {
             setIsSavingFolder(false);
         }
@@ -309,10 +286,7 @@ export default function Sets() {
         setIsRenamingFolder(true);
 
         try {
-            const response = await setFolderApi.rename(
-                renamingFolder.id,
-                name,
-            );
+            const response = await setFolderApi.rename(renamingFolder.id, name);
 
             setFolders((previous) =>
                 previous.map((item) =>
@@ -323,9 +297,7 @@ export default function Sets() {
             setRenamingFolder(null);
             showNotification("Folder renamed.", "success");
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to rename folder."),
-            );
+            showNotification(errorMessage(error, "Failed to rename folder."));
         } finally {
             setIsRenamingFolder(false);
         }
@@ -369,12 +341,11 @@ export default function Sets() {
                 "success",
             );
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to delete folder."),
-            );
+            showNotification(errorMessage(error, "Failed to delete folder."));
         }
     };
 
+    // FIX 2: single definition of handleAddSet (removed duplicate useCallback version)
     const handleAddSet = async () => {
         const name = newSetName.trim();
 
@@ -408,23 +379,20 @@ export default function Sets() {
 
             showNotification("Set created.", "success");
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to create set."),
-            );
+            showNotification(errorMessage(error, "Failed to create set."));
         } finally {
             setIsSavingSet(false);
         }
     };
 
+    // FIX 2: single definition of handleDeleteSet (removed duplicate useCallback version)
     const handleDeleteSet = async (setId: number) => {
         if (!confirm("Delete this set and all its cards?")) return;
 
         try {
             await setApi.delete(setId);
 
-            setSets((previous) =>
-                previous.filter((set) => set.id !== setId),
-            );
+            setSets((previous) => previous.filter((set) => set.id !== setId));
 
             if (selectedSetId === setId) {
                 setSelectedSetId(null);
@@ -437,18 +405,13 @@ export default function Sets() {
         }
     };
 
-    const handleMoveSet = async (
-        setId: number,
-        folderId: number | null,
-    ) => {
+    const handleMoveSet = async (setId: number, folderId: number | null) => {
         try {
             await setApi.moveToFolder(setId, folderId);
 
             setSets((previous) =>
                 previous.map((set) =>
-                    set.id === setId
-                        ? { ...set, folderId }
-                        : set,
+                    set.id === setId ? { ...set, folderId } : set,
                 ),
             );
 
@@ -458,9 +421,7 @@ export default function Sets() {
 
             showNotification("Set moved.", "success");
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to move set."),
-            );
+            showNotification(errorMessage(error, "Failed to move set."));
         }
     };
 
@@ -472,14 +433,12 @@ export default function Sets() {
     }, []);
 
     const handleSave = useCallback(async () => {
-        if (!newTerm.trim())
-            return showNotification("A term is needed!");
+        if (!newTerm.trim()) return showNotification("A term is needed!");
 
         if (!newDefinition.trim())
             return showNotification("A definition is needed!");
 
-        if (selectedSetId === null)
-            return showNotification("No set selected.");
+        if (selectedSetId === null) return showNotification("No set selected.");
 
         const metadata = Object.fromEntries(
             newMetadata
@@ -497,10 +456,7 @@ export default function Sets() {
                 Object.keys(metadata).length > 0 ? metadata : undefined,
             );
 
-            setCards((previous) => [
-                ...previous,
-                response.data,
-            ]);
+            setCards((previous) => [...previous, response.data]);
 
             setSets((previous) =>
                 previous.map((set) =>
@@ -513,9 +469,7 @@ export default function Sets() {
             showNotification("Card added.", "success");
             handleCancel();
         } catch (error) {
-            showNotification(
-                errorMessage(error, "Failed to add card."),
-            );
+            showNotification(errorMessage(error, "Failed to add card."));
         } finally {
             setIsSaving(false);
         }
@@ -527,45 +481,6 @@ export default function Sets() {
         handleCancel,
         showNotification,
     ]);
-
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") handleSave();
-            if (e.key === "Escape") handleCancel();
-        },
-        [handleSave, handleCancel],
-    );
-
-    const handleAddSet = useCallback(
-        async (name: string) => {
-            try {
-                const res = await setApi.create(name);
-                setSets((prev) => [...prev, res.data]);
-                setSelectedSetId(res.data.id);
-            } catch {
-                showNotification("Failed to create set.");
-            }
-        },
-        [showNotification],
-    );
-
-    const handleDeleteSet = useCallback(
-        async (setId: number) => {
-            if (!confirm("Delete this set and all its cards?")) return;
-            try {
-                await setApi.delete(setId);
-                setSets((prev) => prev.filter((s) => s.id !== setId));
-                if (selectedSetId === setId) {
-                    setCards([]);
-                    setSelectedSetId(null);
-                }
-                showNotification("Set deleted.", "success");
-            } catch {
-                showNotification("Failed to delete set.");
-            }
-        },
-        [selectedSetId, showNotification],
-    );
 
     const handleDeleteCard = useCallback(
         async (cardId: number) => {
@@ -583,10 +498,7 @@ export default function Sets() {
                         set.id === selectedSetId
                             ? {
                                   ...set,
-                                  cardCount: Math.max(
-                                      0,
-                                      set.cardCount - 1,
-                                  ),
+                                  cardCount: Math.max(0, set.cardCount - 1),
                               }
                             : set,
                     ),
@@ -640,10 +552,7 @@ export default function Sets() {
             if (selectedSetId === null) return;
 
             try {
-                const response = await setApi.download(
-                    selectedSetId,
-                    format,
-                );
+                const response = await setApi.download(selectedSetId, format);
 
                 const filename = filenameFromHeader(
                     response.headers["content-disposition"],
@@ -662,10 +571,7 @@ export default function Sets() {
 
     const overlay = isAdding
         ? createPortal(
-              <div
-                  className="sets-overlay"
-                  onClick={handleCancel}
-              />,
+              <div className="sets-overlay" onClick={handleCancel} />,
               document.body,
           )
         : null;
@@ -681,9 +587,7 @@ export default function Sets() {
                 type="button"
                 className="sidebar-item-name"
                 onClick={() => selectSet(set)}
-                aria-current={
-                    selectedSetId === set.id ? "true" : undefined
-                }
+                aria-current={selectedSetId === set.id ? "true" : undefined}
             >
                 {set.name}
             </button>
@@ -703,185 +607,185 @@ export default function Sets() {
     return (
         <>
             {overlay}
+
             {isAddingSet &&
-    createPortal(
-        <div
-            className="folder-modal-overlay"
-            onMouseDown={(event) => {
-                if (
-                    event.target === event.currentTarget &&
-                    !isSavingSet
-                ) {
-                    setIsAddingSet(false);
-                }
-            }}
-        >
-            <div
-                className="folder-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="create-set-title"
-            >
-                <h2 id="create-set-title">Create new set</h2>
-
-                <form
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        void handleAddSet();
-                    }}
-                >
-                    <label htmlFor="new-set-name">
-                        Set name
-                    </label>
-
-                    <input
-                        id="new-set-name"
-                        autoFocus
-                        className="input"
-                        type="text"
-                        placeholder="Enter set name..."
-                        value={newSetName}
-                        onChange={(event) =>
-                            setNewSetName(event.target.value)
-                        }
-                        maxLength={100}
-                        disabled={isSavingSet}
-                    />
-
-                    <label htmlFor="new-set-folder">
-                        Folder
-                    </label>
-
-                    <select
-                        id="new-set-folder"
-                        className="input"
-                        value={newSetFolderId ?? ""}
-                        onChange={(event) =>
-                            setNewSetFolderId(
-                                event.target.value
-                                    ? Number(event.target.value)
-                                    : null
-                            )
-                        }
-                        disabled={isSavingSet}
-                    >
-                        <option value="" disabled>
-                            Select a folder
-                        </option>
-
-                        {folders.map((folder) => (
-                            <option
-                                key={folder.id}
-                                value={folder.id}
-                            >
-                                {folder.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <div className="folder-modal-actions">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => setIsAddingSet(false)}
-                            disabled={isSavingSet}
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={
-                                isSavingSet ||
-                                !newSetName.trim() ||
-                                newSetFolderId === null
-                            }
-                        >
-                            {isSavingSet
-                                ? "Creating..."
-                                : "Create set"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>,
-        document.body,
-    )}
-            {renamingFolder &&
-    createPortal(
-        <div
-            className="folder-modal-overlay"
-            onMouseDown={(event) => {
-                if (
-                    event.target === event.currentTarget &&
-                    !isRenamingFolder
-                ) {
-                    setRenamingFolder(null);
-                }
-            }}
-        >
-            <div
-                className="folder-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="rename-folder-title"
-            >
-                <h2 id="rename-folder-title">Rename folder</h2>
-
-                <form
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        void handleRenameFolder();
-                    }}
-                >
-                    <input
-                        autoFocus
-                        className="input"
-                        type="text"
-                        value={renameValue}
-                        onChange={(event) =>
-                            setRenameValue(event.target.value)
-                        }
-                        placeholder="Folder name"
-                        maxLength={100}
-                        disabled={isRenamingFolder}
-                        onKeyDown={(event) => {
+                createPortal(
+                    <div
+                        className="folder-modal-overlay"
+                        onMouseDown={(event) => {
                             if (
-                                event.key === "Escape" &&
+                                event.target === event.currentTarget &&
+                                !isSavingSet
+                            ) {
+                                setIsAddingSet(false);
+                            }
+                        }}
+                    >
+                        <div
+                            className="folder-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="create-set-title"
+                        >
+                            <h2 id="create-set-title">Create new set</h2>
+
+                            <form
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    void handleAddSet();
+                                }}
+                            >
+                                <label htmlFor="new-set-name">Set name</label>
+
+                                <input
+                                    id="new-set-name"
+                                    autoFocus
+                                    className="input"
+                                    type="text"
+                                    placeholder="Enter set name..."
+                                    value={newSetName}
+                                    onChange={(event) =>
+                                        setNewSetName(event.target.value)
+                                    }
+                                    maxLength={100}
+                                    disabled={isSavingSet}
+                                />
+
+                                <label htmlFor="new-set-folder">Folder</label>
+
+                                <select
+                                    id="new-set-folder"
+                                    className="input"
+                                    value={newSetFolderId ?? ""}
+                                    onChange={(event) =>
+                                        setNewSetFolderId(
+                                            event.target.value
+                                                ? Number(event.target.value)
+                                                : null,
+                                        )
+                                    }
+                                    disabled={isSavingSet}
+                                >
+                                    <option value="" disabled>
+                                        Select a folder
+                                    </option>
+
+                                    {folders.map((folder) => (
+                                        <option
+                                            key={folder.id}
+                                            value={folder.id}
+                                        >
+                                            {folder.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <div className="folder-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setIsAddingSet(false)}
+                                        disabled={isSavingSet}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={
+                                            isSavingSet ||
+                                            !newSetName.trim() ||
+                                            newSetFolderId === null
+                                        }
+                                    >
+                                        {isSavingSet
+                                            ? "Creating..."
+                                            : "Create set"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>,
+                    document.body,
+                )}
+
+            {renamingFolder &&
+                createPortal(
+                    <div
+                        className="folder-modal-overlay"
+                        onMouseDown={(event) => {
+                            if (
+                                event.target === event.currentTarget &&
                                 !isRenamingFolder
                             ) {
                                 setRenamingFolder(null);
                             }
                         }}
-                    />
-
-                    <div className="folder-modal-actions">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => setRenamingFolder(null)}
-                            disabled={isRenamingFolder}
+                    >
+                        <div
+                            className="folder-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="rename-folder-title"
                         >
-                            Cancel
-                        </button>
+                            <h2 id="rename-folder-title">Rename folder</h2>
 
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={
-                                isRenamingFolder ||
-                                !renameValue.trim()
-                            }
-                        >
-                            {isRenamingFolder ? "Saving..." : "Save"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>,
-        document.body,
-    )}
+                            <form
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    void handleRenameFolder();
+                                }}
+                            >
+                                <input
+                                    autoFocus
+                                    className="input"
+                                    type="text"
+                                    value={renameValue}
+                                    onChange={(event) =>
+                                        setRenameValue(event.target.value)
+                                    }
+                                    placeholder="Folder name"
+                                    maxLength={100}
+                                    disabled={isRenamingFolder}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === "Escape" &&
+                                            !isRenamingFolder
+                                        ) {
+                                            setRenamingFolder(null);
+                                        }
+                                    }}
+                                />
+
+                                <div className="folder-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setRenamingFolder(null)}
+                                        disabled={isRenamingFolder}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        disabled={
+                                            isRenamingFolder ||
+                                            !renameValue.trim()
+                                        }
+                                    >
+                                        {isRenamingFolder
+                                            ? "Saving..."
+                                            : "Save"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>,
+                    document.body,
+                )}
 
             <div className="sets-page">
                 <aside className="sidebar sets-folder-sidebar">
@@ -906,7 +810,7 @@ export default function Sets() {
                             className="btn btn-primary btn-sm"
                             onClick={() => {
                                 setNewSetFolderId(
-                                    selectedFolderId ?? folders[0]?.id ?? null
+                                    selectedFolderId ?? folders[0]?.id ?? null,
                                 );
                                 setNewSetName("");
                                 setIsAddingSet(true);
@@ -970,7 +874,10 @@ export default function Sets() {
                                                 toggleFolder(folder.id);
                                             }}
                                         >
-                                            <span className="sets-folder-label" title={folder.name}>
+                                            <span
+                                                className="sets-folder-label"
+                                                title={folder.name}
+                                            >
                                                 <span className="sets-folder-arrow">
                                                     {expanded ? "▾" : "▸"}
                                                 </span>
@@ -1028,9 +935,7 @@ export default function Sets() {
                             placeholder="Search cards..."
                             aria-label="Search cards"
                             value={search}
-                            onChange={(event) =>
-                                setSearch(event.target.value)
-                            }
+                            onChange={(event) => setSearch(event.target.value)}
                             disabled={selectedSetId === null}
                         />
 
@@ -1053,10 +958,7 @@ export default function Sets() {
                                 </option>
 
                                 {folders.map((folder) => (
-                                    <option
-                                        key={folder.id}
-                                        value={folder.id}
-                                    >
+                                    <option key={folder.id} value={folder.id}>
                                         {folder.name}
                                     </option>
                                 ))}
@@ -1072,9 +974,7 @@ export default function Sets() {
                                 )
                             }
                         >
-                            {viewMode === "grid"
-                                ? "List view"
-                                : "Grid view"}
+                            {viewMode === "grid" ? "List view" : "Grid view"}
                         </button>
 
                         {metadataKeys.length > 0 && (
@@ -1131,11 +1031,8 @@ export default function Sets() {
                             </>
                         )}
 
+                        {/* FIX 3: single sets-export div for download (removed duplicate) */}
                         <div className="sets-export" ref={exportRef}>
-                        <div
-                            className="sets-export"
-                            ref={exportRef}
-                        >
                             <button
                                 type="button"
                                 className="btn btn-secondary btn-sm"
@@ -1154,9 +1051,7 @@ export default function Sets() {
                                     <button
                                         type="button"
                                         className="sets-export__item"
-                                        onClick={() =>
-                                            handleExport("json")
-                                        }
+                                        onClick={() => handleExport("json")}
                                     >
                                         JSON
                                     </button>
@@ -1164,9 +1059,7 @@ export default function Sets() {
                                     <button
                                         type="button"
                                         className="sets-export__item"
-                                        onClick={() =>
-                                            handleExport("csv")
-                                        }
+                                        onClick={() => handleExport("csv")}
                                     >
                                         CSV
                                     </button>
@@ -1316,7 +1209,6 @@ export default function Sets() {
                                         onKeyDown={(event) => {
                                             if (event.key === "Enter")
                                                 void handleSave();
-
                                             if (event.key === "Escape")
                                                 handleCancel();
                                         }}
@@ -1328,14 +1220,11 @@ export default function Sets() {
                                         placeholder="Definition"
                                         value={newDefinition}
                                         onChange={(event) =>
-                                            setNewDefinition(
-                                                event.target.value,
-                                            )
+                                            setNewDefinition(event.target.value)
                                         }
                                         onKeyDown={(event) => {
                                             if (event.key === "Enter")
                                                 void handleSave();
-
                                             if (event.key === "Escape")
                                                 handleCancel();
                                         }}
