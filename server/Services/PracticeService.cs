@@ -102,7 +102,7 @@ namespace QuattroLingo.Services
                 ?? throw new ValidationException(
                     "Question must have exactly one correct answer.");
 
-            if (selectedAnswer.IsCorrect && question.CardId.HasValue)
+            if (question.CardId.HasValue)
             {
                 var card = await db.Cards.FindAsync(question.CardId.Value);
                 if (card != null)
