@@ -121,6 +121,7 @@ export default function Quizzes() {
                     description: res.data.description,
                     isPublic: res.data.isPublic,
                     creatorName: "",
+                    questionCount: res.data.questions.length,
                 },
             ]);
 
@@ -195,6 +196,7 @@ export default function Quizzes() {
                     description: result.data.description,
                     isPublic: result.data.isPublic,
                     creatorName: "",
+                    questionCount: result.data.questions.length,
                 },
             ]);
 
