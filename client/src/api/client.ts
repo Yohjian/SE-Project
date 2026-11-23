@@ -158,11 +158,11 @@ export const practiceApi = {
         category?: number;
         language?: number;
         difficulty?: number;
-    }) => client.get<unknown>("/practice", { params: filters }),
+    }) => client.get<unknown>("/practice/quizzes", { params: filters }),
 
-    getQuizById: (quizId: number) =>
-        client.get<PracticeQuizResponse>(`/practice/${quizId}`),
+    getQuiz: (quizId: number) =>
+        client.get<PracticeQuizResponse>(`/practice/quizzes/${quizId}`),
 
-    answer: (request: PracticeAnswerRequest) =>
+    checkAnswer: (request: PracticeAnswerRequest) =>
         client.post<PracticeAnswerResponse>("/practice/answer", request),
 };
