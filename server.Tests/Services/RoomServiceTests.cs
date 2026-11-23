@@ -58,6 +58,17 @@ namespace QuattroLingo.Tests.Services
                 Rooms.RemoveAll(r => r.Id == roomId);
                 return Task.CompletedTask;
             }
+
+            public Task UpdateRoomAsync(Room room)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task ResetRoomAsync(int roomId)
+            {
+                return Task.CompletedTask;
+            }
+
             public Task<int> CancelWaitingRoomsOlderThanAsync(DateTime cutoffUtc) => Task.FromResult(0);
             public Task<int> CancelInProgressRoomsAsync() => Task.FromResult(0);
         }
@@ -73,7 +84,21 @@ namespace QuattroLingo.Tests.Services
         }
 
         private static Quiz OwnedQuiz(string ownerId = "user-1") =>
-            new() { Id = 1, OwnerId = ownerId, Title = "English Quiz" };
+            new()
+            {
+                Id = 1,
+                OwnerId = ownerId,
+                Title = "English Quiz",
+                Questions = new List<Question>
+                {
+                    new()
+                    {
+                        Id = 1,
+                        QuizId = 1,
+                        Text = "What is hello in Lithuanian?"
+                    }
+                }
+            };
 
         private static Room WaitingRoom(string code = "123456") =>
             new() { Id = 1, QuizId = 1, HostId = "host", JoinCode = code, Status = RoomStatus.Waiting };

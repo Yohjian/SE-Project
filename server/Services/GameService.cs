@@ -431,6 +431,67 @@ namespace QuattroLingo.Services
             await CancelGameAsync(game, onlyIfWaiting: true);
         }
 
+        public async Task RestartRoomAsync(string joinCode, string hostUserId)
+        {
+            var code = joinCode?.Trim() ?? string.Empty;
+
+            await _loadLock.WaitAsync();
+
+            try
+            {
+                using var scope = _scopes.CreateScope();
+                var rooms = scope.ServiceProvider
+                    .GetRequiredService<IRoomRepository>();
+
+                var room = await rooms.GetByJoinCodeAsync(code)
+                    ?? throw new NotFoundException("Room not found.");
+
+                if (room.HostId != hostUserId)
+                {
+                    throw new ForbiddenException(
+                        "Only the host can restart this room.");
+                }
+
+                if (room.Status is not (RoomStatus.Finished or RoomStatus.Cancelled))
+                {
+                    throw new ConflictException(
+                        "Only finished or cancelled rooms can be restarted.");
+                }
+
+                if (_games.TryGetValue(code, out var game))
+                {
+                    using (await game.LockAsync())
+                    {
+                        if (game.Phase is not (GamePhase.Finished or GamePhase.Cancelled))
+                        {
+                            throw new ConflictException(
+                                "The current game has not finished.");
+                        }
+
+                        await rooms.ResetRoomAsync(room.Id);
+
+                        foreach (var connection in _connections
+                            .Where(c => c.Value.JoinCode == game.JoinCode)
+                            .ToList())
+                        {
+                            await _notifier.RemoveFromRoomAsync(
+                                connection.Key,
+                                game.JoinCode);
+                        }
+                        
+                        RemoveGame(game);
+                    }
+                }
+                else
+                {
+                    await rooms.ResetRoomAsync(room.Id);
+                }
+            }
+            finally
+            {
+                _loadLock.Release();
+            }
+        }
         private async Task CancelUnloadedRoomAsync(string code, string hostUserId)
         {
             using var scope = _scopes.CreateScope();

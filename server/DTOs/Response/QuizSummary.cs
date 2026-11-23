@@ -5,6 +5,7 @@ namespace QuattroLingo.DTOs.Response
         string Title,
         string? Description,
         bool IsPublic,
-        string CreatorName
+        string CreatorName,
+        int QuestionCount
     );
 }
